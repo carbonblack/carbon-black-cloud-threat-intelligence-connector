@@ -124,8 +124,13 @@ def generate_config():
 
 
 def main():
-    # migrate()
-    generate_config()
+    print('1 Migrate old config')
+    print('2 Create new config')
+    choice = eval(input())
+    if choice == 1:
+        migrate()
+    elif choice == 2:
+        generate_config()
 
 
 if __name__ == "__main__":
