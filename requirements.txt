@@ -1,1 +1,9 @@
 stix
+stix-validator
+stix2
+stix2-validator
+stix
+stix-shifter-utils
+stix-shifter
+stix-shifter-modules-cbcloud
+carbon-black-cloud-sdk
