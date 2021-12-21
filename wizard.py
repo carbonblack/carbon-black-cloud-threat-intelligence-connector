@@ -54,7 +54,9 @@ TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
 
 def migrate():
     """Migrate the old config.yml to the new format"""
-    filepath = input("Please enter the path to the old config or enter for default (old_config.yml): ")
+    filepath = input(
+        "Please enter the path to the old config or enter for default (old_config.yml): "
+    )
     if filepath == "":
         filepath = OLD_CONFIG_FILE
 
@@ -64,7 +66,6 @@ def migrate():
 
     with open(filepath) as file:
         old_config = yaml.safe_load(file)
-
     data = {"config_path": CONFIG_INI_PATH, "sites": []}
 
     # convert data to the new format
@@ -104,6 +105,7 @@ def enter_feed_data():
         return
     feed_name = input("Enter name for the feed:")
     feed_data = {feed_name: copy.deepcopy(TEMPLATES[version - 1])}
+
     for key, dvalue in TEMPLATES[version - 1].items():
         if key not in LIST_FIELDS:
             value = input(
@@ -112,9 +114,7 @@ def enter_feed_data():
             if value:
                 feed_data[feed_name][key] = eval(value) if key in EVAL_VALUES else value
         else:
-            value = input(
-                f"Please enter the values for `{key}` separated with space: "
-            )
+            value = input(f"Please enter the values for `{key}` separated with space: ")
             feed_data[feed_name][key].extend(value.split())
     return feed_data
 
@@ -123,11 +123,8 @@ def enter_new_site(data=None):
     """Gather the information about the new site data, including the feeds
 
     Args:
-        data (dict): (optional) existing data for all the sites
+        data (dict): existing data for all the sites
     """
-    if not data:
-        data = dict(sites=[])
-
     while True:
         choice = input("Add a site (y/N) ")
         if not choice or choice.lower() == "n":
@@ -156,32 +153,34 @@ def generate_config():
 
 
 def update_config():
-    """Updates config of the new structure"""
+    """Update config of the new structure"""
     with open(CONFIG_FILE) as file:
         config_data = yaml.safe_load(file)
-    print(config_data)
-    print('1 Add new site')
-    print('2 Add feeds to existing site')
+
+    print("1 Add new site")
+    print("2 Add feeds to existing site")
     choice = int(input())
 
     if choice == 1:
         enter_new_site(config_data)
     elif choice == 2:
         map_index_to_name = {}
-        for i, item in enumerate(config_data['sites']):
+        for i, item in enumerate(config_data["sites"]):
             site_name = list(item.keys())[0]
             map_index_to_name[i] = site_name
-            print(f'{i + 1} Add feeds to {site_name}')
-        print('0 Exit')
+            print(f"{i + 1} Add feeds to {site_name}")
+        print("0 Exit")
         site_choice = input()
-        if not site_choice or site_choice == '0' or not site_choice.isalnum():
+        if not site_choice or site_choice == "0" or not site_choice.isalnum() or int(site_choice) > i + 1:
             return
-        else:
-            while True:
-                feed_data = enter_feed_data()
-                if not feed_data:
-                    break
-                config_data['sites'][int(site_choice) - 1][map_index_to_name[int(site_choice) - 1]]['feeds'].append(feed_data)
+
+        while True:
+            feed_data = enter_feed_data()
+            if not feed_data:
+                break
+            config_data["sites"][int(site_choice) - 1][
+                map_index_to_name[int(site_choice) - 1]
+            ]["feeds"].append(feed_data)
 
     with open(CONFIG_FILE, "w") as new_config:
         yaml.dump(config_data, new_config, default_flow_style=False, sort_keys=False)
@@ -193,7 +192,7 @@ def main():
     print("2 Create new config")
     print("3 Update config")
     print("0 Exit")
-    choice = eval(input())
+    choice = int(input())
     if choice == 1:
         migrate()
     elif choice == 2:
