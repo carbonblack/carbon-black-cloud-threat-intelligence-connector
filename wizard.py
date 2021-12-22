@@ -2,6 +2,7 @@
 Script to either migrate the old config.yml or to configure completely new.
 """
 import os
+import sys
 import copy
 import yaml
 
@@ -100,9 +101,10 @@ def enter_feed_data():
     print("1 Version 1.2")
     print("2 Version 2.0 or 2.1")
     print("0 Exit")
-    version = int(input())
-    if not version:
+    version = input()
+    if not (version and version.isdigit() and 1 <= int(version) <= 2):
         return
+    version = int(version)
     feed_name = input("Enter name for the feed:")
     feed_data = {feed_name: copy.deepcopy(TEMPLATES[version - 1])}
 
@@ -159,8 +161,10 @@ def update_config():
 
     print("1 Add new site")
     print("2 Add feeds to existing site")
-    choice = int(input())
-
+    choice = input()
+    if not (choice and choice.isdigit() and int(choice) in [1, 2]):
+        return
+    choice = int(choice)
     if choice == 1:
         enter_new_site(config_data)
     elif choice == 2:
@@ -188,19 +192,25 @@ def update_config():
 
 def main():
     """Main menu to migrate or create/update config"""
-    print("1 Migrate old config")
-    print("2 Create new config")
-    print("3 Update config")
-    print("0 Exit")
-    choice = int(input())
-    if choice == 1:
-        migrate()
-    elif choice == 2:
-        generate_config()
-    elif choice == 3:
-        update_config()
-    else:
-        return
+    menu_text = ['1 Migrate old config',
+                 '2 Create new config',
+                 '3 Update config',
+                 '0 Exit']
+
+    menu = {
+        '0': sys.exit,
+        '1': migrate,
+        '2': generate_config,
+        '3': update_config
+    }
+
+    print(*menu_text, sep='\n')
+    choice = input()
+    while choice not in menu:
+        print(*menu_text, sep='\n')
+        choice = input()
+
+    menu[choice]()
 
 
 if __name__ == "__main__":
