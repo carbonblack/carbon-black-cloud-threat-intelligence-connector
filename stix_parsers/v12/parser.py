@@ -1,8 +1,8 @@
 import logging
 import subprocess
 
-from stix.core import STIXPackage
 from stix2elevator import elevate
+from stix.core import STIXPackage
 
 
 class STIXParserError(Exception):
@@ -22,9 +22,13 @@ class ParserV12:
     @staticmethod
     def _validate_file(xml_file):
         """Validating the STIX Feed."""
-        validation_code = subprocess.call(["stix-validator", xml_file], stdout=subprocess.PIPE)
+        validation_code = subprocess.call(
+            ["stix-validator", xml_file], stdout=subprocess.PIPE
+        )
         if validation_code != 0:
-            raise STIXParserError(f"Error during the validation. Error code {validation_code}.")
+            raise STIXParserError(
+                f"Error during the validation. Error code {validation_code}."
+            )
         return True
 
     @staticmethod
@@ -45,7 +49,6 @@ class ParserV12:
         if self._validate_file(xml_file):
             stix_package = STIXPackage.from_xml(xml_file)
             reports = self._parse_stix_objects(stix_package)
-
 
     def parse_feed(self, *args, **kwargs):
         pass

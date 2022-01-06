@@ -2,13 +2,13 @@ import logging
 import typing
 
 import stix2
-from stix2patterns.v21.pattern import Pattern
-from stix2validator import validate_file
+from cbc_sdk import CBCloudAPI
+from cbc_sdk.enterprise_edr import IOC_V2
 from stix2 import parse
 from stix2.v21 import Indicator, ObservedData
+from stix2patterns.v21.pattern import Pattern
+from stix2validator import validate_file
 
-from cbc_sdk.enterprise_edr import IOC_V2
-from cbc_sdk import CBCloudAPI
 from stix_parsers.v21.stix_pattern_parser import STIXPatternParser
 
 
@@ -36,7 +36,9 @@ class ParserV21:
         validate = validate_file(file)
         if validate.is_valid:
             with open(file) as stix_file:
-                stix_content = parse(stix_file, allow_custom=True, version=self.STIX_VERSION)
+                stix_content = parse(
+                    stix_file, allow_custom=True, version=self.STIX_VERSION
+                )
                 if stix_content.objects:
                     self.iocs = self._parse_stix_objects(stix_content)
                     return self.iocs

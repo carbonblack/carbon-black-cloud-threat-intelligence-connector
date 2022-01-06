@@ -1,7 +1,6 @@
 import typing
 
 import validators
-
 from stix2patterns.v21.grammars.STIXPatternListener import STIXPatternListener
 
 
@@ -195,6 +194,7 @@ class STIXPatternParser(STIXPatternListener):
     STIXPatternListener extender for the custom parsing of the
     STIX Pattern.
     """
+
     def __init__(self) -> None:
         self.matched_iocs = []
 
