@@ -1,4 +1,5 @@
 import typing
+from urllib.parse import urlparse
 
 import validators
 from stix2patterns.v21.grammars.STIXPatternListener import STIXPatternListener
@@ -9,35 +10,42 @@ class IOCPatternParser:
     Parser for STIX Patterns to dict with mapped values and fields.
     """
 
-    def __init__(self, stix_field_type: str, stix_field_value: str):
+    def __init__(self, stix_field_type: str, stix_field_value: str) -> None:
+        """
+        Constructor for IOCPatternParser
+
+        Args:
+            stix_field_type (str): STIX Object field type
+            stix_field_value (str): STIX Object value
+        """
         self.mappings = {
             "ipv4-addr:value": {"function": self.parse_ipv4, "field": "netconn_ipv4"},
             "ipv6-addr:value": {
-                "function": IOCPatternParser.parse_ipv6,
-                "field": "netconn_ipv4",
+                "function": self.parse_ipv6,
+                "field": "netconn_ipv6",
             },
             "file:hashes.'SHA-256'": {
-                "function": IOCPatternParser.parse_sha256,
+                "function": self.parse_sha256,
                 "field": "process_hash",
             },
             "artifact:hashes.'SHA-256'": {
-                "function": IOCPatternParser.parse_sha256,
+                "function": self.parse_sha256,
                 "field": "process_hash",
             },
             "file:hashes.'MD5'": {
-                "function": IOCPatternParser.parse_md5,
+                "function": self.parse_md5,
                 "field": "process_hash",
             },
             "artifact:hashes.'MD5'": {
-                "function": IOCPatternParser.parse_md5,
+                "function": self.parse_md5,
                 "field": "process_hash",
             },
             "url:value": {
-                "function": IOCPatternParser.parse_url,
+                "function": self.parse_url,
                 "field": "netconn_domain",
             },
             "domain-name:value": {
-                "function": IOCPatternParser.parse_domain,
+                "function": self.parse_domain,
                 "field": "netconn_domain",
             },
         }
@@ -100,7 +108,7 @@ class IOCPatternParser:
         stripped_value = value.strip("'")
         valid = validators.ipv4(stripped_value) or validators.ipv4_cidr(stripped_value)
         if valid:
-            return stripped_value
+            return stripped_value.split("/")[0]
         return None
 
     @staticmethod
@@ -117,7 +125,7 @@ class IOCPatternParser:
         stripped_value = value.strip("'")
         valid = validators.ipv6(stripped_value) or validators.ipv6_cidr(stripped_value)
         if valid:
-            return stripped_value
+            return stripped_value.split("/")[0]
         return None
 
     @staticmethod
@@ -134,7 +142,7 @@ class IOCPatternParser:
         stripped_value = value.strip("'")
         valid = validators.url(stripped_value)
         if valid:
-            return stripped_value
+            return urlparse(stripped_value).netloc
         return None
 
     @staticmethod
