@@ -2,6 +2,6 @@ stix
 stix-validator
 stix2
 stix2-validator
+stix2-patterns
 carbon-black-cloud-sdk
-pydantic
 validators
