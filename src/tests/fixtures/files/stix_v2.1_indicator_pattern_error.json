@@ -1,0 +1,22 @@
+{
+  "id": "bundle--f221fe7e-3ca9-40e6-9c05-631fa0317f8d",
+  "objects": [
+    {
+      "created": "2021-09-16T01:00:13.000Z",
+      "description": "400 BAD REQUEST",
+      "id": "indicator--3d81bcd2-668e-477f-9c7f-c912f6467464",
+      "labels": [
+        "scanning_host"
+      ],
+      "modified": "2021-09-16T01:00:13.000Z",
+      "name": "OTX pulse_name=Webscanners with Bad Requests - HTTP Status 400 - 1/20/2018 thru current day",
+      "pattern": "error",
+      "pattern_type": "stix",
+      "pattern_version": "2.1",
+      "spec_version": "2.1",
+      "type": "indicator",
+      "valid_from": "2021-09-16T01:00:13.000Z",
+      "valid_until": "2021-12-15T00:00:00.000Z"
+    }
+  ]
+}

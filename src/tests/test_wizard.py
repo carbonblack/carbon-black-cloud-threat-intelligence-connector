@@ -1,5 +1,6 @@
 import pytest
-from wizard import main
+
+from src.cli.wizard import main
 
 
 class MockFileManager:
@@ -512,11 +513,7 @@ def test_update_config_add_feed_wrong_choice(monkeypatch):
     dump_called = False
 
     def update_config_input(the_prompt=""):
-        inputs = [
-            "3",
-            "2",
-            "10"
-        ]
+        inputs = ["3", "2", "10"]
         nonlocal called
         called += 1
         return inputs[called]
@@ -702,10 +699,7 @@ def test_update_config_wrong_choice(monkeypatch):
     dump_called = False
 
     def update_config_input(the_prompt=""):
-        inputs = [
-            "3",
-            "a"
-        ]
+        inputs = ["3", "a"]
         nonlocal called
         called += 1
         return inputs[called]
@@ -782,10 +776,7 @@ def test_generate_config_no_site(monkeypatch):
     dump_called = False
 
     def generate_config_input(the_prompt=""):
-        inputs = [
-            "2",
-            "n"
-        ]
+        inputs = ["2", "n"]
         nonlocal called
         called += 1
         return inputs[called]
@@ -810,12 +801,14 @@ def test_generate_config_no_site(monkeypatch):
 
 def test_exit(monkeypatch):
     called = False
+
     def wrong_and_exit_input():
         nonlocal called
         if called:
             return "0"
         called = True
         return "a"
+
     monkeypatch.setattr("builtins.input", wrong_and_exit_input)
 
     with pytest.raises(SystemExit):

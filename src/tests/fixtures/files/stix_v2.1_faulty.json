@@ -6218,7 +6218,7 @@
       "id": "indicator--6c8385aa-faf1-473d-91da-d4bb5c71efe8",
       "labels": [
         "scanning_host"
-      ],
+      ]
       "modified": "2021-09-21T20:15:10.000Z",
       "name": "OTX pulse_name=Webscanners with Bad Requests - HTTP Status 400 - 1/20/2018 thru current day",
       "pattern": "[ipv4-addr:value = '112.239.123.205']",
