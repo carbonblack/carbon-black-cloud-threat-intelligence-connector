@@ -1,5 +1,6 @@
 import pytest
-from wizard import main
+
+from src.cli.wizard import main
 
 
 class MockFileManager:
