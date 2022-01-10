@@ -10,7 +10,7 @@ from stix2.v21 import File, Indicator
 from stix2patterns.v21.pattern import Pattern
 from stix2validator import validate_file
 
-from stix_parsers.v21.stix_pattern_parser import STIXPatternParser
+from src.stix_parsers.v21.stix_pattern_parser import STIXPatternParser
 
 
 class ParserV21:

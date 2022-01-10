@@ -1,4 +1,4 @@
-<stix:STIX_Package 
+<stix:STIX_Package
 	xmlns:AddressObj="http://cybox.mitre.org/objects#AddressObject-2"
 	xmlns:simpleMarking="http://data-marking.mitre.org/extensions/MarkingStructure#Simple-1"
 	xmlns:stixVocabs="http://stix.mitre.org/default_vocabularies-1"

@@ -1,15 +1,20 @@
 """
 Script to either migrate the old config.yml or to configure completely new.
 """
+import copy
 import os
 import sys
-import copy
-import yaml
 
-CONFIG_INI_PATH = "config.ini"
+import yaml
+from cbc_sdk import CBCloudAPI
+
+from src.utils.cbc_helpers import get_feed
+
+CBC_PROFILE_NAME = "default"
 CONFIG_FILE = "config.yml"
-OLD_CONFIG_FILE = "old_config.yml"
+OLD_CONFIG_FILE = "config.yml"
 LIST_FIELDS = ["collections"]
+CBC_FEED_FIELD = "feed_base_name"
 EVAL_VALUES = [
     "version",
     "enabled",
@@ -21,7 +26,7 @@ EVAL_VALUES = [
 TEMPLATE_SITE_DATA_V1 = {
     "version": 1.2,
     "enabled": True,
-    "feed_id": "",
+    "feed_base_name": "",
     "site": "",
     "discovery_path": "",
     "collection_management_path": "",
@@ -37,18 +42,18 @@ TEMPLATE_SITE_DATA_V1 = {
     "ca_cert": "",
     "http_proxy_url": "",
     "https_proxy_url": "",
-    "username": "",
-    "password": "",
+    "username": "guest",
+    "password": "guest",
 }
 
 TEMPLATE_SITE_DATA_V2 = {
     "version": 2.0,
     "enabled": True,
-    "feed_id": "",
+    "feed_base_name": "",
     "site": "",
     "discovery_path": "",
-    "username": "",
-    "password": "",
+    "username": "guest",
+    "password": "guest",
 }
 TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
 
@@ -56,7 +61,7 @@ TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
 def migrate():
     """Migrate the old config.yml to the new format"""
     filepath = input(
-        "Please enter the path to the old config or enter for default (old_config.yml): "
+        f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): "
     )
     if filepath == "":
         filepath = OLD_CONFIG_FILE
@@ -67,28 +72,38 @@ def migrate():
 
     with open(filepath) as file:
         old_config = yaml.safe_load(file)
-    data = {"config_path": CONFIG_INI_PATH, "sites": []}
+    data = {"cbc_profile_name": CBC_PROFILE_NAME, "sites": []}
+
+    cb = CBCloudAPI(profile=CBC_PROFILE_NAME)
 
     # convert data to the new format
-    for key, values in old_config["sites"].items():
+    for site_name, values in old_config["sites"].items():
         # for each site in the old config, add one item
-        item_data = {key: {"feeds": []}}
-        item_data[key]["feeds"].append(
-            {"stix_feed1": copy.deepcopy(TEMPLATE_SITE_DATA_V1)}
-        )
+        item_data = {site_name: copy.deepcopy(TEMPLATE_SITE_DATA_V1)}
+
+        # add feed name instead of feed_id
+        item_data[site_name]["feed_base_name"] = get_feed(
+            cb, feed_id=values["feed_id"]
+        ).name
+
         for inner_key in values:
-            if values[inner_key] and inner_key not in LIST_FIELDS:
-                item_data[key]["feeds"][0]["stix_feed1"][inner_key] = values[inner_key]
+            if (
+                values[inner_key]
+                and inner_key not in LIST_FIELDS
+                and inner_key != "feed_id"
+            ):
+                item_data[site_name][inner_key] = values[inner_key]
 
         # add collections as a list
-        item_data[key]["feeds"][0]["stix_feed1"]["collections"].append(
-            values["collections"]
-        )
+        item_data[site_name]["collections"].append(values["collections"])
+
         # add this site information
         data["sites"].append(item_data)
 
     with open(CONFIG_FILE, "w") as new_config:
         yaml.dump(data, new_config, default_flow_style=False, sort_keys=False)
+
+    print("Successfully migrated the config")
 
 
 def enter_feed_data():
@@ -105,8 +120,7 @@ def enter_feed_data():
     if not (version and version.isdigit() and 1 <= int(version) <= 2):
         return
     version = int(version)
-    feed_name = input("Enter name for the feed:")
-    feed_data = {feed_name: copy.deepcopy(TEMPLATES[version - 1])}
+    feed_data = copy.deepcopy(TEMPLATES[version - 1])
 
     for key, dvalue in TEMPLATES[version - 1].items():
         if key not in LIST_FIELDS:
@@ -114,10 +128,10 @@ def enter_feed_data():
                 f"Please enter value for `{key}` or press enter to use default ({dvalue}): "
             )
             if value:
-                feed_data[feed_name][key] = eval(value) if key in EVAL_VALUES else value
+                feed_data[key] = eval(value) if key in EVAL_VALUES else value
         else:
             value = input(f"Please enter the values for `{key}` separated with space: ")
-            feed_data[feed_name][key].extend(value.split())
+            feed_data[key].extend(value.split())
     return feed_data
 
 
@@ -132,13 +146,7 @@ def enter_new_site(data=None):
         if not choice or choice.lower() == "n":
             break
         site_name = input("Enter site name: ")
-        site_data = {site_name: {"feeds": []}}
-        while True:
-            feed_data = enter_feed_data()
-            if not feed_data:
-                break
-            site_data[site_name]["feeds"].append(feed_data)
-
+        site_data = {site_name: enter_feed_data()}
         data["sites"].append(site_data)
 
 
@@ -146,8 +154,10 @@ def generate_config():
     """Create config file"""
     print("This script will lead you through the generation of the config file")
     print("=" * 80)
-
-    data = {"config_path": CONFIG_INI_PATH, "sites": []}
+    cbc_profile_name = (
+        input("Enter cbc profile name or just press enter for default") or "default"
+    )
+    data = {"cbc_profile_name": cbc_profile_name, "sites": []}
     enter_new_site(data)
 
     with open(CONFIG_FILE, "w") as new_config:
@@ -160,31 +170,12 @@ def update_config():
         config_data = yaml.safe_load(file)
 
     print("1 Add new site")
-    print("2 Add feeds to existing site")
     choice = input()
-    if not (choice and choice.isdigit() and int(choice) in [1, 2]):
+    if not (choice and choice.isdigit() and int(choice) == 1):
         return
     choice = int(choice)
     if choice == 1:
         enter_new_site(config_data)
-    elif choice == 2:
-        map_index_to_name = {}
-        for i, item in enumerate(config_data["sites"]):
-            site_name = list(item.keys())[0]
-            map_index_to_name[i] = site_name
-            print(f"{i + 1} Add feeds to {site_name}")
-        print("0 Exit")
-        site_choice = input()
-        if not site_choice or site_choice == "0" or not site_choice.isalnum() or int(site_choice) > i + 1:
-            return
-
-        while True:
-            feed_data = enter_feed_data()
-            if not feed_data:
-                break
-            config_data["sites"][int(site_choice) - 1][
-                map_index_to_name[int(site_choice) - 1]
-            ]["feeds"].append(feed_data)
 
     with open(CONFIG_FILE, "w") as new_config:
         yaml.dump(config_data, new_config, default_flow_style=False, sort_keys=False)
@@ -192,22 +183,19 @@ def update_config():
 
 def main():
     """Main menu to migrate or create/update config"""
-    menu_text = ['1 Migrate old config',
-                 '2 Create new config',
-                 '3 Update config',
-                 '0 Exit']
+    menu_text = [
+        "1 Migrate old config",
+        "2 Create new config",
+        "3 Update config",
+        "0 Exit",
+    ]
 
-    menu = {
-        '0': sys.exit,
-        '1': migrate,
-        '2': generate_config,
-        '3': update_config
-    }
+    menu = {"0": sys.exit, "1": migrate, "2": generate_config, "3": update_config}
 
-    print(*menu_text, sep='\n')
+    print(*menu_text, sep="\n")
     choice = input()
     while choice not in menu:
-        print(*menu_text, sep='\n')
+        print(*menu_text, sep="\n")
         choice = input()
 
     menu[choice]()
