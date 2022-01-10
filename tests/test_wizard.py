@@ -1,4 +1,5 @@
 import pytest
+
 from wizard import main
 
 

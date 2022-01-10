@@ -6,7 +6,7 @@ from cbc_sdk import CBCloudAPI
 from cbc_sdk.enterprise_edr import IOC_V2
 from stix2 import parse as stix2parse
 from stix2.exceptions import InvalidValueError
-from stix2.v21 import Indicator, File
+from stix2.v21 import File, Indicator
 from stix2patterns.v21.pattern import Pattern
 from stix2validator import validate_file
 
@@ -19,17 +19,14 @@ class ParserV21:
     objects to `cbc_sdk.enterprise_edr.IOC_V2`.
     """
 
-    def __init__(self, cbcapi: CBCloudAPI, strict=False) -> None:
+    def __init__(self, cbcapi: CBCloudAPI) -> None:
         """
         Args:
-            strict (bool): If strict is True the script will terminate if it encounters
-            a parsing error, otherwise it will log it and continue.
             cbcapi (CBCloudAPI): The Authorized CBC Instance
 
         """
         self.STIX_VERSION = "2.1"
         self.cbcapi = cbcapi
-        self.strict = strict
 
     def parse_file(self, file: str) -> typing.List[IOC_V2]:
         """
@@ -47,11 +44,7 @@ class ParserV21:
                 stix_content = stix2parse(
                     stix_file, allow_custom=True, version=self.STIX_VERSION
                 )
-                if stix_content.objects:
-                    return self._parse_stix_objects(stix_content)
-                else:
-                    logging.info("No STIX objects found")
-                    return []
+                return self._parse_stix_objects(stix_content)
         else:
             raise ValueError(f"JSON file is not valid or empty: {validate.as_dict()}")
 
@@ -71,13 +64,7 @@ class ParserV21:
         iocs = []
         for stix_obj in stix_content.objects:
             if isinstance(stix_obj, Indicator):
-                if self.strict:
-                    iocs += self._parse_stix_indicator(stix_obj)
-                else:
-                    try:
-                        iocs += self._parse_stix_indicator(stix_obj)
-                    except InvalidValueError:
-                        logging.error(f"Encountered `InvalidValueError` during the parsing of {stix_obj.id}")
+                iocs.extend(self._parse_stix_indicator(stix_obj))
         return iocs
 
     def _parse_stix_file(self, file: File):
@@ -98,8 +85,11 @@ class ParserV21:
         """
         logging.info(f"Parsing {indicator.id}")
         iocs = []
-        stix_pattern_parser = STIXPatternParser()
-        Pattern(indicator.pattern).walk(stix_pattern_parser)
+        try:
+            stix_pattern_parser = STIXPatternParser()
+            Pattern(indicator.pattern).walk(stix_pattern_parser)
+        except InvalidValueError:
+            return []
         for ioc in stix_pattern_parser.matched_iocs:
             iocs.append(
                 IOC_V2.create_equality(
