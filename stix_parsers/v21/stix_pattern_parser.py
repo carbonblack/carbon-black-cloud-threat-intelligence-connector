@@ -2,6 +2,7 @@ import typing
 from urllib.parse import urlparse
 
 import validators
+from cbc_sdk.enterprise_edr import IOC_V2
 from stix2patterns.v21.grammars.STIXPatternListener import STIXPatternListener
 
 
@@ -204,7 +205,7 @@ class STIXPatternParser(STIXPatternListener):
     """
 
     def __init__(self) -> None:
-        self.matched_iocs = []
+        self.matched_iocs: typing.List[IOC_V2] = []
 
     def enterPropTestEqual(self, context) -> None:
         """

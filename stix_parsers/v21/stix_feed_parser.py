@@ -15,14 +15,14 @@ from stix_parsers.v21.stix_pattern_parser import STIXPatternParser
 
 class ParserV21:
     """
-    Parser for translating `stix2.v21.Indicator` and `stix2.v21.ObservedData`
+    Parser for translating `stix2.v21.Indicator`
     objects to `cbc_sdk.enterprise_edr.IOC_V2`.
     """
 
     def __init__(self, cbcapi: CBCloudAPI) -> None:
         """
         Args:
-            cbcapi (CBCloudAPI): The Authorized CBC Instance
+            cbcapi (CBCloudAPI): The authorized CBC SDK instance
 
         """
         self.STIX_VERSION = "2.1"
@@ -30,10 +30,10 @@ class ParserV21:
 
     def parse_file(self, file: str) -> typing.List[IOC_V2]:
         """
-        Parsing a STIX 2.1 Feed as a file
+        Parsing a STIX v2.1 Feed as a file
 
         Args:
-            file (str): Path to the STIX2.1 feed file in a JSON Format.
+            file (str): Path to the STIX v2.1 feed file in a JSON Format.
 
         Returns:
            List of parsed STIX Objects into IOCs.
