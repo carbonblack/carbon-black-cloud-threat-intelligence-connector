@@ -1,18 +1,29 @@
-"""
-Script to either migrate the old config.yml or to configure completely new.
-"""
+# -*- coding: utf-8 -*-
+
+# *******************************************************
+# Copyright (c) VMware, Inc. 2020-2021. All Rights Reserved.
+# SPDX-License-Identifier: MIT
+# *******************************************************
+# *
+# * DISCLAIMER. THIS PROGRAM IS PROVIDED TO YOU "AS IS" WITHOUT
+# * WARRANTIES OR CONDITIONS OF ANY KIND, WHETHER ORAL OR WRITTEN,
+# * EXPRESS OR IMPLIED. THE AUTHOR SPECIFICALLY DISCLAIMS ANY IMPLIED
+# * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
+# * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
+
+"""Script to either migrate the old config.yml or to configure completely new."""
 import copy
 import os
 import sys
 
 import yaml
-from cbc_sdk import CBCloudAPI
+from cbc_sdk.rest_api import CBCloudAPI
 
 from src.utils.cbc_helpers import get_feed
 
 CBC_PROFILE_NAME = "default"
-CONFIG_FILE = "config.yml"
-OLD_CONFIG_FILE = "config.yml"
+CONFIG_FILE = "../../config.yml"
+OLD_CONFIG_FILE = "../../config.yml"
 LIST_FIELDS = ["collections"]
 CBC_FEED_FIELD = "feed_base_name"
 EVAL_VALUES = [
@@ -59,10 +70,8 @@ TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
 
 
 def migrate():
-    """Migrate the old config.yml to the new format"""
-    filepath = input(
-        f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): "
-    )
+    """Migrate the old config.yml to the new format."""
+    filepath = input(f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): ")
     if filepath == "":
         filepath = OLD_CONFIG_FILE
 
@@ -75,7 +84,7 @@ def migrate():
     data = {"cbc_profile_name": CBC_PROFILE_NAME, "sites": []}
 
     cb = CBCloudAPI(profile=CBC_PROFILE_NAME)
-
+    print('cb', cb)
     # convert data to the new format
     for site_name, values in old_config["sites"].items():
         # for each site in the old config, add one item
@@ -107,7 +116,7 @@ def migrate():
 
 
 def enter_feed_data():
-    """Gather the information about the feed data
+    """Gather the information about the feed data.
 
     Returns:
          dict: feed data or None if not additional feed needs to be added
@@ -136,7 +145,7 @@ def enter_feed_data():
 
 
 def enter_new_site(data=None):
-    """Gather the information about the new site data, including the feeds
+    """Gather the information about the new site data, including the feeds.
 
     Args:
         data (dict): existing data for all the sites
@@ -146,12 +155,15 @@ def enter_new_site(data=None):
         if not choice or choice.lower() == "n":
             break
         site_name = input("Enter site name: ")
-        site_data = {site_name: enter_feed_data()}
+        feed_data = enter_feed_data()
+        if not feed_data:
+            return
+        site_data = {site_name: feed_data}
         data["sites"].append(site_data)
 
 
 def generate_config():
-    """Create config file"""
+    """Create config file."""
     print("This script will lead you through the generation of the config file")
     print("=" * 80)
     cbc_profile_name = (
@@ -165,7 +177,7 @@ def generate_config():
 
 
 def update_config():
-    """Update config of the new structure"""
+    """Update config of the new structure."""
     with open(CONFIG_FILE) as file:
         config_data = yaml.safe_load(file)
 
@@ -182,7 +194,7 @@ def update_config():
 
 
 def main():
-    """Main menu to migrate or create/update config"""
+    """Entry for the main script."""
     menu_text = [
         "1 Migrate old config",
         "2 Create new config",
