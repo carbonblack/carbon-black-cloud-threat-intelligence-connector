@@ -69,9 +69,16 @@ TEMPLATE_SITE_DATA_V2 = {
 TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
 
 
+def get_cb():
+    """Return CBCLoudAPI instance"""
+    return CBCloudAPI(profile=CBC_PROFILE_NAME)
+
+
 def migrate():
     """Migrate the old config.yml to the new format."""
-    filepath = input(f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): ")
+    filepath = input(
+        f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): "
+    )
     if filepath == "":
         filepath = OLD_CONFIG_FILE
 
@@ -83,8 +90,7 @@ def migrate():
         old_config = yaml.safe_load(file)
     data = {"cbc_profile_name": CBC_PROFILE_NAME, "sites": []}
 
-    cb = CBCloudAPI(profile=CBC_PROFILE_NAME)
-    print('cb', cb)
+    cb = get_cb()
     # convert data to the new format
     for site_name, values in old_config["sites"].items():
         # for each site in the old config, add one item

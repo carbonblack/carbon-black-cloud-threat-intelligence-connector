@@ -19,7 +19,7 @@ from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
 from cbc_sdk.credential_providers.default import default_provider_object
 
-from src.cli.wizard import main, CBCloudAPI
+from src.cli.wizard import main, get_cb, CBCloudAPI
 from cbc_sdk.credentials import Credentials
 
 
@@ -47,16 +47,22 @@ def cb(monkeypatch):
         {"url": "https://example.com", "token": "ABCDEFGHIJKLM", "org_key": "A1B2C3D4"}
     )
     mock_provider = MockCredentialProvider({"default": creds})
-    monkeypatch.setattr(default_provider_object, "get_default_provider", lambda x: mock_provider)
-    print('cred', creds)
+    monkeypatch.setattr(
+        default_provider_object, "get_default_provider", lambda x: mock_provider
+    )
     return CBCloudAPI(profile="default")
 
 
 @pytest.fixture(scope="function")
 def cbcsdk_mock(monkeypatch, cb):
     """Mock CBC SDK for unit tests."""
-    print('cccc', cb)
     return CBCSDKMock(monkeypatch, cb)
+
+
+def test_get_cb():
+    """Test get_cb"""
+    obj = get_cb()
+    assert isinstance(obj, CBCloudAPI)
 
 
 def test_migrate_file_doesnt_exist(monkeypatch):
@@ -77,12 +83,12 @@ def test_migrate_file_doesnt_exist(monkeypatch):
 
 def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     """Test for migrating config - success."""
-    api = cbcsdk_mock.api
+    monkeypatch.setattr("src.cli.wizard.get_cb", lambda: cbcsdk_mock.api)
     called = False
     dump_called = False
-    print('mock', cbcsdk_mock)
-    print('mock1', cbcsdk_mock.api)
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/", FEED_GET_RESP)
+    cbcsdk_mock.mock_request(
+        "GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/", FEED_GET_RESP
+    )
 
     def migrate_input(the_prompt=""):
         nonlocal called
@@ -469,6 +475,7 @@ def test_update_config_add_new_site(monkeypatch):
             ],
         }
         from pprint import pprint
+
         pprint(expected_data)
         pprint(data)
         nonlocal dump_called
@@ -513,7 +520,7 @@ def test_update_config_wrong_choice(monkeypatch):
                     "password": "guest",
                 }
             }
-        ]
+        ],
     }
 
     called = -1
@@ -597,7 +604,7 @@ def test_update_config_no_feed_entered(monkeypatch):
                     "password": "guest",
                 }
             }
-        ]
+        ],
     }
 
     called = -1
