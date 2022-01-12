@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # *******************************************************
-# Copyright (c) VMware, Inc. 2020-2021. All Rights Reserved.
-# SPDX-License-Identifier: MIT
+# Copyright (c) VMware, Inc. 2022. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
 # *******************************************************
 # *
 # * DISCLAIMER. THIS PROGRAM IS PROVIDED TO YOU "AS IS" WITHOUT
