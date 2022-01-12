@@ -13,14 +13,14 @@
 
 """Tests for wizard."""
 import pytest
+from cbc_sdk.credentials import Credentials
+from cbc_sdk.credential_providers.default import default_provider_object
 
 from tests.fixtures.cbc_sdk_mock_responses import FEED_GET_RESP
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
-from cbc_sdk.credential_providers.default import default_provider_object
 
-from src.cli.wizard import main, get_cb, CBCloudAPI
-from cbc_sdk.credentials import Credentials
+from cli.wizard import main, get_cb, CBCloudAPI
 
 
 class MockFileManager:
@@ -83,7 +83,7 @@ def test_migrate_file_doesnt_exist(monkeypatch):
 
 def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     """Test for migrating config - success."""
-    monkeypatch.setattr("src.cli.wizard.get_cb", lambda: cbcsdk_mock.api)
+    monkeypatch.setattr("cli.wizard.get_cb", lambda: cbcsdk_mock.api)
     called = False
     dump_called = False
     cbcsdk_mock.mock_request(
@@ -366,118 +366,6 @@ def test_update_config_add_new_site(monkeypatch):
                 },
             ],
         }
-        nonlocal dump_called
-        assert data == expected_data
-        assert kwargs["sort_keys"] is False
-        dump_called = True
-
-    monkeypatch.setattr("builtins.input", update_config_input)
-    monkeypatch.setattr("os.path.exists", lambda x: False)
-    monkeypatch.setattr("yaml.dump", dump_method)
-    monkeypatch.setattr("yaml.safe_load", lambda x: load_data)
-    monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
-    assert dump_called
-
-
-def test_update_config_add_new_site(monkeypatch):
-    load_data = {
-        "cbc_profile_name": "default",
-        "sites": [
-            {
-                "my_site_name_1": {
-                    "version": 1.2,
-                    "enabled": True,
-                    "feed_base_name": "base_name",
-                    "site": "limo.anomali.com",
-                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                    "collection_management_path": "/api/v1/taxii/collection_management/",
-                    "poll_path": "/api/v1/taxii/poll/",
-                    "use_https": "",
-                    "ssl_verify": False,
-                    "cert_file": "",
-                    "key_file": "",
-                    "default_score": "",
-                    "collections": ["ISO_CBC_Export_Filter_S7085"],
-                    "start_date": "",
-                    "size_of_request_in_minutes": "",
-                    "ca_cert": "",
-                    "http_proxy_url": "",
-                    "https_proxy_url": "",
-                    "username": "guest",
-                    "password": "guest",
-                }
-            }
-        ],
-    }
-    called = -1
-    dump_called = False
-
-    def update_config_input(the_prompt=""):
-        inputs = [
-            "3",
-            "1",
-            "y",
-            "my_second_site",
-            "2",
-            "",
-            "",
-            "base_name_2",
-            "site2.com",
-            "/api/v1/taxii/taxii-discovery-service/",
-            "",
-            "",
-            "",
-        ]
-        nonlocal called
-        called += 1
-        return inputs[called]
-
-    def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "site": "limo.anomali.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "collection_management_path": "/api/v1/taxii/collection_management/",
-                        "poll_path": "/api/v1/taxii/poll/",
-                        "use_https": "",
-                        "ssl_verify": False,
-                        "cert_file": "",
-                        "key_file": "",
-                        "default_score": "",
-                        "collections": ["ISO_CBC_Export_Filter_S7085"],
-                        "start_date": "",
-                        "size_of_request_in_minutes": "",
-                        "ca_cert": "",
-                        "http_proxy_url": "",
-                        "https_proxy_url": "",
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-                {
-                    "my_second_site": {
-                        "version": 2.0,
-                        "enabled": True,
-                        "feed_base_name": "base_name_2",
-                        "site": "site2.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-            ],
-        }
-        from pprint import pprint
-
-        pprint(expected_data)
-        pprint(data)
         nonlocal dump_called
         assert data == expected_data
         assert kwargs["sort_keys"] is False

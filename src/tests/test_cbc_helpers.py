@@ -13,23 +13,23 @@
 
 """Tests for the cbc helpers"""
 import pytest
-from src.tests.fixtures.cbc_sdk_mock import CBCSDKMock
-from src.tests.fixtures.cbc_sdk_mock_responses import (
+from cbc_sdk.rest_api import CBCloudAPI
+from cbc_sdk.credential_providers.default import default_provider_object
+from cbc_sdk.credentials import Credentials
+from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError
+from cbc_sdk.enterprise_edr.threat_intelligence import Feed
+
+from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
+from tests.fixtures.cbc_sdk_mock import CBCSDKMock
+from tests.fixtures.cbc_sdk_mock_responses import (
     FEED_GET_ALL_RESP,
     FEED_GET_RESP,
     FEED_INIT,
     WATCHLIST_FROM_FEED_IN,
     WATCHLIST_FROM_FEED_OUT,
 )
-from src.tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
 
-from src.utils.cbc_helpers import get_feed, create_watchlist
-
-from cbc_sdk.rest_api import CBCloudAPI
-from cbc_sdk.credential_providers.default import default_provider_object
-from cbc_sdk.credentials import Credentials
-from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError
-from cbc_sdk.enterprise_edr.threat_intelligence import Feed
+from utils.cbc_helpers import get_feed, create_watchlist
 
 
 @pytest.fixture(scope="function")

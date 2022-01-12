@@ -44,5 +44,4 @@ class MockCredentialProvider(CredentialProvider):
         """
         if section in self._creds:
             return self._creds[section]
-        else:
-            raise CredentialError(f"section {section} not found in credentials")
+        raise CredentialError(f"section {section} not found in credentials")
