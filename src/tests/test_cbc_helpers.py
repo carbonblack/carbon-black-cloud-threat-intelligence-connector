@@ -14,14 +14,22 @@
 """Tests for the cbc helpers"""
 import pytest
 from src.tests.fixtures.cbc_sdk_mock import CBCSDKMock
-from src.tests.fixtures.cbc_sdk_mock_responses import FEED_GET_ALL_RESP, FEED_GET_RESP
+from src.tests.fixtures.cbc_sdk_mock_responses import (
+    FEED_GET_ALL_RESP,
+    FEED_GET_RESP,
+    FEED_INIT,
+    WATCHLIST_FROM_FEED_IN,
+    WATCHLIST_FROM_FEED_OUT,
+)
 from src.tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
 
-from src.utils.cbc_helpers import get_feed
+from src.utils.cbc_helpers import get_feed, create_watchlist
+
 from cbc_sdk.rest_api import CBCloudAPI
 from cbc_sdk.credential_providers.default import default_provider_object
 from cbc_sdk.credentials import Credentials
 from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError
+from cbc_sdk.enterprise_edr.threat_intelligence import Feed
 
 
 @pytest.fixture(scope="function")
@@ -91,3 +99,19 @@ def test_get_feed_by_missing_params(cbcsdk_mock):
     api = cbcsdk_mock.api
     with pytest.raises(ValueError):
         get_feed(api)
+
+
+def test_create_watchlist(cbcsdk_mock):
+    """Test create_watchlist"""
+
+    def on_post(url, body, **kwargs):
+        assert body == WATCHLIST_FROM_FEED_IN
+        return WATCHLIST_FROM_FEED_OUT
+
+    cbcsdk_mock.mock_request(
+        "POST", "/threathunter/watchlistmgr/v3/orgs/A1B2C3D4/watchlists", on_post
+    )
+    api = cbcsdk_mock.api
+    feed = Feed(api, initial_data=FEED_INIT)
+    watchlist = create_watchlist(api, feed)
+    assert watchlist is not None

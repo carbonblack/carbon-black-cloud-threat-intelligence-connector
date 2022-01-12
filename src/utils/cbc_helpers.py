@@ -12,8 +12,10 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
 """CBC Helpers"""
-from cbc_sdk.enterprise_edr import Feed
+from cbc_sdk.enterprise_edr import Feed, Watchlist
 from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError
+
+"""Feed Helpers"""
 
 
 def get_feed(cb, feed_name=None, feed_id=None):
@@ -31,3 +33,12 @@ def get_feed(cb, feed_name=None, feed_id=None):
         return feeds[0]
     else:
         raise ValueError("expected either feed_id or feed_name")
+
+
+"""Watchlist Helpers"""
+
+
+def create_watchlist(cb, feed, name="Subscribed feed", description="STIX/TAXII"):
+    """Create watchlist from feed"""
+    watchlist = Watchlist.create_from_feed(feed, name, description)
+    return watchlist.save()
