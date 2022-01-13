@@ -71,7 +71,7 @@ TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
 
 def get_cb():
     """Return CBCLoudAPI instance"""
-    return CBCloudAPI(profile=CBC_PROFILE_NAME)
+    return CBCloudAPI(profile=CBC_PROFILE_NAME, integration_name="STIX/TAXII")
 
 
 def migrate():
