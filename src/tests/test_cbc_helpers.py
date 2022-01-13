@@ -12,24 +12,29 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
 """Tests for the cbc helpers"""
+import copy
+
 import pytest
 from cbc_sdk.rest_api import CBCloudAPI
 from cbc_sdk.credential_providers.default import default_provider_object
 from cbc_sdk.credentials import Credentials
 from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError
-from cbc_sdk.enterprise_edr.threat_intelligence import Feed
+from cbc_sdk.enterprise_edr.threat_intelligence import Feed, Report, IOC_V2
 
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_mock_responses import (
+    FEED_CREATE_NO_REPORT_INIT,
     FEED_GET_ALL_RESP,
     FEED_GET_RESP,
     FEED_INIT,
+    FEED_POST_RESP,
+    REPORT_INIT,
     WATCHLIST_FROM_FEED_IN,
     WATCHLIST_FROM_FEED_OUT,
 )
 
-from utils.cbc_helpers import get_feed, create_watchlist
+from utils.cbc_helpers import create_feed, get_feed, create_watchlist
 
 
 @pytest.fixture(scope="function")
@@ -49,6 +54,72 @@ def cb(monkeypatch):
 def cbcsdk_mock(monkeypatch, cb):
     """Mocks CBC SDK for unit tests"""
     return CBCSDKMock(monkeypatch, cb)
+
+
+# ==================================== UNIT TESTS BELOW ====================================
+
+
+def test_create_feed_no_reports(cbcsdk_mock):
+    """Create feed without reports"""
+
+    def on_post(url, body, **kwargs):
+        assert body == FEED_CREATE_NO_REPORT_INIT
+        return FEED_GET_RESP
+
+    cbcsdk_mock.mock_request(
+        "POST", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds", on_post
+    )
+    api = cbcsdk_mock.api
+    obj = create_feed(
+        api,
+        "base_name",
+        "https://thisistheplace.com",
+        "this is the details",
+        "thiswouldgood",
+    )
+    assert obj.name == "base_name"
+
+
+def test_create_feed_with_reports(cbcsdk_mock):
+    """Create feed with reports"""
+
+    def on_post(url, body, **kwargs):
+        expected = copy.deepcopy(FEED_INIT)
+        initial_body = copy.deepcopy(body)
+        del expected["feedinfo"]["id"]
+        del expected["reports"][0]["timestamp"]
+        del initial_body["reports"][0]["timestamp"]
+        del expected["reports"][0]["id"]
+        del initial_body["reports"][0]["id"]
+        assert initial_body == expected
+        return FEED_POST_RESP
+
+    cbcsdk_mock.mock_request(
+        "POST", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds", on_post
+    )
+    api = cbcsdk_mock.api
+
+    report_builder = Report.create(api, "ReportTitle", "The report description", 5)
+    report_builder.set_severity(5).set_link("https://example.com").add_tag(
+        "Alpha"
+    ).add_tag("Bravo")
+    report_builder.add_ioc(
+        IOC_V2.create_equality(api, "foo", "process_name", "evil.exe")
+    )
+    report_builder.add_ioc(
+        IOC_V2.create_equality(api, "bar", "netconn_ipv4", "10.29.99.1")
+    )
+    report_builder.set_visibility("visible")
+    report = report_builder.build()
+    obj = create_feed(
+        api,
+        "base_name",
+        "https://thisistheplace.com",
+        "this is the details",
+        "thiswouldgood",
+        reports=[report],
+    )
+    assert obj.name == "base_name"
 
 
 def test_get_feed_by_id(cbcsdk_mock):
