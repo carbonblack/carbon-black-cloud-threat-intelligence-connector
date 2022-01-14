@@ -13,3 +13,5 @@ This is a python project that can be used for ingesting Threat Intelligence from
 ## Installation
 
 ## Usage
+
+## Running the Tests

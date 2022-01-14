@@ -14,6 +14,7 @@
 import json
 
 JSON_FEED_TEST_VALID = "./src/tests/fixtures/files/stix_v2.1.json"
+JSON_FEED_TEST_VALID_STIX_20 = "./src/tests/fixtures/files/stix_v2.0.json"
 
 
 class MockCollection:
@@ -44,5 +45,9 @@ class TAXIIServerMock:
         ),
         APIRootsMock(
             title="Test Data", collections=[MockCollection("1", JSON_FEED_TEST_VALID)]
+        ),
+        APIRootsMock(
+            title="Test Data STIX2.0",
+            collections=[MockCollection("1", JSON_FEED_TEST_VALID_STIX_20)],
         ),
     ]
