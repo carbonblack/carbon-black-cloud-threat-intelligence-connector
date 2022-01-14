@@ -1,3 +1,16 @@
+# -*- coding: utf-8 -*-
+
+# *******************************************************
+# Copyright (c) VMware, Inc. 2022. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
+# *******************************************************
+# *
+# * DISCLAIMER. THIS PROGRAM IS PROVIDED TO YOU "AS IS" WITHOUT
+# * WARRANTIES OR CONDITIONS OF ANY KIND, WHETHER ORAL OR WRITTEN,
+# * EXPRESS OR IMPLIED. THE AUTHOR SPECIFICALLY DISCLAIMS ANY IMPLIED
+# * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
+# * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
+
 import typing
 from urllib.parse import urlparse
 
