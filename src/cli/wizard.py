@@ -40,11 +40,19 @@ EVAL_VALUES = [
 
 
 def enter_api_routes(key: str) -> dict:
-    """
+    """Helper function to enter the information about the routes.
+
+    Example:
     {
         'title': '*',
         'title2': ['collection_id1', 'collection_id2']
     }
+
+    Args:
+        key (str): key of the property
+
+    Returns:
+        dict: dictionary with the api routes information
     """
     api_routes = {}
     answer = input(f"Would you like to enter `{key}` (y/N) ")
@@ -67,6 +75,16 @@ def enter_api_routes(key: str) -> dict:
 
 
 def enter_collections(key: str, value: str = None) -> list[str]:
+    """Helper function to enter and parse the collections for v1.2
+
+    Args:
+        key (str): key of the property
+        value (str): (optional) if provided will not ask for the value (used for migration,
+                     where the property is present.
+
+    Returns:
+        list: list of collections
+    """
     if not value:
         value = input(f"Please enter the values for `{key}` separated with space: ")
     return value.split()
@@ -109,7 +127,14 @@ TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
 
 
 def get_cb(version: str = "1.2") -> CBCloudAPI:
-    """Return CBCLoudAPI instance"""
+    """Return CBCLoudAPI instance
+
+    Args:
+        version (str): version of STIX/TAXII to be used for the integration name
+
+    Returns:
+        CBCloudAPI: A reference to the CBCloudAPI object.
+    """
     return CBCloudAPI(
         profile=CBC_PROFILE_NAME, integration_name=("STIX/TAXII " + version)
     )
@@ -164,7 +189,7 @@ def enter_feed_data() -> dict:
     """Gather the information about the feed data.
 
     Returns:
-         dict: feed data or None if not additional feed needs to be added
+         dict: feed data or None if no additional feed needs to be added
     """
     print("Configure a feed:")
     print("1 Version 1.2")
