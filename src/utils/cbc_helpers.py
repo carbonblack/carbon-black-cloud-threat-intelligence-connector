@@ -13,7 +13,7 @@
 
 """CBC Helpers"""
 from cbc_sdk.enterprise_edr import Feed, Watchlist
-from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError
+from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError, InvalidObjectError
 
 """Feed Helpers"""
 
@@ -87,7 +87,9 @@ def create_watchlist(cb, feed, name=None, description=None, enable_alerts=False)
     Returns:
         Watchlist: The new watchlist.
     """
-    watchlist = Watchlist.create_from_feed(
-        feed, name=name, description=description, enable_alerts=enable_alerts
-    )
-    return watchlist.save()
+    if feed and isinstance(feed, Feed):
+        watchlist = Watchlist.create_from_feed(
+            feed, name=name, description=description, enable_alerts=enable_alerts
+        )
+        return watchlist.save()
+    raise InvalidObjectError("invalid Feed")

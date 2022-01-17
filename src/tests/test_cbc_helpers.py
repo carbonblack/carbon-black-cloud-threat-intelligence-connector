@@ -18,7 +18,7 @@ import pytest
 from cbc_sdk.rest_api import CBCloudAPI
 from cbc_sdk.credential_providers.default import default_provider_object
 from cbc_sdk.credentials import Credentials
-from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError
+from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError, InvalidObjectError
 from cbc_sdk.enterprise_edr.threat_intelligence import Feed, Report, IOC_V2
 
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
@@ -186,3 +186,11 @@ def test_create_watchlist(cbcsdk_mock):
     feed = Feed(api, initial_data=FEED_INIT)
     watchlist = create_watchlist(api, feed)
     assert watchlist is not None
+
+
+def test_create_watchlist_no_valid_feed(cbcsdk_mock):
+    """Test create_watchlist with no feed"""
+    api = cbcsdk_mock.api
+    with pytest.raises(InvalidObjectError):
+        create_watchlist(api, None)
+
