@@ -87,7 +87,7 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     called = False
     dump_called = False
     cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/", FEED_GET_RESP
+        "GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/someid", FEED_GET_RESP
     )
 
     def migrate_input(the_prompt=""):
@@ -204,7 +204,10 @@ def test_generate_config(monkeypatch):
             "",
             "basename2",
             "site2.com",
-            "/api/v1/taxii/taxii-discovery-service/",
+            "y",
+            "my_api_route",
+            "col1 col2",
+            "",
             "",
             "",
             "",
@@ -247,7 +250,7 @@ def test_generate_config(monkeypatch):
                         "enabled": True,
                         "feed_base_name": "basename2",
                         "site": "site2.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
+                        "api_routes": {"my_api_route": ["col1", "col2"]},
                         "username": "guest",
                         "password": "guest",
                     }
@@ -255,11 +258,6 @@ def test_generate_config(monkeypatch):
             ],
         }
         nonlocal dump_called
-        from pprint import pprint
-
-        pprint(data)
-        print("=" * 60)
-        pprint(expected_data)
         assert data == expected_data
         assert kwargs["sort_keys"] is False
         dump_called = True
@@ -316,7 +314,10 @@ def test_update_config_add_new_site(monkeypatch):
             "",
             "base_name_2",
             "site2.com",
-            "/api/v1/taxii/taxii-discovery-service/",
+            "y",
+            "my_api_route",
+            "*",
+            "",
             "",
             "",
             "",
@@ -359,7 +360,116 @@ def test_update_config_add_new_site(monkeypatch):
                         "enabled": True,
                         "feed_base_name": "base_name_2",
                         "site": "site2.com",
+                        "api_routes": {"my_api_route": "*"},
+                        "username": "guest",
+                        "password": "guest",
+                    }
+                },
+            ],
+        }
+        nonlocal dump_called
+        assert data == expected_data
+        assert kwargs["sort_keys"] is False
+        dump_called = True
+
+    monkeypatch.setattr("builtins.input", update_config_input)
+    monkeypatch.setattr("os.path.exists", lambda x: False)
+    monkeypatch.setattr("yaml.dump", dump_method)
+    monkeypatch.setattr("yaml.safe_load", lambda x: load_data)
+    monkeypatch.setattr("builtins.open", open_file_mock)
+    main()
+    assert dump_called
+
+
+def test_update_config_add_new_site_no_api_routes(monkeypatch):
+    load_data = {
+        "cbc_profile_name": "default",
+        "sites": [
+            {
+                "my_site_name_1": {
+                    "version": 1.2,
+                    "enabled": True,
+                    "feed_base_name": "base_name",
+                    "site": "limo.anomali.com",
+                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
+                    "collection_management_path": "/api/v1/taxii/collection_management/",
+                    "poll_path": "/api/v1/taxii/poll/",
+                    "use_https": "",
+                    "ssl_verify": False,
+                    "cert_file": "",
+                    "key_file": "",
+                    "default_score": "",
+                    "collections": ["ISO_CBC_Export_Filter_S7085"],
+                    "start_date": "",
+                    "size_of_request_in_minutes": "",
+                    "ca_cert": "",
+                    "http_proxy_url": "",
+                    "https_proxy_url": "",
+                    "username": "guest",
+                    "password": "guest",
+                }
+            }
+        ],
+    }
+    called = -1
+    dump_called = False
+
+    def update_config_input(the_prompt=""):
+        inputs = [
+            "3",
+            "1",
+            "y",
+            "my_second_site",
+            "2",
+            "",
+            "",
+            "base_name_2",
+            "site2.com",
+            "",
+            "",
+            "",
+            "",
+            "",
+        ]
+        nonlocal called
+        called += 1
+        return inputs[called]
+
+    def dump_method(data, config, **kwargs):
+        expected_data = {
+            "cbc_profile_name": "default",
+            "sites": [
+                {
+                    "my_site_name_1": {
+                        "version": 1.2,
+                        "enabled": True,
+                        "feed_base_name": "base_name",
+                        "site": "limo.anomali.com",
                         "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
+                        "collection_management_path": "/api/v1/taxii/collection_management/",
+                        "poll_path": "/api/v1/taxii/poll/",
+                        "use_https": "",
+                        "ssl_verify": False,
+                        "cert_file": "",
+                        "key_file": "",
+                        "default_score": "",
+                        "collections": ["ISO_CBC_Export_Filter_S7085"],
+                        "start_date": "",
+                        "size_of_request_in_minutes": "",
+                        "ca_cert": "",
+                        "http_proxy_url": "",
+                        "https_proxy_url": "",
+                        "username": "guest",
+                        "password": "guest",
+                    }
+                },
+                {
+                    "my_second_site": {
+                        "version": 2.0,
+                        "enabled": True,
+                        "feed_base_name": "base_name_2",
+                        "site": "site2.com",
+                        "api_routes": {},
                         "username": "guest",
                         "password": "guest",
                     }

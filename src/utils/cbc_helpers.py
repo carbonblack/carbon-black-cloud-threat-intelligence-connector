@@ -12,13 +12,25 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
 """CBC Helpers"""
-from cbc_sdk.enterprise_edr import Feed, Watchlist
-from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError, InvalidObjectError
+from cbc_sdk import CBCloudAPI
+from cbc_sdk.enterprise_edr import Feed, Watchlist, Report
+from cbc_sdk.errors import (
+    ObjectNotFoundError,
+    MoreThanOneResultError,
+    InvalidObjectError,
+)
 
 """Feed Helpers"""
 
 
-def create_feed(cb, name, provider_url, summary, category, reports=None):
+def create_feed(
+    cb: CBCloudAPI,
+    name: str,
+    provider_url: str,
+    summary: str,
+    category: str,
+    reports: list[Report] = None,
+) -> Feed:
     """Create new feed.
 
     Args:
@@ -39,7 +51,7 @@ def create_feed(cb, name, provider_url, summary, category, reports=None):
     return feed.save()
 
 
-def get_feed(cb, feed_name=None, feed_id=None):
+def get_feed(cb: CBCloudAPI, feed_name: str = None, feed_id: str = None) -> Feed:
     """Return Feed by providing either feed name or feed id.
 
     Args:
@@ -73,7 +85,13 @@ def get_feed(cb, feed_name=None, feed_id=None):
 """Watchlist Helpers"""
 
 
-def create_watchlist(cb, feed, name=None, description=None, enable_alerts=False):
+def create_watchlist(
+    cb: CBCloudAPI,
+    feed: Feed,
+    name: str = None,
+    description: str = None,
+    enable_alerts: bool = False,
+) -> Watchlist:
     """Create watchlist from feed
 
     Args:
