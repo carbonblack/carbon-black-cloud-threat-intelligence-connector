@@ -16,7 +16,6 @@ import copy
 import os
 import sys
 import types
-from typing import NoReturn
 
 import yaml
 from cbc_sdk.rest_api import CBCloudAPI
@@ -140,7 +139,7 @@ def get_cb(version: str = "1.2") -> CBCloudAPI:
     )
 
 
-def migrate() -> NoReturn:
+def migrate() -> None:
     """Migrate the old config.yml to the new format."""
     filepath = input(
         f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): "
@@ -213,7 +212,7 @@ def enter_feed_data() -> dict:
     return feed_data
 
 
-def enter_new_site(data: dict = None) -> NoReturn:
+def enter_new_site(data: dict = None) -> None:
     """Gather the information about the new site data, including the feeds.
 
     Args:
@@ -231,7 +230,7 @@ def enter_new_site(data: dict = None) -> NoReturn:
         data["sites"].append(site_data)
 
 
-def generate_config() -> NoReturn:
+def generate_config() -> None:
     """Create config file."""
     print("This script will lead you through the generation of the config file")
     print("=" * 80)
@@ -245,7 +244,7 @@ def generate_config() -> NoReturn:
         yaml.dump(data, new_config, default_flow_style=False, sort_keys=False)
 
 
-def update_config() -> NoReturn:
+def update_config() -> None:
     """Update config of the new structure."""
     with open(CONFIG_FILE) as file:
         config_data = yaml.safe_load(file)
