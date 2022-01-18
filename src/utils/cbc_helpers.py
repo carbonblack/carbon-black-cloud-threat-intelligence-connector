@@ -86,7 +86,6 @@ def get_feed(cb: CBCloudAPI, feed_name: str = None, feed_id: str = None) -> Feed
 
 
 def create_watchlist(
-    cb: CBCloudAPI,
     feed: Feed,
     name: str = None,
     description: str = None,
@@ -95,7 +94,6 @@ def create_watchlist(
     """Create watchlist from feed
 
     Args:
-        cb (CBCloudAPI): A reference to the CBCloudAPI object.
         feed (Feed): feed
         name (str): (optional) name to be used for the watchlist, if not provided the feed name will be used
         description (str): (optional) description to be used for the watchlist, if not provided the feed

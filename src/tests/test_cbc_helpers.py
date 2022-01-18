@@ -188,7 +188,7 @@ def test_create_watchlist(cbcsdk_mock):
     )
     api = cbcsdk_mock.api
     feed = Feed(api, initial_data=FEED_INIT)
-    watchlist = create_watchlist(api, feed)
+    watchlist = create_watchlist(feed)
     assert watchlist is not None
 
 
@@ -196,4 +196,4 @@ def test_create_watchlist_no_valid_feed(cbcsdk_mock):
     """Test create_watchlist with no feed"""
     api = cbcsdk_mock.api
     with pytest.raises(InvalidObjectError):
-        create_watchlist(api, None)
+        create_watchlist(None)
