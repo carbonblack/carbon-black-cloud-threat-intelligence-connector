@@ -5,7 +5,7 @@ This is a python project that can be used for ingesting Threat Intelligence from
 | STIX Version| Supported   |
 | ----------- | ------------|
 | 1.0.1       | No          |
-| 1.1         | No          |
+| 1.1         | Yes         |
 | 1.2         | Yes         |
 | 2.0         | Yes         |
 | 2.1         | Yes         |

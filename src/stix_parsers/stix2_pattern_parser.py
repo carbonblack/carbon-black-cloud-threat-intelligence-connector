@@ -11,7 +11,7 @@
 # * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
-import typing
+from typing import List, Union
 from urllib.parse import urlparse
 
 import validators
@@ -19,7 +19,7 @@ from cbc_sdk.enterprise_edr import IOC_V2
 from stix2patterns.v21.grammars.STIXPatternListener import STIXPatternListener
 
 
-class IOCPatternParser:
+class STIX2PatternParser:
     """
     Parser for STIX Patterns to dict with mapped values and fields.
     """
@@ -67,7 +67,7 @@ class IOCPatternParser:
         self.stix_field_value = stix_field_value
         self._parser = self._lookup_parser()
 
-    def _lookup_parser(self) -> typing.Union[dict, None]:
+    def _lookup_parser(self) -> Union[dict, None]:
         """
         Getting the associated parser and mapping value for
         the provided `stix_field_type`.
@@ -82,7 +82,7 @@ class IOCPatternParser:
         except KeyError:
             return None
 
-    def parse(self) -> typing.Union[dict, None]:
+    def parse(self) -> Union[dict, None]:
         """
         The main parsing method, it calls the mapped parser.
 
@@ -109,7 +109,7 @@ class IOCPatternParser:
         return False
 
     @staticmethod
-    def parse_ipv4(value: str) -> typing.Union[str, None]:
+    def parse_ipv4(value: str) -> Union[str, None]:
         """
         Parser for IPv4
 
@@ -126,7 +126,7 @@ class IOCPatternParser:
         return None
 
     @staticmethod
-    def parse_ipv6(value: str) -> typing.Union[str, None]:
+    def parse_ipv6(value: str) -> Union[str, None]:
         """
         Parser for IPv6
 
@@ -143,7 +143,7 @@ class IOCPatternParser:
         return None
 
     @staticmethod
-    def parse_url(value: str) -> typing.Union[str, None]:
+    def parse_url(value: str) -> Union[str, None]:
         """
         Parser for a URL
 
@@ -160,7 +160,7 @@ class IOCPatternParser:
         return None
 
     @staticmethod
-    def parse_domain(value: str) -> typing.Union[str, None]:
+    def parse_domain(value: str) -> Union[str, None]:
         """
         Parser for a Domain
 
@@ -177,7 +177,7 @@ class IOCPatternParser:
         return None
 
     @staticmethod
-    def parse_md5(value: str) -> typing.Union[str, None]:
+    def parse_md5(value: str) -> Union[str, None]:
         """
         Parser for MD5 Hash
 
@@ -194,7 +194,7 @@ class IOCPatternParser:
         return None
 
     @staticmethod
-    def parse_sha256(value: str) -> typing.Union[str, None]:
+    def parse_sha256(value: str) -> Union[str, None]:
         """
         Parser for SHA256 Hash
 
@@ -218,7 +218,7 @@ class STIXPatternParser(STIXPatternListener):
     """
 
     def __init__(self) -> None:
-        self.matched_iocs: typing.List[IOC_V2] = []
+        self.matched_iocs: List[IOC_V2] = []
 
     def enterPropTestEqual(self, context) -> None:
         """
@@ -238,9 +238,7 @@ class STIXPatternParser(STIXPatternListener):
         if parts and len(parts) == 3:
             stix_field_type = parts[0]
             stix_field_value = parts[2]
-            ioc_parser_value = IOCPatternParser(
-                stix_field_type, stix_field_value
-            ).parse()
+            ioc_parser_value = STIX2PatternParser(stix_field_type, stix_field_value).parse()
             if ioc_parser_value:
                 self.matched_iocs.append(ioc_parser_value)
 

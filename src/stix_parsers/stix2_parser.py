@@ -12,7 +12,7 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
 import logging
-import typing
+from typing import List, Union
 
 import stix2
 import taxii2client
@@ -25,7 +25,7 @@ from stix2patterns.pattern import Pattern
 from stix2validator import validate_file
 from taxii2client import as_pages
 
-from stix_parsers.v21.stix_pattern_parser import STIXPatternParser
+from stix_parsers.stix2_pattern_parser import STIXPatternParser
 
 
 class STIX2Parser:
@@ -33,7 +33,7 @@ class STIX2Parser:
     Parser for translating STIX Indicator
     objects to `cbc_sdk.enterprise_edr.IOC_V2`.
 
-    The parser can be used both for v2.0 and v2.1,
+    The parser can be used for 2.0 and 2.1
     by default it uses the 2.1 version.
     """
 
@@ -41,42 +41,43 @@ class STIX2Parser:
         """
         Args:
             cbcapi (CBCloudAPI): The authorized CBC SDK instance
-
         """
         self.stix_version = stix_version
         self.cbcapi = cbcapi
 
-    def parse_file(self, file: str) -> typing.List[IOC_V2]:
+    def parse_file(self, file: str) -> List[IOC_V2]:
         """
-        Parsing a STIX 2.0/2.1 file.
+        Parsing a STIX 2.0 and 2.1 content
 
         Args:
             file (str): Path to the STIX feed file in a JSON Format.
 
         Raises:
             ValueError: If the JSON file is not valid or empty.
+            ValueError: If STIX version is unsupported.
 
         Returns:
            List[IOC_V2] of parsed STIX Objects into IOCs.
         """
-        validate = validate_file(file)
-        if validate.is_valid:
-            with open(file) as stix_file:
-                stix_content = stix2parse(
-                    stix_file, allow_custom=True, version=self.stix_version
-                )
-                return self._parse_stix_objects(stix_content)
+        if self.stix_version == "2.1" or self.stix_version == "2.0":
+            validate = validate_file(file)
+            if validate.is_valid:
+                with open(file) as stix_file:
+                    stix_content = stix2parse(stix_file, allow_custom=True, version=self.stix_version)
+                    return self._parse_stix_objects(stix_content)
+            else:
+                raise ValueError(f"JSON file is not valid or empty: {validate.as_dict()}")
         else:
-            raise ValueError(f"JSON file is not valid or empty: {validate.as_dict()}")
+            raise ValueError(f"Unsupported STIX version.")
 
-    def parse_feed(
+    def parse_taxii_server(
         self,
         server: taxii2client.Server,
-        gather_data: typing.Union[str, dict] = "*",
+        gather_data: Union[str, dict] = "*",
         **kwargs,
-    ) -> typing.List[IOC_V2]:
+    ) -> List[IOC_V2]:
         """
-        Parsing a TAXII Server with STIX 2.0/2.1 data.
+        Parsing a TAXII Server with STIX 2.0 and 2.1 data
 
         The structure of the `gather_data` follows:
 
@@ -137,17 +138,15 @@ class STIX2Parser:
         for collection in collections_to_gather:
             for bundle in as_pages(collection.get_objects, per_request=500, **kwargs):
                 if bundle:
-                    stix_content = stix2parse(
-                        bundle, allow_custom=True, version=self.stix_version
-                    )
+                    stix_content = stix2parse(bundle, allow_custom=True, version=self.stix_version)
                     iocs += self._parse_stix_objects(stix_content)
         return iocs
 
     def _gather_collections(
         self,
-        api_roots: typing.Union[typing.List[taxii2client.ApiRoot], str],
+        api_roots: Union[List[taxii2client.ApiRoot], str],
         gather_data: dict,
-    ) -> typing.List[taxii2client.Collection]:
+    ) -> List[taxii2client.Collection]:
         """
         Gather the specified collections from the `gather_data` dictionary.
 
@@ -165,7 +164,6 @@ class STIX2Parser:
         roots_to_gather = []
         collections_to_gather = []
 
-        # If `gather_data` equals '*'
         if isinstance(gather_data, str) and gather_data == "*":
             for root in api_roots:
                 if len(root.collections) > 0:
@@ -177,9 +175,7 @@ class STIX2Parser:
         return collections_to_gather
 
     @staticmethod
-    def _get_roots(
-        api_roots: typing.List[taxii2client.ApiRoot], gather_data: dict
-    ) -> typing.List[taxii2client.ApiRoot]:
+    def _get_roots(api_roots: List[taxii2client.ApiRoot], gather_data: dict) -> List[taxii2client.ApiRoot]:
         """
         Gather the specified roots from the `gather_data` dictionary.
 
@@ -193,15 +189,12 @@ class STIX2Parser:
         """
         roots_to_gather = []
         for root in api_roots:
-            # Append the roots specified in our `gater_data`
             if root.title in gather_data.keys():
                 roots_to_gather.append(root)
         return roots_to_gather
 
     @staticmethod
-    def _get_collections(
-        api_roots: typing.List[taxii2client.ApiRoot], gather_data: dict
-    ) -> typing.List[taxii2client.Collection]:
+    def _get_collections(api_roots: List[taxii2client.ApiRoot], gather_data: dict) -> List[taxii2client.Collection]:
         """
         Gather the specified collections from gathered API roots.
 
@@ -217,17 +210,15 @@ class STIX2Parser:
         for root in api_roots:
             given_collections = gather_data[root.title]["collections"]
 
-            # If `collections` key of a api root equals '*'
             if isinstance(given_collections, str) and given_collections == "*":
                 collections_to_gather += root.collections
             else:
-                # Collect the specified collections in the root
                 for collection in root.collections:
                     if collection.id in given_collections:
                         collections_to_gather.append(collection)
         return collections_to_gather
 
-    def _parse_stix_objects(self, stix_content: stix2.Bundle) -> typing.List[IOC_V2]:
+    def _parse_stix_objects(self, stix_content: stix2.Bundle) -> List[IOC_V2]:
         """
         Parser for `stix2.Indicator`.
 
@@ -244,7 +235,7 @@ class STIX2Parser:
                 iocs += self._parse_stix_indicator(stix_obj)
         return iocs
 
-    def _parse_stix_indicator(self, indicator: Indicator) -> typing.List[IOC_V2]:
+    def _parse_stix_indicator(self, indicator: Indicator) -> List[IOC_V2]:
         """
         Parsing a single STIX Indicator object into `IOC_V2`.
 
@@ -265,9 +256,5 @@ class STIX2Parser:
         except InvalidValueError:
             return []
         for ioc in stix_pattern_parser.matched_iocs:
-            iocs.append(
-                IOC_V2.create_equality(
-                    self.cbcapi, indicator.id, ioc["field"], ioc["value"]
-                )
-            )
+            iocs.append(IOC_V2.create_equality(self.cbcapi, indicator.id, ioc["field"], ioc["value"]))
         return iocs

@@ -60,9 +60,7 @@ TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
 
 def migrate():
     """Migrate the old config.yml to the new format"""
-    filepath = input(
-        f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): "
-    )
+    filepath = input(f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): ")
     if filepath == "":
         filepath = OLD_CONFIG_FILE
 
@@ -82,16 +80,10 @@ def migrate():
         item_data = {site_name: copy.deepcopy(TEMPLATE_SITE_DATA_V1)}
 
         # add feed name instead of feed_id
-        item_data[site_name]["feed_base_name"] = get_feed(
-            cb, feed_id=values["feed_id"]
-        ).name
+        item_data[site_name]["feed_base_name"] = get_feed(cb, feed_id=values["feed_id"]).name
 
         for inner_key in values:
-            if (
-                values[inner_key]
-                and inner_key not in LIST_FIELDS
-                and inner_key != "feed_id"
-            ):
+            if values[inner_key] and inner_key not in LIST_FIELDS and inner_key != "feed_id":
                 item_data[site_name][inner_key] = values[inner_key]
 
         # add collections as a list
@@ -124,9 +116,7 @@ def enter_feed_data():
 
     for key, dvalue in TEMPLATES[version - 1].items():
         if key not in LIST_FIELDS:
-            value = input(
-                f"Please enter value for `{key}` or press enter to use default ({dvalue}): "
-            )
+            value = input(f"Please enter value for `{key}` or press enter to use default ({dvalue}): ")
             if value:
                 feed_data[key] = eval(value) if key in EVAL_VALUES else value
         else:
@@ -154,9 +144,7 @@ def generate_config():
     """Create config file"""
     print("This script will lead you through the generation of the config file")
     print("=" * 80)
-    cbc_profile_name = (
-        input("Enter cbc profile name or just press enter for default") or "default"
-    )
+    cbc_profile_name = input("Enter cbc profile name or just press enter for default") or "default"
     data = {"cbc_profile_name": cbc_profile_name, "sites": []}
     enter_new_site(data)
 

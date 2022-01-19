@@ -43,9 +43,7 @@ class TAXIIServerMock:
                 MockCollection("2", JSON_FEED_TEST_VALID),
             ],
         ),
-        APIRootsMock(
-            title="Test Data", collections=[MockCollection("1", JSON_FEED_TEST_VALID)]
-        ),
+        APIRootsMock(title="Test Data", collections=[MockCollection("1", JSON_FEED_TEST_VALID)]),
         APIRootsMock(
             title="Test Data STIX2.0",
             collections=[MockCollection("1", JSON_FEED_TEST_VALID_STIX_20)],

@@ -1,14 +1,12 @@
 from stix2 import Bundle, Indicator
 from stix2.exceptions import InvalidValueError
 
-from stix_parsers.v21.stix_feed_parser import STIX2Parser
+from stix_parsers.stix2_parser import STIX2Parser
 
 JSON_FEED_TEST_VALID = "./src/tests/fixtures/files/stix_v2.1.json"
 JSON_FEED_TEST_FAULTY = "./src/tests/fixtures/files/stix_v2.1_faulty.json"
 JSON_FEED_TEST_EMPTY = "./src/tests/fixtures/files/empty_file.json"
-JSON_FEED_OBJECTS_INDICATOR_PATTERN_ERROR = (
-    "./src/tests/fixtures/files/stix_v2.1_indicator_pattern_error.json"
-)
+JSON_FEED_OBJECTS_INDICATOR_PATTERN_ERROR = "./src/tests/fixtures/files/stix_v2.1_indicator_pattern_error.json"
 
 
 class STIXFactory:
@@ -60,9 +58,7 @@ def test_parser_parse_stix_indicator_with_file_hash_sha256(cbcsdk_mock):
     objs = parser._parse_stix_objects(bundle)
     assert len(objs) == 1
     assert objs[0].field == "process_hash"
-    assert objs[0].values == [
-        "ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c"
-    ]
+    assert objs[0].values == ["ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c"]
 
 
 def test_parser_parse_stix_indicator_with_file_hash_multiple(cbcsdk_mock):
@@ -77,9 +73,7 @@ def test_parser_parse_stix_indicator_with_file_hash_multiple(cbcsdk_mock):
     assert len(objs) == 2
     assert objs[0].field == "process_hash"
     assert objs[1].field == "process_hash"
-    assert objs[0].values == [
-        "ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c"
-    ]
+    assert objs[0].values == ["ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c"]
     assert objs[1].values == ["d6d9c42d50794f64088f369597b84721"]
 
 
@@ -96,9 +90,7 @@ def test_parser_parse_stix_indicator_with_file_hash_multiple_invalid_second(
     objs = parser._parse_stix_objects(bundle)
     assert len(objs) == 1
     assert objs[0].field == "process_hash"
-    assert objs[0].values == [
-        "ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c"
-    ]
+    assert objs[0].values == ["ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c"]
 
 
 def test_parser_parse_stix_indicator_with_url(cbcsdk_mock):
