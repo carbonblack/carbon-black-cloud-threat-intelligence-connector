@@ -17,6 +17,7 @@ import os
 import sys
 import types
 
+
 import yaml
 from cbc_sdk.rest_api import CBCloudAPI
 
@@ -125,7 +126,7 @@ TEMPLATE_SITE_DATA_V2 = {
 TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
 
 
-def get_cb(version: str = "1.2") -> CBCloudAPI:
+def get_cb() -> CBCloudAPI:
     """Return CBCLoudAPI instance
 
     Args:
@@ -135,7 +136,7 @@ def get_cb(version: str = "1.2") -> CBCloudAPI:
         CBCloudAPI: A reference to the CBCloudAPI object.
     """
     return CBCloudAPI(
-        profile=CBC_PROFILE_NAME, integration_name=("STIX/TAXII " + version)
+        profile=CBC_PROFILE_NAME, integration_name=("STIX/TAXII")
     )
 
 
