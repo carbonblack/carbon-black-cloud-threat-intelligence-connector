@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # *******************************************************
-# Copyright (c) VMware, Inc. 2020-2021. All Rights Reserved.
-# SPDX-License-Identifier: MIT
+# Copyright (c) VMware, Inc. 2022. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
 # *******************************************************
 # *
 # * DISCLAIMER. THIS PROGRAM IS PROVIDED TO YOU "AS IS" WITHOUT
@@ -13,14 +13,14 @@
 
 """Tests for wizard."""
 import pytest
+from cbc_sdk.credentials import Credentials
+from cbc_sdk.credential_providers.default import default_provider_object
 
 from tests.fixtures.cbc_sdk_mock_responses import FEED_GET_RESP
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
-from cbc_sdk.credential_providers.default import default_provider_object
 
-from src.cli.wizard import main, get_cb, CBCloudAPI
-from cbc_sdk.credentials import Credentials
+from cli.wizard import main, get_cb, CBCloudAPI
 
 
 class MockFileManager:
@@ -83,11 +83,11 @@ def test_migrate_file_doesnt_exist(monkeypatch):
 
 def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     """Test for migrating config - success."""
-    monkeypatch.setattr("src.cli.wizard.get_cb", lambda: cbcsdk_mock.api)
+    monkeypatch.setattr("cli.wizard.get_cb", lambda: cbcsdk_mock.api)
     called = False
     dump_called = False
     cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/", FEED_GET_RESP
+        "GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/someid", FEED_GET_RESP
     )
 
     def migrate_input(the_prompt=""):
@@ -167,6 +167,7 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
 
 
 def test_generate_config(monkeypatch):
+    """Test generate config - successful case"""
     called = -1
     dump_called = False
 
@@ -204,7 +205,10 @@ def test_generate_config(monkeypatch):
             "",
             "basename2",
             "site2.com",
-            "/api/v1/taxii/taxii-discovery-service/",
+            "y",
+            "my_api_route",
+            "col1 col2",
+            "",
             "",
             "",
             "",
@@ -247,7 +251,7 @@ def test_generate_config(monkeypatch):
                         "enabled": True,
                         "feed_base_name": "basename2",
                         "site": "site2.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
+                        "api_routes": {"my_api_route": ["col1", "col2"]},
                         "username": "guest",
                         "password": "guest",
                     }
@@ -255,11 +259,6 @@ def test_generate_config(monkeypatch):
             ],
         }
         nonlocal dump_called
-        from pprint import pprint
-
-        pprint(data)
-        print("=" * 60)
-        pprint(expected_data)
         assert data == expected_data
         assert kwargs["sort_keys"] is False
         dump_called = True
@@ -273,6 +272,7 @@ def test_generate_config(monkeypatch):
 
 
 def test_update_config_add_new_site(monkeypatch):
+    """Test update config - add new site - successful case"""
     load_data = {
         "cbc_profile_name": "default",
         "sites": [
@@ -316,7 +316,10 @@ def test_update_config_add_new_site(monkeypatch):
             "",
             "base_name_2",
             "site2.com",
-            "/api/v1/taxii/taxii-discovery-service/",
+            "y",
+            "my_api_route",
+            "*",
+            "",
             "",
             "",
             "",
@@ -359,7 +362,7 @@ def test_update_config_add_new_site(monkeypatch):
                         "enabled": True,
                         "feed_base_name": "base_name_2",
                         "site": "site2.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
+                        "api_routes": {"my_api_route": "*"},
                         "username": "guest",
                         "password": "guest",
                     }
@@ -380,7 +383,8 @@ def test_update_config_add_new_site(monkeypatch):
     assert dump_called
 
 
-def test_update_config_add_new_site(monkeypatch):
+def test_update_config_add_new_site_no_api_routes(monkeypatch):
+    """Test update config - add new site, but no api routes provided"""
     load_data = {
         "cbc_profile_name": "default",
         "sites": [
@@ -424,7 +428,8 @@ def test_update_config_add_new_site(monkeypatch):
             "",
             "base_name_2",
             "site2.com",
-            "/api/v1/taxii/taxii-discovery-service/",
+            "",
+            "",
             "",
             "",
             "",
@@ -467,17 +472,13 @@ def test_update_config_add_new_site(monkeypatch):
                         "enabled": True,
                         "feed_base_name": "base_name_2",
                         "site": "site2.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
+                        "api_routes": {},
                         "username": "guest",
                         "password": "guest",
                     }
                 },
             ],
         }
-        from pprint import pprint
-
-        pprint(expected_data)
-        pprint(data)
         nonlocal dump_called
         assert data == expected_data
         assert kwargs["sort_keys"] is False
@@ -493,6 +494,7 @@ def test_update_config_add_new_site(monkeypatch):
 
 
 def test_update_config_wrong_choice(monkeypatch):
+    """Test update config - wrong choice"""
     load_data = {
         "cbc_profile_name": "default",
         "sites": [
@@ -577,6 +579,7 @@ def test_update_config_wrong_choice(monkeypatch):
 
 
 def test_update_config_no_feed_entered(monkeypatch):
+    """Test update config, but no feed info entered"""
     load_data = {
         "cbc_profile_name": "default",
         "sites": [
@@ -661,6 +664,7 @@ def test_update_config_no_feed_entered(monkeypatch):
 
 
 def test_generate_config_no_site(monkeypatch):
+    """Test generate new config - no site provided"""
     called = -1
     dump_called = False
 

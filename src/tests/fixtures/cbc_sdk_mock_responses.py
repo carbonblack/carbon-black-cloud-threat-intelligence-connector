@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # *******************************************************
-# Copyright (c) VMware, Inc. 2020-2021. All Rights Reserved.
-# SPDX-License-Identifier: MIT
+# Copyright (c) VMware, Inc. 2022. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
 # *******************************************************
 # *
 # * DISCLAIMER. THIS PROGRAM IS PROVIDED TO YOU "AS IS" WITHOUT
@@ -58,24 +58,33 @@ FEED_GET_ALL_RESP = {
     ]
 }
 
+FEED_POST_RESP = {
+    "name": "base_name",
+    "provider_url": "https://thisistheplace.com",
+    "summary": "this is the details",
+    "category": "thiswouldgood",
+    "source_label": None,
+    "access": "private",
+    "id": "90TuDxDYQtiGyg5qhwYCg",
+}
+
 FEED_GET_RESP = {
     "feedinfo": {
         "name": "base_name",
-        "owner": "WNEXFKQ7",
         "provider_url": "https://thisistheplace.com",
         "summary": "this is the details",
         "category": "thiswouldgood",
         "source_label": None,
         "access": "private",
         "id": "90TuDxDYQtiGyg5qhwYCg",
-    }
+    },
 }
 
 REPORT_INIT = {
-    "id": "69e2a8d0-bc36-4970-9834-8687efe1aff7",
+    "id": "495df3a4-7e19-432d-846d-432e620dd57a",
     "title": "ReportTitle",
     "description": "The report description",
-    "timestamp": 1234567890,
+    "timestamp": 1642091205,
     "severity": 5,
     "link": "https://example.com",
     "tags": ["Alpha", "Bravo"],
@@ -99,28 +108,25 @@ REPORT_INIT = {
 FEED_INIT = {
     "feedinfo": {
         "id": "qwertyuiop",
-        "name": "FeedName",
-        "provider_url": "http://example.com",
-        "summary": "Summary information",
-        "category": "Intrusion",
-        "source_label": "SourceLabel",
-        "owner": "JRN",
-        "access": "private",
+        "name": "base_name",
+        "provider_url": "https://thisistheplace.com",
+        "summary": "this is the details",
+        "category": "thiswouldgood",
     },
     "reports": [REPORT_INIT],
 }
 
 WATCHLIST_FROM_FEED_IN = {
-    "name": "Subscribed feed",
-    "description": "STIX/TAXII",
+    "name": "Feed base_name",
+    "description": "this is the details",
     "tags_enabled": True,
     "alerts_enabled": False,
     "classifier": {"key": "feed_id", "value": "qwertyuiop"},
 }
 
 WATCHLIST_FROM_FEED_OUT = {
-    "name": "Subscribed feed",
-    "description": "STIX/TAXII",
+    "name": "base_name",
+    "description": "this is the details",
     "id": "ABCDEFGHabcdefgh",
     "tags_enabled": True,
     "alerts_enabled": False,
@@ -128,4 +134,14 @@ WATCHLIST_FROM_FEED_OUT = {
     "last_update_timestamp": 1234567890,
     "report_ids": None,
     "classifier": {"key": "feed_id", "value": "qwertyuiop"},
+}
+
+FEED_CREATE_NO_REPORT_INIT = {
+    "feedinfo": {
+        "name": "base_name",
+        "provider_url": "https://thisistheplace.com",
+        "summary": "this is the details",
+        "category": "thiswouldgood",
+    },
+    "reports": [],
 }

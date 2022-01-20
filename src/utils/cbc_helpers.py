@@ -12,13 +12,61 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
 """CBC Helpers"""
-from cbc_sdk.enterprise_edr import Feed, Watchlist
-from cbc_sdk.errors import ObjectNotFoundError, MoreThanOneResultError
+from cbc_sdk import CBCloudAPI
+from cbc_sdk.enterprise_edr import Feed, Watchlist, Report
+from cbc_sdk.errors import (
+    ObjectNotFoundError,
+    MoreThanOneResultError,
+    InvalidObjectError,
+)
 
 """Feed Helpers"""
 
 
-def get_feed(cb, feed_name=None, feed_id=None):
+def create_feed(
+    cb: CBCloudAPI,
+    name: str,
+    provider_url: str,
+    summary: str,
+    category: str,
+    reports: list[Report] = None,
+) -> Feed:
+    """Create new feed.
+
+    Args:
+        cb (CBCloudAPI): A reference to the CBCloudAPI object.
+        name (str): Name for the new feed.
+        provider_url (str): Provider URL for the new feed.
+        summary (str): Summary for the new feed.
+        category (str): Category for the new feed.
+        reports ([Report]) (optional): List of Reports to add to this Feed.
+
+    Returns:
+        Feed: The new Feed.
+    """
+    builder = Feed.create(cb, name, provider_url, summary, category)
+    if reports:
+        builder.add_reports(reports)
+    feed = builder.build()
+    return feed.save()
+
+
+def get_feed(cb: CBCloudAPI, feed_name: str = None, feed_id: str = None) -> Feed:
+    """Return Feed by providing either feed name or feed id.
+
+    Args:
+        cb (CBCloudAPI): A reference to the CBCloudAPI object.
+        feed_name (str): Feed name
+        feed_id (str): Feed id
+
+    Returns:
+        Feed: The found feed.
+
+    Raises:
+        ObjectNotFoundError: if there is no such feed
+        MoreThanOneResultError: if more than one feed is found that fulfils the criteria
+        ValueError: neither feed_name nor feed_id is provided
+    """
     if feed_id:
         return cb.select(Feed, feed_id)
     elif feed_name:
@@ -38,7 +86,27 @@ def get_feed(cb, feed_name=None, feed_id=None):
 """Watchlist Helpers"""
 
 
-def create_watchlist(cb, feed, name="Subscribed feed", description="STIX/TAXII"):
-    """Create watchlist from feed"""
-    watchlist = Watchlist.create_from_feed(feed, name, description)
-    return watchlist.save()
+def create_watchlist(
+    feed: Feed,
+    name: str = None,
+    description: str = None,
+    enable_alerts: bool = False,
+) -> Watchlist:
+    """Create watchlist from feed
+
+    Args:
+        feed (Feed): feed
+        name (str): (optional) name to be used for the watchlist, if not provided the feed name will be used
+        description (str): (optional) description to be used for the watchlist, if not provided the feed
+                           description will be used
+        enable_alerts (bool): whether to generate alert upon hits
+
+    Returns:
+        Watchlist: The new watchlist.
+    """
+    if feed and isinstance(feed, Feed):
+        watchlist = Watchlist.create_from_feed(
+            feed, name=name, description=description, enable_alerts=enable_alerts
+        )
+        return watchlist.save()
+    raise InvalidObjectError("invalid Feed")
