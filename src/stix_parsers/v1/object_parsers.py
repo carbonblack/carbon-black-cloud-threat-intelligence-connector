@@ -57,7 +57,9 @@ class AddressParser:
         Returns:
             dict | None
         """
-        value = self.address.to_dict()["address_value"]["value"]
+        value = self.address.to_dict()["address_value"]
+        if isinstance(value, dict):
+            value = value["value"]
         id_ = self.address._parent.id_
         values = []
         if isinstance(value, list):
@@ -77,7 +79,9 @@ class AddressParser:
         Returns:
             dict | None
         """
-        value = self.address.to_dict()["address_value"]["value"]
+        value = self.address.to_dict()["address_value"]
+        if isinstance(value, dict):
+            value = value["value"]
         id_ = self.address._parent.id_
         values = []
         if isinstance(value, list):

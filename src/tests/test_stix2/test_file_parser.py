@@ -1,7 +1,7 @@
 import pytest
 from cbc_sdk.enterprise_edr import IOC_V2
 
-from stix_parsers.stix2_parser import STIX2Parser
+from stix_parsers.v2.parser import STIX2Parser
 
 JSON_FEED_TEST_VALID_21 = "./src/tests/fixtures/files/stix_v2.1.json"
 JSON_FEED_TEST_FAULTY_21 = "./src/tests/fixtures/files/stix_v2.1_faulty.json"

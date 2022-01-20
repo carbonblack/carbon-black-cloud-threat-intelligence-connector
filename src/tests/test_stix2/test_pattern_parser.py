@@ -1,4 +1,4 @@
-from stix_parsers.stix2_pattern_parser import STIX2PatternParser
+from stix_parsers.v2.pattern_parser import STIX2PatternParser
 
 
 def test_pattern_parse():
@@ -7,7 +7,7 @@ def test_pattern_parse():
 
 
 def test_pattern_parse_returns_None(monkeypatch):
-    monkeypatch.setattr("stix_parsers.stix_pattern_parser.IOCPatternParser.is_parsable", False)
+    monkeypatch.setattr("stix_parsers.v2.pattern_parser.IOCPatternParser.is_parsable", False)
     pattern_parser = STIX2PatternParser("ipv4-addr:value", "'91.121.240.170'")
     assert pattern_parser.parse() is None
 

@@ -30,7 +30,7 @@ from lxml.etree import XMLSyntaxError
 from sdv import validate_xml
 from stix.core import Indicators, STIXPackage
 
-from stix_parsers.stix1_object_parsers import (
+from stix_parsers.v1.object_parsers import (
     AddressParser,
     DomainNameParser,
     FileParser,
@@ -86,12 +86,15 @@ class STIX1Parser:
         return iocs
 
     def parse_taxii_server(
-        self, client: Union[Client11, Client10], collections: Union[list, str], **kwargs
+        self, client: Union[Client11, Client10], collections: Union[list, str] = "*", **kwargs
     ) -> List[IOC_V2]:
         """Parsing a TAXII Server
 
         It uses the default discovery services and it finds the Feed Management Service
         among them.
+
+        `collections` represents the collections that the script will collect,
+        by default it collects data from all of the collections.
 
         Args:
             client (Union[Client11, Client10]): authenticated cabby client
@@ -118,6 +121,7 @@ class STIX1Parser:
                     # Sometimes there is a invalid block of XML
                     continue
                 except Exception as e:
+                    # Sometimes the
                     logging.error(e, exc_info=True)
                     continue
             return iocs
@@ -164,6 +168,7 @@ class STIX1Parser:
                 return []
             try:
                 observable_props = indicator.observable.object_.properties
+
                 parser = self.CB_MAPPINGS[type(observable_props)](observable_props)
                 ioc_dict = parser.parse()
                 ioc_id = str(uuid.uuid4())

@@ -25,7 +25,7 @@ from stix2patterns.pattern import Pattern
 from stix2validator import validate_file
 from taxii2client import as_pages
 
-from stix_parsers.stix2_pattern_parser import STIXPatternParser
+from stix_parsers.v2.pattern_parser import STIXPatternParser
 
 
 class STIX2Parser:

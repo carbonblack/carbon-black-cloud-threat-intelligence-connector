@@ -1,6 +1,6 @@
 from stix.core import Indicator, STIXPackage
 
-from stix_parsers.stix1_parser import STIX1Parser
+from stix_parsers.v1.parser import STIX1Parser
 
 STIX_FILE_HASHES = "./src/tests/fixtures/files/stix_1x_sample_objects/file_hashes.xml"
 STIX_HAT_DNS = "./src/tests/fixtures/files/stix_1x_sample_objects/hat_dns_example.xml"

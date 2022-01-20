@@ -2,7 +2,7 @@ import pytest
 from cbc_sdk.enterprise_edr import IOC_V2
 from sdv.errors import ValidationError
 
-from stix_parsers.stix1_parser import STIX1Parser
+from stix_parsers.v1.parser import STIX1Parser
 
 XML_FEED_TEST_VALID = "./src/tests/fixtures/files/stix_v1.2.xml"
 XML_FEED_TEST_FAULTY = "./src/tests/fixtures/files/stix_v1.2_faulty.xml"

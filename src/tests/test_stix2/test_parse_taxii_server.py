@@ -1,4 +1,4 @@
-from stix_parsers.stix2_parser import STIX2Parser
+from stix_parsers.v2.parser import STIX2Parser
 
 
 def test_parse_feed_get_all_collections(cbcsdk_mock, taxii_server_mock):
