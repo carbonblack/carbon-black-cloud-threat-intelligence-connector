@@ -14,9 +14,9 @@ import logging
 import uuid
 from io import BytesIO
 from pydoc import cli
-from typing import List
+from typing import List, Union
 
-from cabby import Client11
+from cabby import Client10, Client11
 from cabby.entities import Collection
 from cbc_sdk import CBCloudAPI
 from cbc_sdk.enterprise_edr import IOC_V2
@@ -39,6 +39,12 @@ from stix_parsers.stix1_object_parsers import (
 
 
 class STIX1Parser:
+    """Parser for translating STIX Indicator
+    objects to `cbc_sdk.enterprise_edr.IOC_V2`.
+
+    The parser can be used for STIX 1.x
+    by default the client that can be used is for 1.0 and 1.2.
+    """
 
     CB_MAPPINGS = {
         DomainName: DomainNameParser,
@@ -48,10 +54,24 @@ class STIX1Parser:
     }
 
     def __init__(self, cbcapi: CBCloudAPI) -> None:
+        """
+        Args:
+            cbcapi (CBCloudAPI): [description]
+        """
         self.cbcapi = cbcapi
-        self._client = None
 
     def parse_file(self, file: str) -> List[IOC_V2]:
+        """Parsing STIX 1x content
+
+        Args:
+            file (str): Path to the STIX feed file in XML Format.
+
+        Raises:
+            ValueError: If the XML file is not valid or empty.
+
+        Returns:
+           List[IOC_V2] of parsed STIX Objects into IOCs.
+        """
         iocs = []
         if validate_xml(file).is_valid:
             stix_package = STIXPackage.from_xml(file)
@@ -65,7 +85,21 @@ class STIX1Parser:
             raise ValueError("File is not valid.")
         return iocs
 
-    def parse_taxii_server(self, client: Client11, collections: list, **kwargs) -> List[IOC_V2]:
+    def parse_taxii_server(
+        self, client: Union[Client11, Client10], collections: Union[list, str], **kwargs
+    ) -> List[IOC_V2]:
+        """Parsing a TAXII Server
+
+        It uses the default discovery services and it finds the Feed Management Service
+        among them.
+
+        Args:
+            client (Union[Client11, Client10]): authenticated cabby client
+            collections (list | str): the list of collections to be gathered
+
+        Returns:
+            List[IOC_V2]: List of parsed Indicators into IOCs
+        """
         iocs = []
         collections_to_gather = self._get_collections(client.get_collections(), collections)
         for collection_name in collections_to_gather:
@@ -89,6 +123,14 @@ class STIX1Parser:
             return iocs
 
     def _parse_stix_observable(self, observables: Observables) -> List[IOC_V2]:
+        """Parsing a STIX Observable object into list of IOCs
+
+        Args:
+            observables (Observables): Observables object that comes from `STIXPackage`
+
+        Returns:
+            List[IOC_V2]: List of parsed Indicators into IOCs
+        """
         iocs = []
         for observable in observables:
             try:
@@ -108,6 +150,14 @@ class STIX1Parser:
         return iocs
 
     def _parse_stix_indicators(self, indicators: Indicators) -> List[IOC_V2]:
+        """Parsing a STIX Indicator object into list of IOCs
+
+        Args:
+            indicators (Indicators): Indicators object that comes from `STIXPackage`
+
+        Returns:
+            List[IOC_V2]: List of parsed Indicators into IOCs
+        """
         iocs = []
         for indicator in indicators:
             if not indicator.observable:
@@ -121,7 +171,7 @@ class STIX1Parser:
                     ioc = IOC_V2(self.cbcapi, ioc_id, ioc_dict)
                     iocs.append(ioc)
             except KeyError:
-                # If there is not parser for that object
+                # If there is no parser for that object
                 return []
             except AttributeError:
                 # Sometimes the `observable.object_.properties` has no properties
@@ -130,7 +180,19 @@ class STIX1Parser:
 
     @staticmethod
     def _get_collections(client_collections: List[Collection], collections: list) -> list:
+        """Getting the collections specified in `collections` and
+        returns the collections that match .
+
+        Args:
+            client_collections (List[Collection]): typically that comes from `Client11.get_collections`
+            collections (list | str): Specified collections to be filtered
+
+        Returns:
+            list: collections to be gathered
+        """
         gathered_collections = []
+        if isinstance(collections, str) and collections == "*":
+            return [collection.name for collection in client_collections]
         for collection in client_collections:
             if collection.name in collections:
                 gathered_collections.append(collection.name)

@@ -21,8 +21,7 @@ from cybox.objects.uri_object import URI
 
 
 class AddressParser:
-    """
-    STIX 1.x `Address` Parser
+    """STIX 1.x `Address` Parser
 
     Parses `cybox.objects.address_object.Address` into an dict,
     that can be used as `initial_data` for `cbc_sdk.enterprise_edr.IOC_V2`
@@ -40,8 +39,7 @@ class AddressParser:
         self._type = address.category or None
 
     def parse(self) -> Union[dict, None]:
-        """
-        Parsing IPV4/IPV6 into a dict
+        """Parsing IPV4/IPV6 into a dict
 
         Returns:
             dict | None
@@ -54,8 +52,7 @@ class AddressParser:
             return None
 
     def _parse_ipv4(self) -> Union[dict, None]:
-        """
-        Parsing IPV4 into a dict
+        """Parsing IPV4 into a dict
 
         Returns:
             dict | None
@@ -75,8 +72,7 @@ class AddressParser:
         return None
 
     def _parse_ipv6(self) -> Union[dict, None]:
-        """
-        Parsing an IPV6 into a dict
+        """Parsing an IPV6 into a dict
 
         Returns:
             dict | None
@@ -97,8 +93,7 @@ class AddressParser:
 
 
 class DomainNameParser:
-    """
-    STIX 1.x `Domain` Parser
+    """STIX 1.x `Domain` Parser
 
     Parses `cybox.objects.domain_name_object.DomainName` into an dict,
     that can be used as `initial_data` for `cbc_sdk.enterprise_edr.IOC_V2`
@@ -114,8 +109,7 @@ class DomainNameParser:
         self.domain_name = domain_name
 
     def parse(self) -> Union[dict, None]:
-        """
-        Parsing DomainName into a dict
+        """Parsing DomainName into a dict
 
         Returns:
             dict | None
@@ -136,8 +130,7 @@ class DomainNameParser:
 
 
 class FileParser:
-    """
-    STIX 1.x `File` Parser
+    """STIX 1.x `File` Parser
 
     Parses `cybox.objects.file_object.File` into an dict,
     that can be used as `initial_data` for `cbc_sdk.enterprise_edr.IOC_V2`
@@ -153,8 +146,7 @@ class FileParser:
         self.file = file
 
     def parse(self) -> Union[dict, None]:
-        """
-        Parsing File into a dict
+        """Parsing File into a dict
 
         Returns:
             dict | None
@@ -173,8 +165,7 @@ class FileParser:
 
     @staticmethod
     def _validate_sha256(value) -> str:
-        """
-        Validating a SHA256 Hash
+        """Validating a SHA256 Hash
 
         Args:
             value (str): SHA256 hash
@@ -188,8 +179,7 @@ class FileParser:
 
     @staticmethod
     def _validate_md5(value) -> str:
-        """
-        Validating a MD5 Hash
+        """Validating a MD5 Hash
 
         Args:
             value (str): MD5 hash
@@ -203,8 +193,7 @@ class FileParser:
 
 
 class URIParser:
-    """
-    STIX 1.x `URI` Parser
+    """STIX 1.x `URI` Parser
 
     Parses `cybox.objects.uri_object.URI` into an dict,
     that can be used as `initial_data` for `cbc_sdk.enterprise_edr.IOC_V2`
@@ -220,8 +209,7 @@ class URIParser:
         self.uri = uri
 
     def parse(self) -> Union[dict, None]:
-        """
-        Parsing URI into a dict
+        """Parsing URI into a dict
 
         Returns:
             dict | None

@@ -29,8 +29,7 @@ from stix_parsers.stix2_pattern_parser import STIXPatternParser
 
 
 class STIX2Parser:
-    """
-    Parser for translating STIX Indicator
+    """Parser for translating STIX Indicator
     objects to `cbc_sdk.enterprise_edr.IOC_V2`.
 
     The parser can be used for 2.0 and 2.1
@@ -40,14 +39,13 @@ class STIX2Parser:
     def __init__(self, cbcapi: CBCloudAPI, stix_version="2.1") -> None:
         """
         Args:
-            cbcapi (CBCloudAPI): The authorized CBC SDK instance
+            cbcapi (CBCloudAPI): authenticated CBC SDK instance
         """
         self.stix_version = stix_version
         self.cbcapi = cbcapi
 
     def parse_file(self, file: str) -> List[IOC_V2]:
-        """
-        Parsing a STIX 2.0 and 2.1 content
+        """Parsing STIX 2.0 and 2.1 content
 
         Args:
             file (str): Path to the STIX feed file in a JSON Format.
@@ -57,8 +55,9 @@ class STIX2Parser:
             ValueError: If STIX version is unsupported.
 
         Returns:
-           List[IOC_V2] of parsed STIX Objects into IOCs.
+            List[IOC_V2]: of parsed STIX Objects into IOCs.
         """
+
         if self.stix_version == "2.1" or self.stix_version == "2.0":
             validate = validate_file(file)
             if validate.is_valid:
@@ -76,8 +75,7 @@ class STIX2Parser:
         gather_data: Union[str, dict] = "*",
         **kwargs,
     ) -> List[IOC_V2]:
-        """
-        Parsing a TAXII Server with STIX 2.0 and 2.1 data
+        """Parsing a TAXII Server with STIX 2.0 and 2.1 data
 
         The structure of the `gather_data` follows:
 
@@ -131,7 +129,7 @@ class STIX2Parser:
                 kwarg which will query the server with specific time frame results.
 
         Returns:
-            List[IOC_V2] of parsed STIX Objects into IOCs.
+            List[IOC_V2]: of parsed STIX Objects into IOCs.
         """
         iocs = []
         collections_to_gather = self._gather_collections(server.api_roots, gather_data)
@@ -147,8 +145,7 @@ class STIX2Parser:
         api_roots: Union[List[taxii2client.ApiRoot], str],
         gather_data: dict,
     ) -> List[taxii2client.Collection]:
-        """
-        Gather the specified collections from the `gather_data` dictionary.
+        """Gather the specified collections from the `gather_data` dictionary.
 
         Args:
             api_roots (List[taxii2client.ApiRoot] | str): List of ApiRoot
@@ -159,7 +156,7 @@ class STIX2Parser:
                 API Root titles and collections IDs inside of them.
 
         Returns:
-           List[taxii2client.Collection] of gathered Collections
+           List[taxii2client.Collection]: of gathered Collections
         """
         roots_to_gather = []
         collections_to_gather = []
@@ -176,8 +173,7 @@ class STIX2Parser:
 
     @staticmethod
     def _get_roots(api_roots: List[taxii2client.ApiRoot], gather_data: dict) -> List[taxii2client.ApiRoot]:
-        """
-        Gather the specified roots from the `gather_data` dictionary.
+        """Gather the specified roots from the `gather_data` dictionary.
 
         Args:
             api_roots (List[taxii2client.ApiRoot] | str): List of ApiRoot objects.
@@ -185,7 +181,7 @@ class STIX2Parser:
                 API Root titles and collections IDs inside of them.
 
         Returns:
-           List[taxii2client.ApiRoot] of gathered Collections
+           List[taxii2client.ApiRoot]: of gathered Collections
         """
         roots_to_gather = []
         for root in api_roots:
@@ -195,8 +191,7 @@ class STIX2Parser:
 
     @staticmethod
     def _get_collections(api_roots: List[taxii2client.ApiRoot], gather_data: dict) -> List[taxii2client.Collection]:
-        """
-        Gather the specified collections from gathered API roots.
+        """Gather the specified collections from gathered API roots.
 
         Args:
             api_roots (List[taxii2client.ApiRoot] | str): List of ApiRoot objects.
@@ -204,7 +199,7 @@ class STIX2Parser:
                 API Root titles and collections IDs inside of them.
 
         Returns:
-           List[taxii2client.Collection] of gathered Collections
+           List[taxii2client.Collection]: of gathered Collections
         """
         collections_to_gather = []
         for root in api_roots:
@@ -219,14 +214,13 @@ class STIX2Parser:
         return collections_to_gather
 
     def _parse_stix_objects(self, stix_content: stix2.Bundle) -> List[IOC_V2]:
-        """
-        Parser for `stix2.Indicator`.
+        """Parser for `stix2.Indicator`.
 
         Args:
-            stix_content (stix2.Bundle): STIX Bundle Object containing the STIX Objects.
+            stix_content (stix2.Bundle): STIX Bundle Object containing the STIX Objects
 
         Returns:
-           List of parsed STIX Objects into IOCs.
+            List[IOC_V2]: of parsed STIX Objects into IOCs.
         """
         iocs = []
         for stix_obj in stix_content.objects:
@@ -236,8 +230,7 @@ class STIX2Parser:
         return iocs
 
     def _parse_stix_indicator(self, indicator: Indicator) -> List[IOC_V2]:
-        """
-        Parsing a single STIX Indicator object into `IOC_V2`.
+        """Parsing a single STIX Indicator object into `IOC_V2`.
 
         Note: Sometimes there is more than one key:value in a single Indicator pattern
         this is why we return List here.
@@ -246,7 +239,7 @@ class STIX2Parser:
             indicator (stix2.Indicator): STIX Indicator Object.
 
         Returns:
-            List of parsed IOCs.
+            List[IOC_V2]: of parsed STIX Objects into IOCs.
         """
         logging.info(f"Parsing {indicator.id}")
         iocs = []
