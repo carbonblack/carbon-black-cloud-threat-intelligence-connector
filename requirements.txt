@@ -7,9 +7,9 @@ carbon-black-cloud-sdk==1.3.4
 validators
 
 # Dev dependencies
-pytest==5.4.2
-coverage==5.1
-coveralls==2.0.0
-flake8==3.8.1
-flake8-colors==0.1.6
-flake8-docstrings==1.5.0
+pytest==6.2.5
+coverage==6.2
+coveralls==3.3.1
+flake8==4.0.1
+flake8-colors==0.1.9
+flake8-docstrings==1.6.0
