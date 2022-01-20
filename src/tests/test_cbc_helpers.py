@@ -33,7 +33,6 @@ from tests.fixtures.cbc_sdk_mock_responses import (
     FEED_GET_RESP,
     FEED_INIT,
     FEED_POST_RESP,
-    REPORT_INIT,
     WATCHLIST_FROM_FEED_IN,
     WATCHLIST_FROM_FEED_OUT,
 )
@@ -194,6 +193,5 @@ def test_create_watchlist(cbcsdk_mock):
 
 def test_create_watchlist_no_valid_feed(cbcsdk_mock):
     """Test create_watchlist with no feed"""
-    api = cbcsdk_mock.api
     with pytest.raises(InvalidObjectError):
         create_watchlist(None)

@@ -167,6 +167,7 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
 
 
 def test_generate_config(monkeypatch):
+    """Test generate config - successful case"""
     called = -1
     dump_called = False
 
@@ -271,6 +272,7 @@ def test_generate_config(monkeypatch):
 
 
 def test_update_config_add_new_site(monkeypatch):
+    """Test update config - add new site - successful case"""
     load_data = {
         "cbc_profile_name": "default",
         "sites": [
@@ -382,6 +384,7 @@ def test_update_config_add_new_site(monkeypatch):
 
 
 def test_update_config_add_new_site_no_api_routes(monkeypatch):
+    """Test update config - add new site, but no api routes provided"""
     load_data = {
         "cbc_profile_name": "default",
         "sites": [
@@ -491,6 +494,7 @@ def test_update_config_add_new_site_no_api_routes(monkeypatch):
 
 
 def test_update_config_wrong_choice(monkeypatch):
+    """Test update config - wrong choice"""
     load_data = {
         "cbc_profile_name": "default",
         "sites": [
@@ -575,6 +579,7 @@ def test_update_config_wrong_choice(monkeypatch):
 
 
 def test_update_config_no_feed_entered(monkeypatch):
+    """Test update config, but no feed info entered"""
     load_data = {
         "cbc_profile_name": "default",
         "sites": [
@@ -659,6 +664,7 @@ def test_update_config_no_feed_entered(monkeypatch):
 
 
 def test_generate_config_no_site(monkeypatch):
+    """Test generate new config - no site provided"""
     called = -1
     dump_called = False
 

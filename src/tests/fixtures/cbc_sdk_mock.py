@@ -103,15 +103,11 @@ class CBCSDKMock:
             When PUT body is None then respond with request body
 
         """
-        if (
-            verb == "GET"
-            or verb == "RAW_GET"
-            or callable(body)
-            or isinstance(body, self.StubResponse)
-            or body is Exception
-            or body in Exception.__subclasses__()
-            or (getattr(body, "__module__", None) == cbc_sdk.errors.__name__)
-        ):
+        if verb == "GET" or verb == "RAW_GET" or \
+                callable(body) or \
+                isinstance(body, self.StubResponse) or \
+                body is Exception or body in Exception.__subclasses__() or \
+                (getattr(body, '__module__', None) == cbc_sdk.errors.__name__):
             self.mocks["{}:{}".format(verb, url)] = body
         else:
             self.mocks["{}:{}".format(verb, url)] = self.StubResponse(body)
@@ -125,12 +121,8 @@ class CBCSDKMock:
             self._capture_data(query_parameters)
             matched = self.match_key(self.get_mock_key("GET", url))
             if matched:
-                if (
-                    self.mocks[matched] is Exception
-                    or self.mocks[matched] in Exception.__subclasses__()
-                    or getattr(self.mocks[matched], "__module__", None)
-                    == cbc_sdk.errors.__name__
-                ):  # noqa: W503
+                if (self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__()
+                        or getattr(self.mocks[matched], '__module__', None) == cbc_sdk.errors.__name__):  # noqa: W503
                     raise self.mocks[matched]
                 elif callable(self.mocks[matched]):
                     return self.mocks[matched](url, query_parameters, default)
@@ -147,10 +139,7 @@ class CBCSDKMock:
             if matched:
                 if callable(self.mocks[matched]):
                     return self.StubResponse(self.mocks[matched](url, body, **kwargs))
-                elif (
-                    self.mocks[matched] is Exception
-                    or self.mocks[matched] in Exception.__subclasses__()
-                ):
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
                     raise self.mocks[matched]
                 else:
                     return self.mocks[matched]
@@ -166,10 +155,7 @@ class CBCSDKMock:
                 if callable(self.mocks[matched]):
                     result = self.mocks[matched](url, body, **kwargs)
                     return_data = self.StubResponse(result, 200, result, False)
-                elif (
-                    self.mocks[matched] is Exception
-                    or self.mocks[matched] in Exception.__subclasses__()
-                ):
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
                     raise self.mocks[matched]
                 else:
                     return_data = self.mocks[matched]
@@ -187,10 +173,7 @@ class CBCSDKMock:
             if callable(self.mocks[matched]):
                 result = self.mocks[matched](url, body, **kwargs)
                 return_data = self.StubResponse(result, 200, result, False)
-            elif (
-                self.mocks[matched] is Exception
-                or self.mocks[matched] in Exception.__subclasses__()
-            ):
+            elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
                 raise self.mocks[matched]
             else:
                 return_data = self.mocks[matched]
@@ -209,10 +192,7 @@ class CBCSDKMock:
                     return self.StubResponse(
                         self.mocks[matched](url, param_table, **kwargs)
                     )
-                elif (
-                    self.mocks[matched] is Exception
-                    or self.mocks[matched] in Exception.__subclasses__()
-                ):
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
                     raise self.mocks[matched]
                 else:
                     return self.mocks[matched]
@@ -227,10 +207,7 @@ class CBCSDKMock:
             if matched:
                 if callable(self.mocks[matched]):
                     return self.mocks[matched](url, query_params, **kwargs)
-                elif (
-                    self.mocks[matched] is Exception
-                    or self.mocks[matched] in Exception.__subclasses__()
-                ):
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
                     raise self.mocks[matched]
                 else:
                     return self.mocks[matched]
@@ -249,10 +226,7 @@ class CBCSDKMock:
                 elif response.content is None:
                     response = copy.deepcopy(self.mocks[matched])
                     response.content = body
-                elif (
-                    self.mocks[matched] is Exception
-                    or self.mocks[matched] in Exception.__subclasses__()
-                ):
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
                     raise self.mocks[matched]
                 return response
             pytest.fail("PUT called for %s when it shouldn't be" % url)
@@ -266,10 +240,7 @@ class CBCSDKMock:
             if matched:
                 if callable(self.mocks[matched]):
                     return self.StubResponse(self.mocks[matched](url, body))
-                elif (
-                    self.mocks[matched] is Exception
-                    or self.mocks[matched] in Exception.__subclasses__()
-                ):
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
                     raise self.mocks[matched]
                 else:
                     return self.mocks[matched]
@@ -283,10 +254,7 @@ class CBCSDKMock:
             if matched:
                 if callable(self.mocks[matched]):
                     return self.StubResponse(self.mocks[matched](url, None, **kwargs))
-                elif (
-                    self.mocks[matched] is Exception
-                    or self.mocks[matched] in Exception.__subclasses__()
-                ):
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
                     raise self.mocks[matched]
                 else:
                     return self.mocks[matched]

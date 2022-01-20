@@ -64,9 +64,7 @@ def enter_api_routes(key: str) -> dict:
         )
         if not api_route_title:
             break
-        value = input(
-            f"Please enter the values for collections separated with space or `*` for all: "
-        )
+        value = input("Please enter the values for collections separated with space or `*` for all: ")
         if value == "*":
             api_routes[api_route_title] = "*"
         else:

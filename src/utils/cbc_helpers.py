@@ -61,6 +61,7 @@ def get_feed(cb: CBCloudAPI, feed_name: str = None, feed_id: str = None) -> Feed
 
     Returns:
         Feed: The found feed.
+
     Raises:
         ObjectNotFoundError: if there is no such feed
         MoreThanOneResultError: if more than one feed is found that fulfils the criteria
