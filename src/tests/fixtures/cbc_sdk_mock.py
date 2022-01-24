@@ -11,699 +11,253 @@
 # * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
-"""Tests for wizard."""
+"""CBCSDK Mock Framework"""
+
+import copy
+import json
+import re
+
+import cbc_sdk
 import pytest
-from cbc_sdk.credentials import Credentials
-from cbc_sdk.credential_providers.default import default_provider_object
-
-from tests.fixtures.cbc_sdk_mock_responses import FEED_GET_RESP
-from tests.fixtures.cbc_sdk_mock import CBCSDKMock
-from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
-
-from cli.wizard import main, get_cb, CBCloudAPI
 
 
-class MockFileManager:
-    """Mock class for the opening a file."""
+class CBCSDKMock:
+    """Mock framework for unit tests that need to fetch Carbon Black Cloud data"""
 
-    def __enter__(self):
-        """Open file."""
-        ...
+    def __init__(self, monkeypatch, api):
+        """Initializes monkey patch for HTTP VERB requests"""
+        self.mocks = {}
+        self.monkeypatch = monkeypatch
+        self.api = api
+        self._last_request_data = None
+        self._all_request_data = list()
+        monkeypatch.setattr(api, "get_object", self._self_get_object())
+        monkeypatch.setattr(api, "get_raw_data", self._self_get_raw_data())
+        monkeypatch.setattr(api, "post_object", self._self_post_object())
+        monkeypatch.setattr(api, "post_multipart", self._self_post_multipart())
+        monkeypatch.setattr(api, "put_object", self._self_put_object())
+        monkeypatch.setattr(api, "delete_object", self._self_delete_object())
+        monkeypatch.setattr(api, "api_json_request", self._self_patch_object())
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Close file."""
-        ...
+    class StubResponse(object):
+        """Stubbed response to object to support json function similar to requests package"""
 
+        def __init__(self, contents, scode=200, text="", json_parsable=True):
+            """Init default properties"""
+            if isinstance(contents, CBCSDKMock.StubResponse):
+                self.content = contents.content
+                self.status_code = contents.status_code
+                self.text = contents.text
+                self._json_parsable = contents._json_parsable
+            else:
+                self.content = contents
+                self.status_code = scode
+                if json_parsable and not text:
+                    self.text = json.dumps(contents)
+                else:
+                    self.text = text
+                self._json_parsable = json_parsable
 
-def open_file_mock(*args, **kwargs):
-    """Open file mock."""
-    return MockFileManager()
+        def json(self):
+            """Mimics request package"""
+            if self._json_parsable:
+                return self.content
+            else:
+                raise cbc_sdk.errors.ServerError(
+                    200, "Cannot parse response as JSON: {0:s}".format(self.content)
+                )
 
+    def get_mock_key(self, verb, url):
+        """Algorithm for getting/setting mocked VERB + URL"""
+        return "{}:{}".format(verb, url)
 
-@pytest.fixture(scope="function")
-def cb(monkeypatch):
-    """Create CBCloudAPI singleton."""
-    creds = Credentials(
-        {"url": "https://example.com", "token": "ABCDEFGHIJKLM", "org_key": "A1B2C3D4"}
-    )
-    mock_provider = MockCredentialProvider({"default": creds})
-    monkeypatch.setattr(
-        default_provider_object, "get_default_provider", lambda x: mock_provider
-    )
-    return CBCloudAPI(profile="default")
+    def match_key(self, request):
+        """Matches mocked requests against incoming request"""
+        if request in self.mocks:
+            return request
+        for key in self.mocks.keys():
+            exp = key.replace("/", ".")
+            matched = re.match(exp, request)
+            if matched:
+                return key
+        return None
 
+    def clear_mocks(self):
+        """Erase the self.mocks dictionary."""
+        self.mocks = {}
 
-@pytest.fixture(scope="function")
-def cbcsdk_mock(monkeypatch, cb):
-    """Mock CBC SDK for unit tests."""
-    return CBCSDKMock(monkeypatch, cb)
+    def _capture_data(self, data):
+        self._all_request_data.append(data)
+        self._last_request_data = data
 
+    def mock_request(self, verb, url, body):
+        """
+        Mocks the VERB + URL by defining the response for that particular request
 
-def test_get_cb():
-    """Test get_cb"""
-    obj = get_cb()
-    assert isinstance(obj, CBCloudAPI)
+        Args:
+            verb (str): HTTP verb supported [ GET, RAW_GET, POST, POST_STREAM, POST_LINES, POST_MULTIPART, PUT, DELETE ]
+            url (str): The full path of to be mocked with support for regex
+            body (?): Any value or object to be returned as mocked response
 
+        Additional Details:
+            When PUT body is None then respond with request body
 
-def test_migrate_file_doesnt_exist(monkeypatch):
-    """Test for migration of config that doesn't exist."""
-    called = False
+        """
+        if verb == "GET" or verb == "RAW_GET" or \
+                callable(body) or \
+                isinstance(body, self.StubResponse) or \
+                body is Exception or body in Exception.__subclasses__() or \
+                (getattr(body, '__module__', None) == cbc_sdk.errors.__name__):
+            self.mocks["{}:{}".format(verb, url)] = body
+        else:
+            self.mocks["{}:{}".format(verb, url)] = self.StubResponse(body)
 
-    def migrate_input(the_prompt=""):
-        nonlocal called
-        if not called:
-            called = True
-            return "1"
-        return ""
+    """
+        Factories for mocked API requests
+    """
 
-    monkeypatch.setattr("builtins.input", migrate_input)
-    monkeypatch.setattr("os.path.exists", lambda x: False)
-    main()
+    def _self_get_object(self):
+        def _get_object(url, query_parameters=None, default=None):
+            self._capture_data(query_parameters)
+            matched = self.match_key(self.get_mock_key("GET", url))
+            if matched:
+                if (self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__()
+                        or getattr(self.mocks[matched], '__module__', None) == cbc_sdk.errors.__name__):  # noqa: W503
+                    raise self.mocks[matched]
+                elif callable(self.mocks[matched]):
+                    return self.mocks[matched](url, query_parameters, default)
+                else:
+                    return self.mocks[matched]
+            pytest.fail("GET called for %s when it shouldn't be" % url)
 
+        return _get_object
 
-def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
-    """Test for migrating config - success."""
-    monkeypatch.setattr("cli.wizard.get_cb", lambda: cbcsdk_mock.api)
-    called = False
-    dump_called = False
-    cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/someid", FEED_GET_RESP
-    )
+    def _self_post_object(self):
+        def _post_object(url, body, **kwargs):
+            self._capture_data(body)
+            matched = self.match_key(self.get_mock_key("POST", url))
+            if matched:
+                if callable(self.mocks[matched]):
+                    return self.StubResponse(self.mocks[matched](url, body, **kwargs))
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
+                else:
+                    return self.mocks[matched]
+            pytest.fail("POST called for %s when it shouldn't be" % url)
 
-    def migrate_input(the_prompt=""):
-        nonlocal called
-        if not called:
-            called = True
-            return "1"
-        return ""
+        return _post_object
 
-    def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "site": "site.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "collection_management_path": "/api/v1/taxii/collection_management/",
-                        "poll_path": "/api/v1/taxii/poll/",
-                        "use_https": "",
-                        "ssl_verify": False,
-                        "cert_file": "",
-                        "key_file": "",
-                        "default_score": "",
-                        "collections": ["collection1"],
-                        "start_date": "",
-                        "size_of_request_in_minutes": "",
-                        "ca_cert": "",
-                        "http_proxy_url": "",
-                        "https_proxy_url": "",
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                }
-            ],
-        }
-        nonlocal dump_called
-        assert data == expected_data
-        assert kwargs["sort_keys"] is False
-        dump_called = True
+    def _self_post_and_get_stream(self):
+        def _post_and_get_stream(url, body, stream_output, **kwargs):
+            self._capture_data(body)
+            matched = self.match_key(self.get_mock_key("POST_STREAM", url))
+            if matched:
+                if callable(self.mocks[matched]):
+                    result = self.mocks[matched](url, body, **kwargs)
+                    return_data = self.StubResponse(result, 200, result, False)
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
+                else:
+                    return_data = self.mocks[matched]
+                if return_data.status_code < 400:
+                    stream_output.write(bytes(return_data.text, "utf-8"))
+                return return_data
+            pytest.fail("POST called for %s when it shouldn't be" % url)
 
-    old_config_data = {
-        "sites": {
-            "my_site_name_1": {
-                "feed_id": "someid",
-                "site": "site.com",
-                "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                "collection_management_path": "/api/v1/taxii/collection_management/",
-                "poll_path": "/api/v1/taxii/poll/",
-                "use_https": None,
-                "ssl_verify": False,
-                "cert_file": None,
-                "key_file": None,
-                "default_score": None,
-                "username": "guest",
-                "password": "guest",
-                "collections": "collection1",
-                "start_date": None,
-                "size_of_request_in_minutes": None,
-                "ca_cert": None,
-                "http_proxy_url": None,
-                "https_proxy_url": None,
-            }
-        }
-    }
+        return _post_and_get_stream
 
-    monkeypatch.setattr("builtins.input", migrate_input)
-    monkeypatch.setattr("yaml.safe_load", lambda x: old_config_data)
-    monkeypatch.setattr("yaml.dump", dump_method)
-    monkeypatch.setattr("os.path.exists", lambda x: True)
-    monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
-    assert dump_called
+    def _self_post_and_get_lines(self):
+        def _post_and_get_lines(url, body, **kwargs):
+            self._capture_data(body)
+            matched = self.match_key(self.get_mock_key("POST_LINES", url))
+            if callable(self.mocks[matched]):
+                result = self.mocks[matched](url, body, **kwargs)
+                return_data = self.StubResponse(result, 200, result, False)
+            elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                raise self.mocks[matched]
+            else:
+                return_data = self.mocks[matched]
+            if return_data.status_code < 400:
+                return return_data.text.splitlines()
+            pytest.fail("POST called for %s when it shouldn't be" % url)
 
+        return _post_and_get_lines
 
-def test_generate_config(monkeypatch):
-    """Test generate config - successful case"""
-    called = -1
-    dump_called = False
+    def _self_post_multipart(self):
+        def _post_multipart(url, param_table, **kwargs):
+            self._capture_data(kwargs)
+            matched = self.match_key(self.get_mock_key("POST_MULTIPART", url))
+            if matched:
+                if callable(self.mocks[matched]):
+                    return self.StubResponse(
+                        self.mocks[matched](url, param_table, **kwargs)
+                    )
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
+                else:
+                    return self.mocks[matched]
+            pytest.fail("Multipart POST called for %s when it shouldn't be" % url)
 
-    def generate_config_input(the_prompt=""):
-        inputs = [
-            "2",
-            "",
-            "y",
-            "my_site_name_1",
-            "1",
-            "",
-            "",
-            "basename",
-            "site2.com",
-            "/api/v1/taxii/taxii-discovery-service/",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "y",
-            "my_site_name_2",
-            "2",
-            "",
-            "",
-            "basename2",
-            "site2.com",
-            "y",
-            "my_api_route",
-            "col1 col2",
-            "",
-            "",
-            "",
-            "",
-        ]
-        nonlocal called
-        called += 1
-        return inputs[called]
+        return _post_multipart
 
-    def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "basename",
-                        "site": "site2.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "collection_management_path": "",
-                        "poll_path": "",
-                        "use_https": "",
-                        "ssl_verify": False,
-                        "cert_file": "",
-                        "key_file": "",
-                        "default_score": "",
-                        "collections": [],
-                        "start_date": "",
-                        "size_of_request_in_minutes": "",
-                        "ca_cert": "",
-                        "http_proxy_url": "",
-                        "https_proxy_url": "",
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-                {
-                    "my_site_name_2": {
-                        "version": 2.0,
-                        "enabled": True,
-                        "feed_base_name": "basename2",
-                        "site": "site2.com",
-                        "api_routes": {"my_api_route": ["col1", "col2"]},
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-            ],
-        }
-        nonlocal dump_called
-        assert data == expected_data
-        assert kwargs["sort_keys"] is False
-        dump_called = True
+    def _self_get_raw_data(self):
+        def _get_raw_data(url, query_params=None, default=None, **kwargs):
+            self._capture_data(query_params)
+            matched = self.match_key(self.get_mock_key("RAW_GET", url))
+            if matched:
+                if callable(self.mocks[matched]):
+                    return self.mocks[matched](url, query_params, **kwargs)
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
+                else:
+                    return self.mocks[matched]
+            pytest.fail("Raw GET called for %s when it shouldn't be" % url)
 
-    monkeypatch.setattr("builtins.input", generate_config_input)
-    monkeypatch.setattr("os.path.exists", lambda x: False)
-    monkeypatch.setattr("yaml.dump", dump_method)
-    monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
-    assert dump_called
+        return _get_raw_data
 
+    def _self_put_object(self):
+        def _put_object(url, body, **kwargs):
+            self._capture_data(body)
+            matched = self.match_key(self.get_mock_key("PUT", url))
+            if matched:
+                response = self.mocks[matched]
+                if callable(self.mocks[matched]):
+                    return self.StubResponse(self.mocks[matched](url, body, **kwargs))
+                elif response.content is None:
+                    response = copy.deepcopy(self.mocks[matched])
+                    response.content = body
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
+                return response
+            pytest.fail("PUT called for %s when it shouldn't be" % url)
 
-def test_update_config_add_new_site(monkeypatch):
-    """Test update config - add new site - successful case"""
-    load_data = {
-        "cbc_profile_name": "default",
-        "sites": [
-            {
-                "my_site_name_1": {
-                    "version": 1.2,
-                    "enabled": True,
-                    "feed_base_name": "base_name",
-                    "site": "limo.anomali.com",
-                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                    "collection_management_path": "/api/v1/taxii/collection_management/",
-                    "poll_path": "/api/v1/taxii/poll/",
-                    "use_https": "",
-                    "ssl_verify": False,
-                    "cert_file": "",
-                    "key_file": "",
-                    "default_score": "",
-                    "collections": ["ISO_CBC_Export_Filter_S7085"],
-                    "start_date": "",
-                    "size_of_request_in_minutes": "",
-                    "ca_cert": "",
-                    "http_proxy_url": "",
-                    "https_proxy_url": "",
-                    "username": "guest",
-                    "password": "guest",
-                }
-            }
-        ],
-    }
-    called = -1
-    dump_called = False
+        return _put_object
 
-    def update_config_input(the_prompt=""):
-        inputs = [
-            "3",
-            "1",
-            "y",
-            "my_second_site",
-            "2",
-            "",
-            "",
-            "base_name_2",
-            "site2.com",
-            "y",
-            "my_api_route",
-            "*",
-            "",
-            "",
-            "",
-            "",
-        ]
-        nonlocal called
-        called += 1
-        return inputs[called]
+    def _self_delete_object(self):
+        def _delete_object(url, body=None):
+            self._capture_data(body)
+            matched = self.match_key(self.get_mock_key("DELETE", url))
+            if matched:
+                if callable(self.mocks[matched]):
+                    return self.StubResponse(self.mocks[matched](url, body))
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
+                else:
+                    return self.mocks[matched]
+            pytest.fail("DELETE called for %s when it shouldn't be" % url)
 
-    def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "site": "limo.anomali.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "collection_management_path": "/api/v1/taxii/collection_management/",
-                        "poll_path": "/api/v1/taxii/poll/",
-                        "use_https": "",
-                        "ssl_verify": False,
-                        "cert_file": "",
-                        "key_file": "",
-                        "default_score": "",
-                        "collections": ["ISO_CBC_Export_Filter_S7085"],
-                        "start_date": "",
-                        "size_of_request_in_minutes": "",
-                        "ca_cert": "",
-                        "http_proxy_url": "",
-                        "https_proxy_url": "",
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-                {
-                    "my_second_site": {
-                        "version": 2.0,
-                        "enabled": True,
-                        "feed_base_name": "base_name_2",
-                        "site": "site2.com",
-                        "api_routes": {"my_api_route": "*"},
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-            ],
-        }
-        nonlocal dump_called
-        assert data == expected_data
-        assert kwargs["sort_keys"] is False
-        dump_called = True
+        return _delete_object
 
-    monkeypatch.setattr("builtins.input", update_config_input)
-    monkeypatch.setattr("os.path.exists", lambda x: False)
-    monkeypatch.setattr("yaml.dump", dump_method)
-    monkeypatch.setattr("yaml.safe_load", lambda x: load_data)
-    monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
-    assert dump_called
+    def _self_patch_object(self):
+        def _patch_object(method, url, **kwargs):
+            matched = self.match_key(self.get_mock_key("PATCH", url))
+            if matched:
+                if callable(self.mocks[matched]):
+                    return self.StubResponse(self.mocks[matched](url, None, **kwargs))
+                elif self.mocks[matched] is Exception or self.mocks[matched] in Exception.__subclasses__():
+                    raise self.mocks[matched]
+                else:
+                    return self.mocks[matched]
+            pytest.fail("PATCH called for %s when it shouldn't be" % url)
 
-
-def test_update_config_add_new_site_no_api_routes(monkeypatch):
-    """Test update config - add new site, but no api routes provided"""
-    load_data = {
-        "cbc_profile_name": "default",
-        "sites": [
-            {
-                "my_site_name_1": {
-                    "version": 1.2,
-                    "enabled": True,
-                    "feed_base_name": "base_name",
-                    "site": "limo.anomali.com",
-                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                    "collection_management_path": "/api/v1/taxii/collection_management/",
-                    "poll_path": "/api/v1/taxii/poll/",
-                    "use_https": "",
-                    "ssl_verify": False,
-                    "cert_file": "",
-                    "key_file": "",
-                    "default_score": "",
-                    "collections": ["ISO_CBC_Export_Filter_S7085"],
-                    "start_date": "",
-                    "size_of_request_in_minutes": "",
-                    "ca_cert": "",
-                    "http_proxy_url": "",
-                    "https_proxy_url": "",
-                    "username": "guest",
-                    "password": "guest",
-                }
-            }
-        ],
-    }
-    called = -1
-    dump_called = False
-
-    def update_config_input(the_prompt=""):
-        inputs = [
-            "3",
-            "1",
-            "y",
-            "my_second_site",
-            "2",
-            "",
-            "",
-            "base_name_2",
-            "site2.com",
-            "",
-            "",
-            "",
-            "",
-            "",
-        ]
-        nonlocal called
-        called += 1
-        return inputs[called]
-
-    def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "site": "limo.anomali.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "collection_management_path": "/api/v1/taxii/collection_management/",
-                        "poll_path": "/api/v1/taxii/poll/",
-                        "use_https": "",
-                        "ssl_verify": False,
-                        "cert_file": "",
-                        "key_file": "",
-                        "default_score": "",
-                        "collections": ["ISO_CBC_Export_Filter_S7085"],
-                        "start_date": "",
-                        "size_of_request_in_minutes": "",
-                        "ca_cert": "",
-                        "http_proxy_url": "",
-                        "https_proxy_url": "",
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-                {
-                    "my_second_site": {
-                        "version": 2.0,
-                        "enabled": True,
-                        "feed_base_name": "base_name_2",
-                        "site": "site2.com",
-                        "api_routes": {},
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-            ],
-        }
-        nonlocal dump_called
-        assert data == expected_data
-        assert kwargs["sort_keys"] is False
-        dump_called = True
-
-    monkeypatch.setattr("builtins.input", update_config_input)
-    monkeypatch.setattr("os.path.exists", lambda x: False)
-    monkeypatch.setattr("yaml.dump", dump_method)
-    monkeypatch.setattr("yaml.safe_load", lambda x: load_data)
-    monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
-    assert dump_called
-
-
-def test_update_config_wrong_choice(monkeypatch):
-    """Test update config - wrong choice"""
-    load_data = {
-        "cbc_profile_name": "default",
-        "sites": [
-            {
-                "my_site_name_1": {
-                    "version": 1.2,
-                    "enabled": True,
-                    "feed_base_name": "base_name",
-                    "site": "limo.anomali.com",
-                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                    "collection_management_path": "/api/v1/taxii/collection_management/",
-                    "poll_path": "/api/v1/taxii/poll/",
-                    "use_https": "",
-                    "ssl_verify": False,
-                    "cert_file": "",
-                    "key_file": "",
-                    "default_score": "",
-                    "collections": ["ISO_CBC_Export_Filter_S7085"],
-                    "start_date": "",
-                    "size_of_request_in_minutes": "",
-                    "ca_cert": "",
-                    "http_proxy_url": "",
-                    "https_proxy_url": "",
-                    "username": "guest",
-                    "password": "guest",
-                }
-            }
-        ],
-    }
-
-    called = -1
-    dump_called = False
-
-    def update_config_input(the_prompt=""):
-        inputs = ["3", "a"]
-        nonlocal called
-        called += 1
-        return inputs[called]
-
-    def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "site": "limo.anomali.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "collection_management_path": "/api/v1/taxii/collection_management/",
-                        "poll_path": "/api/v1/taxii/poll/",
-                        "use_https": "",
-                        "ssl_verify": False,
-                        "cert_file": "",
-                        "key_file": "",
-                        "default_score": "",
-                        "collections": ["ISO_CBC_Export_Filter_S7085"],
-                        "start_date": "",
-                        "size_of_request_in_minutes": "",
-                        "ca_cert": "",
-                        "http_proxy_url": "",
-                        "https_proxy_url": "",
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                }
-            ],
-        }
-        nonlocal dump_called
-        assert data == expected_data
-        assert kwargs["sort_keys"] is False
-        dump_called = True
-
-    monkeypatch.setattr("builtins.input", update_config_input)
-    monkeypatch.setattr("os.path.exists", lambda x: False)
-    monkeypatch.setattr("yaml.dump", dump_method)
-    monkeypatch.setattr("yaml.safe_load", lambda x: load_data)
-    monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
-    assert dump_called is False
-
-
-def test_update_config_no_feed_entered(monkeypatch):
-    """Test update config, but no feed info entered"""
-    load_data = {
-        "cbc_profile_name": "default",
-        "sites": [
-            {
-                "my_site_name_1": {
-                    "version": 1.2,
-                    "enabled": True,
-                    "feed_base_name": "base_name",
-                    "site": "limo.anomali.com",
-                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                    "collection_management_path": "/api/v1/taxii/collection_management/",
-                    "poll_path": "/api/v1/taxii/poll/",
-                    "use_https": "",
-                    "ssl_verify": False,
-                    "cert_file": "",
-                    "key_file": "",
-                    "default_score": "",
-                    "collections": ["ISO_CBC_Export_Filter_S7085"],
-                    "start_date": "",
-                    "size_of_request_in_minutes": "",
-                    "ca_cert": "",
-                    "http_proxy_url": "",
-                    "https_proxy_url": "",
-                    "username": "guest",
-                    "password": "guest",
-                }
-            }
-        ],
-    }
-
-    called = -1
-    dump_called = False
-
-    def update_config_input(the_prompt=""):
-        inputs = ["3", "1", "y", "my_second_site", "0", ""]
-        nonlocal called
-        called += 1
-        return inputs[called]
-
-    def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "site": "limo.anomali.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "collection_management_path": "/api/v1/taxii/collection_management/",
-                        "poll_path": "/api/v1/taxii/poll/",
-                        "use_https": "",
-                        "ssl_verify": False,
-                        "cert_file": "",
-                        "key_file": "",
-                        "default_score": "",
-                        "collections": ["ISO_CBC_Export_Filter_S7085"],
-                        "start_date": "",
-                        "size_of_request_in_minutes": "",
-                        "ca_cert": "",
-                        "http_proxy_url": "",
-                        "https_proxy_url": "",
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                }
-            ],
-        }
-        nonlocal dump_called
-        assert data == expected_data
-        assert kwargs["sort_keys"] is False
-        dump_called = True
-
-    monkeypatch.setattr("builtins.input", update_config_input)
-    monkeypatch.setattr("os.path.exists", lambda x: False)
-    monkeypatch.setattr("yaml.dump", dump_method)
-    monkeypatch.setattr("yaml.safe_load", lambda x: load_data)
-    monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
-    assert dump_called is True
-
-
-def test_generate_config_no_site(monkeypatch):
-    """Test generate new config - no site provided"""
-    called = -1
-    dump_called = False
-
-    def generate_config_input(the_prompt=""):
-        inputs = ["2", "", "n"]
-        nonlocal called
-        called += 1
-        return inputs[called]
-
-    def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [],
-        }
-        nonlocal dump_called
-        assert data == expected_data
-        assert kwargs["sort_keys"] is False
-        dump_called = True
-
-    monkeypatch.setattr("builtins.input", generate_config_input)
-    monkeypatch.setattr("os.path.exists", lambda x: False)
-    monkeypatch.setattr("yaml.dump", dump_method)
-    monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
-    assert dump_called
-
-
-def test_exit(monkeypatch):
-    """Test exit option."""
-    called = False
-
-    def wrong_and_exit_input():
-        nonlocal called
-        if called:
-            return "0"
-        called = True
-        return "a"
-
-    monkeypatch.setattr("builtins.input", wrong_and_exit_input)
-
-    with pytest.raises(SystemExit):
-        main()
+        return _patch_object
