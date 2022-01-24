@@ -128,3 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .vscode/
+
+.coverage
+env
+*.decrypted
+carbonblack_cbc-taxii-connector.aes
+
+# IntelliJ
+.idea/
