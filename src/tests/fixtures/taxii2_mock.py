@@ -33,7 +33,7 @@ class APIRootsMock:
         self.collections = collections
 
 
-class TAXIIServerMock:
+class TAXII2ServerMock:
 
     api_roots = [
         APIRootsMock(

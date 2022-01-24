@@ -22,10 +22,17 @@ class MockCollection:
         self.name = name
 
 
-class TAXIIServerMock:
+class ContentBlockMock:
+    def __init__(self, xml_stix_package) -> None:
+        with open(xml_stix_package, "rb") as file:
+            self.content = file.read()
+
+
+class TAXII1ServerMock:
     @staticmethod
     def get_collections():
         return [MockCollection("COLLECTION_1"), MockCollection("COLLECTION_2")]
 
-    def poll():
-        pass
+    @staticmethod
+    def poll(*args, **kwargs):
+        yield ContentBlockMock(XML_COLLECTION)

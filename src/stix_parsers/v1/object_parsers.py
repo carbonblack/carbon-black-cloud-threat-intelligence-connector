@@ -39,7 +39,7 @@ class AddressParser:
         self._type = address.category or None
 
     def parse(self) -> Union[dict, None]:
-        """Parsing IPV4/IPV6 into a dict
+        """Parsing IPV4/IPV6 into CBC IOC dict
 
         Returns:
             dict | None
@@ -52,14 +52,18 @@ class AddressParser:
             return None
 
     def _parse_ipv4(self) -> Union[dict, None]:
-        """Parsing IPV4 into a dict
+        """Parsing IPV4 into CBC IOC dict
 
         Returns:
             dict | None
         """
         value = self.address.to_dict()["address_value"]
+
+        # Sometimes the value key can be a dictionary
+        # oftentimes its when it contains multiple values.
         if isinstance(value, dict):
             value = value["value"]
+
         id_ = self.address._parent.id_
         values = []
         if isinstance(value, list):
@@ -74,14 +78,18 @@ class AddressParser:
         return None
 
     def _parse_ipv6(self) -> Union[dict, None]:
-        """Parsing an IPV6 into a dict
+        """Parsing an IPV6 into CBC IOC dict
 
         Returns:
             dict | None
         """
         value = self.address.to_dict()["address_value"]
+
+        # Sometimes the value key can be a dictionary
+        # oftentimes its when it contains multiple values.
         if isinstance(value, dict):
             value = value["value"]
+
         id_ = self.address._parent.id_
         values = []
         if isinstance(value, list):
@@ -113,12 +121,18 @@ class DomainNameParser:
         self.domain_name = domain_name
 
     def parse(self) -> Union[dict, None]:
-        """Parsing DomainName into a dict
+        """Parsing DomainName into CBC IOC dict
 
         Returns:
             dict | None
         """
-        value = self.domain_name.to_dict()["value"]["value"]
+        value = self.domain_name.to_dict()["value"]
+
+        # Sometimes the value key can be a dictionary
+        # oftentimes its when it contains multiple values.
+        if isinstance(value, dict):
+            value = value["value"]
+
         id_ = self.domain_name._parent.id_
         values = []
         if isinstance(value, list):
@@ -150,7 +164,7 @@ class FileParser:
         self.file = file
 
     def parse(self) -> Union[dict, None]:
-        """Parsing File into a dict
+        """Parsing File into CBC IOC dict
 
         Returns:
             dict | None
@@ -160,39 +174,13 @@ class FileParser:
         values = []
         for i in value.hashes:
             if str(i.type_) == "SHA256":
-                values.append(self._validate_sha256(str(i)))
+                if validators.sha256(str(i)):
+                    values.append(str(i))
             elif str(i.type_) == "MD5":
-                values.append(self._validate_md5(str(i)))
+                if validators.md5(str(i)):
+                    values.append(str(i))
         if values:
             return {"id": id_, "match_type": "equality", "field": self.CB_FIELD, "values": values}
-        return None
-
-    @staticmethod
-    def _validate_sha256(value) -> str:
-        """Validating a SHA256 Hash
-
-        Args:
-            value (str): SHA256 hash
-
-        Returns:
-            str | None
-        """
-        if validators.sha256(value):
-            return value
-        return None
-
-    @staticmethod
-    def _validate_md5(value) -> str:
-        """Validating a MD5 Hash
-
-        Args:
-            value (str): MD5 hash
-
-        Returns:
-            str | None
-        """
-        if validators.md5(value):
-            return value
         return None
 
 
@@ -213,12 +201,18 @@ class URIParser:
         self.uri = uri
 
     def parse(self) -> Union[dict, None]:
-        """Parsing URI into a dict
+        """Parsing URI into CBC IOC dict
 
         Returns:
             dict | None
         """
-        value = self.uri.to_dict()["value"]["value"]
+        value = self.uri.to_dict()["value"]
+
+        # Sometimes the value key can be a dictionary
+        # oftentimes its when it contains multiple values.
+        if isinstance(value, dict):
+            value = value["value"]
+
         id_ = self.uri._parent.id_
         values = []
         if isinstance(value, list):

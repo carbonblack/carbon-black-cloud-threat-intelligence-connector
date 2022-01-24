@@ -59,6 +59,7 @@ class STIX1Parser:
             cbcapi (CBCloudAPI): [description]
         """
         self.cbcapi = cbcapi
+        self.iocs = []
 
     def parse_file(self, file: str) -> List[IOC_V2]:
         """Parsing STIX 1x content
@@ -72,18 +73,17 @@ class STIX1Parser:
         Returns:
            List[IOC_V2] of parsed STIX Objects into IOCs.
         """
-        iocs = []
         if validate_xml(file).is_valid:
             stix_package = STIXPackage.from_xml(file)
             indicators = stix_package.indicators
             observables = stix_package.observables
             if indicators and len(indicators) > 0:
-                iocs += self._parse_stix_indicators(indicators)
+                self._parse_stix_indicators(indicators)
             elif observables and len(observables) > 0:
-                iocs += self._parse_stix_observable(observables)
+                self._parse_stix_observable(observables)
         else:
             raise ValueError("File is not valid.")
-        return iocs
+        return self.iocs
 
     def parse_taxii_server(
         self, client: Union[Client11, Client10], collections: Union[list, str] = "*", **kwargs
@@ -103,7 +103,6 @@ class STIX1Parser:
         Returns:
             List[IOC_V2]: List of parsed Indicators into IOCs
         """
-        iocs = []
         collections_to_gather = self._get_collections(client.get_collections(), collections)
         for collection_name in collections_to_gather:
             content_block = client.poll(collection_name, **kwargs)
@@ -111,31 +110,31 @@ class STIX1Parser:
                 try:
                     xml_content = etree.parse(BytesIO(block.content))
                     stix_package = STIXPackage.from_xml(xml_content)
+
                     indicators = stix_package.indicators
                     observables = stix_package.observables
+
                     if indicators and len(indicators) > 0:
-                        iocs += self._parse_stix_indicators(indicators)
+                        self._parse_stix_indicators(indicators)
                     elif observables and len(observables) > 0:
-                        iocs += self._parse_stix_observable(observables)
+                        self._parse_stix_observable(observables)
+
                 except XMLSyntaxError:
                     # Sometimes there is a invalid block of XML
                     continue
                 except Exception as e:
-                    # Sometimes the
+                    # Sometimes there is an error within the STIX parsing
+                    # such as `GDSParseError` but it can be different.
                     logging.error(e, exc_info=True)
                     continue
-            return iocs
+        return self.iocs
 
-    def _parse_stix_observable(self, observables: Observables) -> List[IOC_V2]:
+    def _parse_stix_observable(self, observables: Observables) -> None:
         """Parsing a STIX Observable object into list of IOCs
 
         Args:
             observables (Observables): Observables object that comes from `STIXPackage`
-
-        Returns:
-            List[IOC_V2]: List of parsed Indicators into IOCs
         """
-        iocs = []
         for observable in observables:
             try:
                 observable_props = observable.object_.properties
@@ -144,44 +143,37 @@ class STIX1Parser:
                 if ioc_dict:
                     ioc_id = str(uuid.uuid4())
                     ioc = IOC_V2(self.cbcapi, ioc_id, ioc_dict)
-                    iocs.append(ioc)
+                    self.iocs.append(ioc)
             except KeyError:
                 # If there is not parser for that object
-                return []
+                return None
             except AttributeError:
                 # Sometimes the `observable.object_.properties` has no properties
-                return []
-        return iocs
+                return None
 
-    def _parse_stix_indicators(self, indicators: Indicators) -> List[IOC_V2]:
+    def _parse_stix_indicators(self, indicators: Indicators) -> None:
         """Parsing a STIX Indicator object into list of IOCs
 
         Args:
             indicators (Indicators): Indicators object that comes from `STIXPackage`
-
-        Returns:
-            List[IOC_V2]: List of parsed Indicators into IOCs
         """
-        iocs = []
         for indicator in indicators:
             if not indicator.observable:
-                return []
+                return None
             try:
                 observable_props = indicator.observable.object_.properties
-
                 parser = self.CB_MAPPINGS[type(observable_props)](observable_props)
                 ioc_dict = parser.parse()
                 ioc_id = str(uuid.uuid4())
                 if ioc_dict:
                     ioc = IOC_V2(self.cbcapi, ioc_id, ioc_dict)
-                    iocs.append(ioc)
+                    self.iocs.append(ioc)
             except KeyError:
                 # If there is no parser for that object
-                return []
+                return None
             except AttributeError:
                 # Sometimes the `observable.object_.properties` has no properties
-                return []
-        return iocs
+                return None
 
     @staticmethod
     def _get_collections(client_collections: List[Collection], collections: list) -> list:
