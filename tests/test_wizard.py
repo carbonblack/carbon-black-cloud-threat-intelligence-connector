@@ -59,12 +59,6 @@ def cbcsdk_mock(monkeypatch, cb):
     return CBCSDKMock(monkeypatch, cb)
 
 
-def test_get_cb():
-    """Test get_cb"""
-    obj = get_cb()
-    assert isinstance(obj, CBCloudAPI)
-
-
 def test_migrate_file_doesnt_exist(monkeypatch):
     """Test for migration of config that doesn't exist."""
     called = False
