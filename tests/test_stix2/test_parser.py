@@ -20,6 +20,7 @@ class STIXFactory:
 
 
 def test_parser_parse_stix_indicator_InvalidValueError(monkeypatch, cbcsdk_mock):
+    """Test parse stix indicator - InvalidValueError."""
     def _raise_invalid_value_error(*args, **kwargs):
         raise InvalidValueError
 
@@ -36,6 +37,7 @@ def test_parser_parse_stix_indicator_InvalidValueError(monkeypatch, cbcsdk_mock)
 
 
 def test_parser_parse_stix_indicator_returns_empty_list(monkeypatch, cbcsdk_mock):
+    """Test parse returns empty list."""
     def _raise_invalid_value_error(*args, **kwargs):
         raise InvalidValueError
 
@@ -51,6 +53,7 @@ def test_parser_parse_stix_indicator_returns_empty_list(monkeypatch, cbcsdk_mock
 
 
 def test_parser_parse_stix_indicator_with_file_hash_sha256(cbcsdk_mock):
+    """Test parse with file - hash sha256."""
     parser = STIX2Parser(cbcsdk_mock.api)
     pattern = "[file:hashes.'SHA-256' = 'ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c']"
     indicator = STIXFactory.create_stix_indicator(pattern=pattern)
@@ -62,6 +65,7 @@ def test_parser_parse_stix_indicator_with_file_hash_sha256(cbcsdk_mock):
 
 
 def test_parser_parse_stix_indicator_with_file_hash_multiple(cbcsdk_mock):
+    """Test with file - hash multiple."""
     parser = STIX2Parser(cbcsdk_mock.api)
     pattern = (
         "[file:hashes.'SHA-256' = 'ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c' OR "
@@ -77,9 +81,8 @@ def test_parser_parse_stix_indicator_with_file_hash_multiple(cbcsdk_mock):
     assert objs[1].values == ["d6d9c42d50794f64088f369597b84721"]
 
 
-def test_parser_parse_stix_indicator_with_file_hash_multiple_invalid_second(
-    cbcsdk_mock,
-):
+def test_parser_parse_stix_indicator_with_file_hash_multiple_invalid_second(cbcsdk_mock):
+    """Test parse with file multiple hash - second is invalid."""
     parser = STIX2Parser(cbcsdk_mock.api)
     pattern = (
         "[file:hashes.'SHA-256' = 'ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c' OR "
@@ -94,6 +97,7 @@ def test_parser_parse_stix_indicator_with_file_hash_multiple_invalid_second(
 
 
 def test_parser_parse_stix_indicator_with_url(cbcsdk_mock):
+    """Test parse with url."""
     parser = STIX2Parser(cbcsdk_mock.api)
     pattern = "[url:value = 'http://test.test/1337/']"
     indicator = STIXFactory.create_stix_indicator(pattern=pattern)
@@ -105,6 +109,7 @@ def test_parser_parse_stix_indicator_with_url(cbcsdk_mock):
 
 
 def test_parser_parse_stix_indicator_with_url_multiple(cbcsdk_mock):
+    """Test parse with url multiple."""
     parser = STIX2Parser(cbcsdk_mock.api)
     pattern = "[url:value = 'http://test.test/1337/' OR url:value = 'http://test1.test/1337/']"
     indicator = STIXFactory.create_stix_indicator(pattern=pattern)
@@ -118,6 +123,7 @@ def test_parser_parse_stix_indicator_with_url_multiple(cbcsdk_mock):
 
 
 def test_parser_parse_stix_indicator_with_ip_cidr(cbcsdk_mock):
+    """Test parse with IP CIDR."""
     parser = STIX2Parser(cbcsdk_mock.api)
     pattern = "[ipv4-addr:value = '198.51.100.1/32']"
     indicator = STIXFactory.create_stix_indicator(pattern=pattern)
@@ -129,6 +135,7 @@ def test_parser_parse_stix_indicator_with_ip_cidr(cbcsdk_mock):
 
 
 def test_parser_parse_stix_indicator_with_ip_no_cidr(cbcsdk_mock):
+    """Test parse with IP no CIDR."""
     parser = STIX2Parser(cbcsdk_mock.api)
     pattern = "[ipv4-addr:value = '198.51.100.1']"
     indicator = STIXFactory.create_stix_indicator(pattern=pattern)
@@ -140,6 +147,7 @@ def test_parser_parse_stix_indicator_with_ip_no_cidr(cbcsdk_mock):
 
 
 def test_parser_parse_stix_indicator_with_ip_complex(cbcsdk_mock):
+    """Test with IP complex."""
     parser = STIX2Parser(cbcsdk_mock.api)
     pattern = (
         "[ipv4-addr:value = '198.51.100.1/32' OR ipv4-addr:value = '203.0.113.33/32' OR "
@@ -158,6 +166,7 @@ def test_parser_parse_stix_indicator_with_ip_complex(cbcsdk_mock):
 
 
 def test_parser_parse_stix_indicator_with_ip_domain(cbcsdk_mock):
+    """Test with IP domain."""
     parser = STIX2Parser(cbcsdk_mock.api)
     pattern = (
         "[ipv4-addr:value = '198.51.100.1/32' OR ipv4-addr:value = '203.0.113.33/32' OR "

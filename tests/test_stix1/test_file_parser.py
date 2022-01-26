@@ -10,18 +10,21 @@ XML_FEED_TEST_EMPTY = "./tests/fixtures/files/empty_file.xml"
 
 
 def test_parser_empty_file(cbcsdk_mock):
+    """Test with empty file."""
     parser = STIX1Parser(cbcsdk_mock.api)
     with pytest.raises(ValidationError):
         parser.parse_file(XML_FEED_TEST_EMPTY)
 
 
 def test_parser_faulty_stix_12(cbcsdk_mock):
+    """Test with faulty stix v1.2."""
     parser = STIX1Parser(cbcsdk_mock.api)
     with pytest.raises(ValidationError):
         parser.parse_file(XML_FEED_TEST_FAULTY)
 
 
 def test_parser_valid_file_12(cbcsdk_mock):
+    """"Test with valid file v1.2."""
     parser = STIX1Parser(cbcsdk_mock.api)
     objs = parser.parse_file(XML_FEED_TEST_VALID)
     assert len(objs) == 3158

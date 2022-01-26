@@ -12,6 +12,7 @@ STIX_INDICATOR_URI = "./tests/fixtures/files/stix_1x_sample_objects/indicator_fo
 
 
 def test_parsing_hashes(cbcsdk_mock):
+    """Test parsing hashes."""
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_FILE_HASHES)
     assert len(iocs) == 1
@@ -23,6 +24,7 @@ def test_parsing_hashes(cbcsdk_mock):
 
 
 def test_parsing_single_domain(cbcsdk_mock):
+    """Test parsing single domain."""
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_HAT_DNS)
     assert iocs[0].values[0] == "fctnnbsc38w-47-54-126-15.dhcp-dynamic.fibreop.nb.bellaliant.net"
@@ -31,6 +33,7 @@ def test_parsing_single_domain(cbcsdk_mock):
 
 
 def test_parsing_multiple_domains(cbcsdk_mock):
+    """Test parse multiple domains."""
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_SIMPLE_DNS_WATCHLIST)
     assert len(iocs) == 2
@@ -39,6 +42,7 @@ def test_parsing_multiple_domains(cbcsdk_mock):
 
 
 def test_parsing_ips(cbcsdk_mock):
+    """Test parse ip."""
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_SIMPLE_IP_WATCHLIST)
     assert len(iocs) == 1
@@ -47,6 +51,7 @@ def test_parsing_ips(cbcsdk_mock):
 
 
 def test_parsing_ipv4_multiple_values(cbcsdk_mock):
+    """Test parse IPV4."""
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_SIMPLE_IP_WATCHLIST)
     assert len(iocs) == 1
@@ -55,6 +60,7 @@ def test_parsing_ipv4_multiple_values(cbcsdk_mock):
 
 
 def test_parsing_ipv4(cbcsdk_mock):
+    """Test parsing IPv4"""
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_SIMPLE_IPV4)
     assert len(iocs) == 1
@@ -63,6 +69,7 @@ def test_parsing_ipv4(cbcsdk_mock):
 
 
 def test_parsing_ipv6(cbcsdk_mock):
+    """Test parsing IPv6."""
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_SIMPLE_IPV6_WATCHLIST)
     assert len(iocs) == 2
@@ -76,6 +83,7 @@ def test_parsing_ipv6(cbcsdk_mock):
 
 
 def test_parsing_uri(cbcsdk_mock):
+    """Test parsing URL."""
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_INDICATOR_URI)
     assert len(iocs) == 1

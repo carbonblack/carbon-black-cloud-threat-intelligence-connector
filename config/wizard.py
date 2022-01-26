@@ -16,6 +16,7 @@ import copy
 import os
 import sys
 import types
+from typing import List
 
 
 import yaml
@@ -73,7 +74,7 @@ def enter_api_routes(key: str) -> dict:
     return api_routes
 
 
-def enter_collections(key: str, value: str = None) -> list[str]:
+def enter_collections(key: str, value: str = None) -> List[str]:
     """Helper function to enter and parse the collections for v1.2
 
     Args:
