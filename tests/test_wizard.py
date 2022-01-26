@@ -20,7 +20,7 @@ from tests.fixtures.cbc_sdk_mock_responses import FEED_GET_RESP
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
 
-from cli.wizard import main, get_cb, CBCloudAPI
+from config.wizard import main, get_cb, CBCloudAPI
 
 
 class MockFileManager:
@@ -83,7 +83,7 @@ def test_migrate_file_doesnt_exist(monkeypatch):
 
 def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     """Test for migrating config - success."""
-    monkeypatch.setattr("cli.wizard.get_cb", lambda: cbcsdk_mock.api)
+    monkeypatch.setattr("config.wizard.get_cb", lambda: cbcsdk_mock.api)
     called = False
     dump_called = False
     cbcsdk_mock.mock_request(

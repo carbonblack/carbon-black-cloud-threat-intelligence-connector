@@ -1,6 +1,6 @@
 - name: Linters
   service: testingpython38
-  command: bin/linters.sh
+  command: docker/bin/linters.sh
 
 - name: Tests
   type: parallel
@@ -10,7 +10,7 @@
     command: pytest
   - name: testing python 3.8
     service: testingpython38
-    command: bin/tests_n_reports.sh
+    command: docker/bin/tests_n_reports.sh
   - name: testing red hat
     service: testingrhel
     command: pytest

@@ -37,7 +37,7 @@ from tests.fixtures.cbc_sdk_mock_responses import (
     WATCHLIST_FROM_FEED_OUT,
 )
 
-from utils.cbc_helpers import create_feed, get_feed, create_watchlist
+from cbc_importer.utils import create_feed, get_feed, create_watchlist
 
 
 @pytest.fixture(scope="function")

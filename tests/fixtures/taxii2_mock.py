@@ -13,8 +13,8 @@
 
 import json
 
-JSON_FEED_TEST_VALID = "./src/tests/fixtures/files/stix_v2.1.json"
-JSON_FEED_TEST_VALID_STIX_20 = "./src/tests/fixtures/files/stix_v2.0.json"
+JSON_FEED_TEST_VALID = "./tests/fixtures/files/stix_v2.1.json"
+JSON_FEED_TEST_VALID_STIX_20 = "./tests/fixtures/files/stix_v2.0.json"
 
 
 class MockCollection:

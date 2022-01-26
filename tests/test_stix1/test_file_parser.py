@@ -2,11 +2,11 @@ import pytest
 from cbc_sdk.enterprise_edr import IOC_V2
 from sdv.errors import ValidationError
 
-from stix_parsers.v1.parser import STIX1Parser
+from cbc_importer.stix_parsers.v1.parser import STIX1Parser
 
-XML_FEED_TEST_VALID = "./src/tests/fixtures/files/stix_v1.2.xml"
-XML_FEED_TEST_FAULTY = "./src/tests/fixtures/files/stix_v1.2_faulty.xml"
-XML_FEED_TEST_EMPTY = "./src/tests/fixtures/files/empty_file.xml"
+XML_FEED_TEST_VALID = "./tests/fixtures/files/stix_v1.2.xml"
+XML_FEED_TEST_FAULTY = "./tests/fixtures/files/stix_v1.2_faulty.xml"
+XML_FEED_TEST_EMPTY = "./tests/fixtures/files/empty_file.xml"
 
 
 def test_parser_empty_file(cbcsdk_mock):

@@ -1,7 +1,7 @@
 from stix2 import Bundle, Indicator
 from stix2.exceptions import InvalidValueError
 
-from stix_parsers.v2.parser import STIX2Parser
+from cbc_importer.stix_parsers.v2.parser import STIX2Parser
 
 JSON_FEED_TEST_VALID = "./src/tests/fixtures/files/stix_v2.1.json"
 JSON_FEED_TEST_FAULTY = "./src/tests/fixtures/files/stix_v2.1_faulty.json"

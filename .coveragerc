@@ -1,6 +1,6 @@
 [run]
 omit = *tests*
-source = ./src
+source = ./cbc_importer
 [report]
 exclude_lines =
     pragma: no cover

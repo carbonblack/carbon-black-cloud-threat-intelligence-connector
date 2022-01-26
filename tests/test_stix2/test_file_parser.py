@@ -1,18 +1,18 @@
 import pytest
 from cbc_sdk.enterprise_edr import IOC_V2
 
-from stix_parsers.v2.parser import STIX2Parser
+from cbc_importer.stix_parsers.v2.parser import STIX2Parser
 
-JSON_FEED_TEST_VALID_21 = "./src/tests/fixtures/files/stix_v2.1.json"
-JSON_FEED_TEST_FAULTY_21 = "./src/tests/fixtures/files/stix_v2.1_faulty.json"
-JSON_FEED_OBJECTS_INDICATOR_PATTERN_ERROR_21 = "./src/tests/fixtures/files/stix_v2.1_indicator_pattern_error.json"
-JSON_FEED_TEST_VALID_20 = "./src/tests/fixtures/files/stix_v2.0.json"
-JSON_FEED_TEST_FAULTY_20 = "./src/tests/fixtures/files/stix_v2.0_faulty.json"
-JSON_FEED_OBJECTS_INDICATOR_PATTERN_ERROR_20 = "./src/tests/fixtures/files/stix_v2.0_indicator_pattern_error.json"
-JSON_FEED_TEST_EMPTY = "./src/tests/fixtures/files/empty_file.json"
+JSON_FEED_TEST_VALID_21 = "./tests/fixtures/files/stix_v2.1.json"
+JSON_FEED_TEST_FAULTY_21 = "./tests/fixtures/files/stix_v2.1_faulty.json"
+JSON_FEED_OBJECTS_INDICATOR_PATTERN_ERROR_21 = "./tests/fixtures/files/stix_v2.1_indicator_pattern_error.json"
+JSON_FEED_TEST_VALID_20 = "./tests/fixtures/files/stix_v2.0.json"
+JSON_FEED_TEST_FAULTY_20 = "./tests/fixtures/files/stix_v2.0_faulty.json"
+JSON_FEED_OBJECTS_INDICATOR_PATTERN_ERROR_20 = "./tests/fixtures/files/stix_v2.0_indicator_pattern_error.json"
+JSON_FEED_TEST_EMPTY = "./tests/fixtures/files/empty_file.json"
 
-XML_FEED_TEST_VALID = "./src/tests/fixtures/files/stix_v1.2.xml"
-XML_FEED_TEST_FAULTY = "./src/tests/fixtures/files/stix_v1.2_faulty.xml"
+XML_FEED_TEST_VALID = "./tests/fixtures/files/stix_v1.2.xml"
+XML_FEED_TEST_FAULTY = "./tests/fixtures/files/stix_v1.2_faulty.xml"
 
 
 """Tests for STIX 2.1"""

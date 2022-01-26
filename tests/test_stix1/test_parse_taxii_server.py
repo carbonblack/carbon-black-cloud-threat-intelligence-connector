@@ -1,4 +1,4 @@
-from stix_parsers.v1.parser import STIX1Parser
+from cbc_importer.stix_parsers.v1.parser import STIX1Parser
 
 
 def test_get_collections(cbcsdk_mock, taxii1_server_mock):

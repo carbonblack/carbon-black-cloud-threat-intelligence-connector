@@ -14,7 +14,7 @@
 import json
 from unittest.mock import Mock
 
-XML_COLLECTION = "./src/tests/fixtures/files/stix_v1.2.xml"
+XML_COLLECTION = "./tests/fixtures/files/stix_v1.2.xml"
 
 
 class MockCollection:
