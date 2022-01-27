@@ -14,6 +14,9 @@
   - name: testing red hat
     service: testingrhel
     command: pytest
+  - name: testing ubuntu
+    service: testingubuntu
+    command: pytest
   - name: testing amazon
     service: testingamazon
     command: pytest
