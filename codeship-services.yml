@@ -12,10 +12,6 @@ testingrhel:
   build:
     dockerfile: ./docker/rhel/Dockerfile
 
-testingubuntu:
-  build:
-    dockerfile: ./docker/ubuntu/Dockerfile
-
 testingamazon:
   build:
     dockerfile: ./docker/amazon/Dockerfile
