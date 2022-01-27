@@ -86,9 +86,9 @@ class STIX2PatternParser:
             Union[dict, None]: Dictionary containing the mapped field and value of the STIX Object.
         """
         if self.is_parsable:
-            parsed_value = self._parser["function"](self.stix_field_value)
+            parsed_value = self._parser["function"](self.stix_field_value)  # type: ignore
             if parsed_value:
-                return {"field": self._parser["field"], "value": parsed_value}
+                return {"field": self._parser["field"], "value": parsed_value}  # type: ignore
             return None
         return None
 

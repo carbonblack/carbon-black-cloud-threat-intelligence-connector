@@ -13,3 +13,7 @@ extend-exclude = '''
   | profiling
 )/
 '''
+
+[tool.mypy]
+ignore_missing_imports = true
+files = ['./cbc_importer/**/*.py', './config/*.py']

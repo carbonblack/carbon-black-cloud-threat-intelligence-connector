@@ -143,7 +143,7 @@ class STIX2Parser:
     def _gather_collections(
         self,
         api_roots: Union[List[taxii2client.ApiRoot], str],
-        gather_data: dict,
+        gather_data: Union[str, dict],
     ) -> List[taxii2client.Collection]:
         """Gather the specified collections from the `gather_data` dictionary.
 
@@ -163,11 +163,11 @@ class STIX2Parser:
 
         if isinstance(gather_data, str) and gather_data == "*":
             for root in api_roots:
-                if len(root.collections) > 0:
-                    collections_to_gather += root.collections
+                if len(root.collections) > 0:  # type: ignore
+                    collections_to_gather += root.collections  # type: ignore
         else:
-            roots_to_gather += self._get_roots(api_roots, gather_data)
-            collections_to_gather += self._get_collections(roots_to_gather, gather_data)
+            roots_to_gather += self._get_roots(api_roots, gather_data)  # type: ignore
+            collections_to_gather += self._get_collections(roots_to_gather, gather_data)  # type: ignore
 
         return collections_to_gather
 

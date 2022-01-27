@@ -16,7 +16,7 @@ import copy
 import os
 import sys
 import types
-from typing import List
+from typing import List, no_type_check
 
 
 import yaml
@@ -70,7 +70,7 @@ def enter_api_routes(key: str) -> dict:
         if value == "*":
             api_routes[api_route_title] = "*"
         else:
-            api_routes[api_route_title] = value.split()
+            api_routes[api_route_title] = value.split()  # type: ignore
     return api_routes
 
 
@@ -169,12 +169,12 @@ def migrate() -> None:
                 continue
             if isinstance(item_data[site_name][inner_key], types.FunctionType):
                 func = item_data[site_name][inner_key]
-                item_data[site_name][inner_key] = func(inner_key, values[inner_key])
+                item_data[site_name][inner_key] = func(inner_key, values[inner_key])  # type: ignore
             elif values[inner_key]:
                 item_data[site_name][inner_key] = values[inner_key]
 
         # add this site information
-        data["sites"].append(item_data)
+        data["sites"].append(item_data)  # type: ignore
 
     with open(CONFIG_FILE, "w") as new_config:
         yaml.dump(data, new_config, default_flow_style=False, sort_keys=False)
@@ -182,6 +182,7 @@ def migrate() -> None:
     print("Successfully migrated the config")
 
 
+@no_type_check
 def enter_feed_data() -> dict:
     """Gather the information about the feed data.
 
@@ -225,7 +226,7 @@ def enter_new_site(data: dict = None) -> None:
         if not feed_data:
             return
         site_data = {site_name: feed_data}
-        data["sites"].append(site_data)
+        data["sites"].append(site_data)  # type: ignore
 
 
 def generate_config() -> None:
@@ -242,6 +243,7 @@ def generate_config() -> None:
         yaml.dump(data, new_config, default_flow_style=False, sort_keys=False)
 
 
+@no_type_check
 def update_config() -> None:
     """Update config of the new structure."""
     with open(CONFIG_FILE) as file:
