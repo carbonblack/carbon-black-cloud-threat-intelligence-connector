@@ -1,2 +1,15 @@
 [tool.isort]
 profile = "black"
+
+[tool.black]
+line-length = 120
+target-version = ['py36', 'py37', 'py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # The following are specific to Black, you probably don't want those.
+  | blib2to3
+  | tests/fixtures/files/
+  | profiling
+)/
+'''
