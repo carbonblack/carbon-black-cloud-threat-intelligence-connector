@@ -1,7 +1,8 @@
-from stix_parsers.v1.parser import STIX1Parser
+from cbc_importer.stix_parsers.v1.parser import STIX1Parser
 
 
 def test_get_collections(cbcsdk_mock, taxii1_server_mock):
+    """Test get collections."""
     collections = ["COLLECTION_1"]
 
     gathered_collections = STIX1Parser(cbcsdk_mock.api)._get_collections(
@@ -11,6 +12,7 @@ def test_get_collections(cbcsdk_mock, taxii1_server_mock):
 
 
 def test_poll_server_one_collection(taxii1_server_mock, cbcsdk_mock):
+    """Test poll one collection."""
     collections = ["COLLECTION_1"]
 
     iocs = STIX1Parser(cbcsdk_mock.api).parse_taxii_server(

@@ -16,16 +16,18 @@ import copy
 import os
 import sys
 import types
+from typing import List
 
 
 import yaml
 from cbc_sdk.rest_api import CBCloudAPI
 
-from src.utils.cbc_helpers import get_feed
+from cbc_importer.utils import get_feed
+from cbc_importer import __version__
 
 CBC_PROFILE_NAME = "default"
-CONFIG_FILE = "../../config.yml"
-OLD_CONFIG_FILE = "../../config.yml"
+CONFIG_FILE = "../config.yml"
+OLD_CONFIG_FILE = "../config.yml"
 CBC_FEED_FIELD = "feed_base_name"
 EVAL_VALUES = [
     "version",
@@ -72,7 +74,7 @@ def enter_api_routes(key: str) -> dict:
     return api_routes
 
 
-def enter_collections(key: str, value: str = None) -> list[str]:
+def enter_collections(key: str, value: str = None) -> List[str]:
     """Helper function to enter and parse the collections for v1.2
 
     Args:
@@ -127,14 +129,11 @@ TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
 def get_cb() -> CBCloudAPI:
     """Return CBCLoudAPI instance
 
-    Args:
-        version (str): version of STIX/TAXII to be used for the integration name
-
     Returns:
         CBCloudAPI: A reference to the CBCloudAPI object.
     """
     return CBCloudAPI(
-        profile=CBC_PROFILE_NAME, integration_name=("STIX/TAXII")
+        profile=CBC_PROFILE_NAME, integration_name=("STIX/TAXII " + __version__)
     )
 
 

@@ -12,6 +12,8 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
 """CBC Helpers"""
+from typing import List
+
 from cbc_sdk import CBCloudAPI
 from cbc_sdk.enterprise_edr import Feed, Watchlist, Report
 from cbc_sdk.errors import (
@@ -29,7 +31,7 @@ def create_feed(
     provider_url: str,
     summary: str,
     category: str,
-    reports: list[Report] = None,
+    reports: List[Report] = None,
 ) -> Feed:
     """Create new feed.
 

@@ -30,7 +30,7 @@ from lxml.etree import XMLSyntaxError
 from sdv import validate_xml
 from stix.core import Indicators, STIXPackage
 
-from stix_parsers.v1.object_parsers import (
+from cbc_importer.stix_parsers.v1.object_parsers import (
     AddressParser,
     DomainNameParser,
     FileParser,

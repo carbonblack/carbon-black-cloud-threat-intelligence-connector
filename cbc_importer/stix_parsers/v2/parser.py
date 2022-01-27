@@ -25,7 +25,7 @@ from stix2patterns.pattern import Pattern
 from stix2validator import validate_file
 from taxii2client import as_pages
 
-from stix_parsers.v2.pattern_parser import STIXPatternParser
+from cbc_importer.stix_parsers.v2.pattern_parser import STIXPatternParser
 
 
 class STIX2Parser:
@@ -67,7 +67,7 @@ class STIX2Parser:
             else:
                 raise ValueError(f"JSON file is not valid or empty: {validate.as_dict()}")
         else:
-            raise ValueError(f"Unsupported STIX version.")
+            raise ValueError("Unsupported STIX version.")
 
     def parse_taxii_server(
         self,

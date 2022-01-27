@@ -1,6 +1,5 @@
 [run]
 omit = *tests*
-source = ./src
 [report]
 exclude_lines =
     pragma: no cover
