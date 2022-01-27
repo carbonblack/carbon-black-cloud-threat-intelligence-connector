@@ -132,7 +132,6 @@ def get_cb() -> CBCloudAPI:
     Returns:
         CBCloudAPI: A reference to the CBCloudAPI object.
     """
-    print(("STIX/TAXII " + __version__))
     return CBCloudAPI(
         profile=CBC_PROFILE_NAME, integration_name=("STIX/TAXII " + __version__)
     )
