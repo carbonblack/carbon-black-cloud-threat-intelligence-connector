@@ -20,7 +20,7 @@ from tests.fixtures.cbc_sdk_mock_responses import FEED_GET_RESP
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
 
-from config.wizard import main, get_cb, CBCloudAPI
+from configurator.wizard import main, CBCloudAPI
 
 
 class MockFileManager:
@@ -59,6 +59,9 @@ def cbcsdk_mock(monkeypatch, cb):
     return CBCSDKMock(monkeypatch, cb)
 
 
+# ==================================== UNIT TESTS BELOW ====================================
+
+
 def test_migrate_file_doesnt_exist(monkeypatch):
     """Test for migration of config that doesn't exist."""
     called = False
@@ -77,7 +80,7 @@ def test_migrate_file_doesnt_exist(monkeypatch):
 
 def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     """Test for migrating config - success."""
-    monkeypatch.setattr("config.wizard.get_cb", lambda: cbcsdk_mock.api)
+    monkeypatch.setattr("configurator.wizard.get_cb", lambda: cbcsdk_mock.api)
     called = False
     dump_called = False
     cbcsdk_mock.mock_request(
@@ -94,6 +97,7 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     def dump_method(data, config, **kwargs):
         expected_data = {
             "cbc_profile_name": "default",
+            "default_severity": 5,
             "sites": [
                 {
                     "my_site_name_1": {
@@ -169,6 +173,7 @@ def test_generate_config(monkeypatch):
         inputs = [
             "2",
             "",
+            "6",
             "y",
             "my_site_name_1",
             "1",
@@ -214,6 +219,7 @@ def test_generate_config(monkeypatch):
     def dump_method(data, config, **kwargs):
         expected_data = {
             "cbc_profile_name": "default",
+            "default_severity": 6,
             "sites": [
                 {
                     "my_site_name_1": {
@@ -269,6 +275,7 @@ def test_update_config_add_new_site(monkeypatch):
     """Test update config - add new site - successful case"""
     load_data = {
         "cbc_profile_name": "default",
+        "default_severity": 5,
         "sites": [
             {
                 "my_site_name_1": {
@@ -325,6 +332,7 @@ def test_update_config_add_new_site(monkeypatch):
     def dump_method(data, config, **kwargs):
         expected_data = {
             "cbc_profile_name": "default",
+            "default_severity": 5,
             "sites": [
                 {
                     "my_site_name_1": {
@@ -381,6 +389,7 @@ def test_update_config_add_new_site_no_api_routes(monkeypatch):
     """Test update config - add new site, but no api routes provided"""
     load_data = {
         "cbc_profile_name": "default",
+        "default_severity": 5,
         "sites": [
             {
                 "my_site_name_1": {
@@ -435,6 +444,7 @@ def test_update_config_add_new_site_no_api_routes(monkeypatch):
     def dump_method(data, config, **kwargs):
         expected_data = {
             "cbc_profile_name": "default",
+            "default_severity": 5,
             "sites": [
                 {
                     "my_site_name_1": {
@@ -466,7 +476,7 @@ def test_update_config_add_new_site_no_api_routes(monkeypatch):
                         "enabled": True,
                         "feed_base_name": "base_name_2",
                         "site": "site2.com",
-                        "api_routes": {},
+                        "api_routes": '',
                         "username": "guest",
                         "password": "guest",
                     }
@@ -491,6 +501,7 @@ def test_update_config_wrong_choice(monkeypatch):
     """Test update config - wrong choice"""
     load_data = {
         "cbc_profile_name": "default",
+        "default_severity": 5,
         "sites": [
             {
                 "my_site_name_1": {
@@ -531,6 +542,7 @@ def test_update_config_wrong_choice(monkeypatch):
     def dump_method(data, config, **kwargs):
         expected_data = {
             "cbc_profile_name": "default",
+            "default_severity": 5,
             "sites": [
                 {
                     "my_site_name_1": {
@@ -576,6 +588,7 @@ def test_update_config_no_feed_entered(monkeypatch):
     """Test update config, but no feed info entered"""
     load_data = {
         "cbc_profile_name": "default",
+        "default_severity": 5,
         "sites": [
             {
                 "my_site_name_1": {
@@ -616,6 +629,7 @@ def test_update_config_no_feed_entered(monkeypatch):
     def dump_method(data, config, **kwargs):
         expected_data = {
             "cbc_profile_name": "default",
+            "default_severity": 5,
             "sites": [
                 {
                     "my_site_name_1": {
@@ -663,7 +677,7 @@ def test_generate_config_no_site(monkeypatch):
     dump_called = False
 
     def generate_config_input(the_prompt=""):
-        inputs = ["2", "", "n"]
+        inputs = ["2", "", "", "n"]
         nonlocal called
         called += 1
         return inputs[called]
@@ -671,6 +685,7 @@ def test_generate_config_no_site(monkeypatch):
     def dump_method(data, config, **kwargs):
         expected_data = {
             "cbc_profile_name": "default",
+            "default_severity": 5,
             "sites": [],
         }
         nonlocal dump_called

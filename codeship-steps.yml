@@ -5,21 +5,9 @@
 - name: Tests
   type: parallel
   steps:
-  - name: testing python 3.7
-    service: testingpython37
-    command: pytest
   - name: testing python 3.8
     service: testingpython38
     command: docker/bin/tests_n_reports.sh
-  - name: testing red hat
-    service: testingrhel
-    command: pytest
   - name: testing ubuntu
     service: testingubuntu
-    command: pytest
-  - name: testing amazon
-    service: testingamazon
-    command: pytest
-  - name: testing suse
-    service: testingsuse
     command: pytest

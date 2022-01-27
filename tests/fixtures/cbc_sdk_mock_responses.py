@@ -145,3 +145,38 @@ FEED_CREATE_NO_REPORT_INIT = {
     },
     "reports": [],
 }
+
+FEED_CREATE_STIX = {
+    "feedinfo": {
+        "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
+        "provider_url": "http://limo.domain.com",
+        "summary": "feed for stix taxii",
+        "category": "thiswouldgood",
+    },
+    "reports": [],
+}
+
+FEED_RESP_POST_STIX = {
+    "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
+    "provider_url": "http://limo.domain.com",
+    "summary": "feed for stix taxii",
+    "category": "thiswouldgood",
+    "source_label": None,
+    "access": "private",
+    "id": "90TuDxDYQtiGyg5qhwYCg",
+}
+
+FEED_GET_ALL_RESP_NO_FEED = {"results": []}
+
+FEED_RESP_POST_REPLACE_REPORTS = {
+    "reports": [
+        {
+            "description": "feed for stix taxii",
+            "id": "a539bb2a-9fcb-4a3c-b722-02a5c5f6ccb1",
+            "severity": 5,
+            "tags": [],
+            "timestamp": 1643305793,
+            "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - " "Part 1-1",
+        }
+    ]
+}
