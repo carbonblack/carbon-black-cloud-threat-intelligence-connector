@@ -15,11 +15,11 @@
 from typing import List
 
 from cbc_sdk import CBCloudAPI
-from cbc_sdk.enterprise_edr import Feed, Watchlist, Report
+from cbc_sdk.enterprise_edr import Feed, Report, Watchlist
 from cbc_sdk.errors import (
-    ObjectNotFoundError,
-    MoreThanOneResultError,
     InvalidObjectError,
+    MoreThanOneResultError,
+    ObjectNotFoundError,
 )
 
 """Feed Helpers"""
@@ -77,9 +77,7 @@ def get_feed(cb: CBCloudAPI, feed_name: str = None, feed_id: str = None) -> Feed
         if not feeds:
             raise ObjectNotFoundError("No feeds named '{}'".format(feed_name))
         elif len(feeds) > 1:
-            raise MoreThanOneResultError(
-                "More than one feed named '{}'".format(feed_name)
-            )
+            raise MoreThanOneResultError("More than one feed named '{}'".format(feed_name))
         return feeds[0]
     else:
         raise ValueError("expected either feed_id or feed_name")
@@ -107,8 +105,6 @@ def create_watchlist(
         Watchlist: The new watchlist.
     """
     if feed and isinstance(feed, Feed):
-        watchlist = Watchlist.create_from_feed(
-            feed, name=name, description=description, enable_alerts=enable_alerts
-        )
+        watchlist = Watchlist.create_from_feed(feed, name=name, description=description, enable_alerts=enable_alerts)
         return watchlist.save()
     raise InvalidObjectError("invalid Feed")

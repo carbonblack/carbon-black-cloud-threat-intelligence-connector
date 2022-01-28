@@ -21,6 +21,7 @@ class STIXFactory:
 
 def test_parser_parse_stix_indicator_InvalidValueError(monkeypatch, cbcsdk_mock):
     """Test parse stix indicator - InvalidValueError."""
+
     def _raise_invalid_value_error(*args, **kwargs):
         raise InvalidValueError
 
@@ -38,6 +39,7 @@ def test_parser_parse_stix_indicator_InvalidValueError(monkeypatch, cbcsdk_mock)
 
 def test_parser_parse_stix_indicator_returns_empty_list(monkeypatch, cbcsdk_mock):
     """Test parse returns empty list."""
+
     def _raise_invalid_value_error(*args, **kwargs):
         raise InvalidValueError
 
