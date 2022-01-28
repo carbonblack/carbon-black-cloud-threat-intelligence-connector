@@ -888,20 +888,17 @@ python-versions = "*"
 
 [[package]]
 name = "stix"
-version = "1.2.0.0"
+version = "1.2.0.11"
 description = "An API for parsing and generating STIX content."
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-cybox = ">=2.1.0.11,<2.1.1.0"
-lxml = ">=2.3"
+cybox = ">=2.1.0.13,<2.1.1.0"
+lxml = {version = ">=2.2.3", markers = "python_version == \"2.7\" or python_version >= \"3.5\""}
+mixbox = ">=1.0.4"
 python-dateutil = "*"
-
-[package.extras]
-test = ["nose (==1.3.0)", "tox (==1.6.1)", "maec (>=4.1.0.12,<4.1.1.0)"]
-docs = ["Sphinx (==1.2.1)", "sphinxcontrib-napoleon (==0.2.4)", "sphinx_rtd_theme (==0.1.7)"]
 
 [[package]]
 name = "stix-validator"
@@ -1131,8 +1128,8 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 
 [metadata]
 lock-version = "1.1"
-python-versions = "~3.8"
-content-hash = "c07715166c66dd2d7ec9acbdf06f92c66cf0103af84266cdf1c00a641ec5f877"
+python-versions = "3.8"
+content-hash = "9f065c73c931f11130e20734d41df08b97b7164316e6dc4d55bea4f1a618fd66"
 
 [metadata.files]
 antlr4-python3-runtime = [
@@ -1757,8 +1754,8 @@ solrq = [
     {file = "solrq-1.1.1.tar.gz", hash = "sha256:1fd1fa77fbfb09d7a0a4752bc23c53acf734fc4a52b0718eb19171319e64bc30"},
 ]
 stix = [
-    {file = "stix-1.2.0.0.tar.gz", hash = "sha256:c3057ad709338b6ffdd2c107c07be4e475bf4c5f4d502d08cf745d0b9720fe50"},
-    {file = "stix-1.2.0.0.zip", hash = "sha256:d6bb83396edebeda906a597feaec0f313790fba14dac7dc29f3fb4e5d0b2ce6c"},
+    {file = "stix-1.2.0.11-py2.py3-none-any.whl", hash = "sha256:a3825e34781d491ac3526111f053db85a2be4549e0c8ce56e05e5eeb5f495e53"},
+    {file = "stix-1.2.0.11.tar.gz", hash = "sha256:b23a1ca70227e17f42cd0a9f109737f321175f6fe97be5cb24fd4d189dbb1601"},
 ]
 stix-validator = [
     {file = "stix-validator-2.5.1.tar.gz", hash = "sha256:b3de3eb55b36dfec82f27ad1fa51c2794631bd0033968daf5dab0621015064fa"},
