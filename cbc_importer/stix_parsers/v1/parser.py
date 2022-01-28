@@ -59,7 +59,7 @@ class STIX1Parser:
             cbcapi (CBCloudAPI): [description]
         """
         self.cbcapi = cbcapi
-        self.iocs = []
+        self.iocs: List[IOC_V2] = []
 
     def parse_file(self, file: str) -> List[IOC_V2]:
         """Parsing STIX 1x content
@@ -139,7 +139,7 @@ class STIX1Parser:
             try:
                 observable_props = observable.object_.properties
                 parser = self.CB_MAPPINGS[type(observable_props)](observable_props)
-                ioc_dict = parser.parse()
+                ioc_dict = parser.parse()  # type: ignore
                 if ioc_dict:
                     ioc_id = str(uuid.uuid4())
                     ioc = IOC_V2(self.cbcapi, ioc_id, ioc_dict)
@@ -163,7 +163,7 @@ class STIX1Parser:
             try:
                 observable_props = indicator.observable.object_.properties
                 parser = self.CB_MAPPINGS[type(observable_props)](observable_props)
-                ioc_dict = parser.parse()
+                ioc_dict = parser.parse()  # type: ignore
                 ioc_id = str(uuid.uuid4())
                 if ioc_dict:
                     ioc = IOC_V2(self.cbcapi, ioc_id, ioc_dict)
@@ -176,7 +176,7 @@ class STIX1Parser:
                 return None
 
     @staticmethod
-    def _get_collections(client_collections: List[Collection], collections: list) -> list:
+    def _get_collections(client_collections: List[Collection], collections: Union[list, str]) -> list:
         """Getting the collections specified in `collections` and
         returns the collections that match .
 

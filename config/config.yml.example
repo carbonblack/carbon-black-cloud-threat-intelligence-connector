@@ -4,14 +4,14 @@ sites:
 - my_site_name_1:
     # version for the feed - can be 1.2, 2.0, 2.1
     version: 1.2
-    
+
     # flag, whether the feed will be used
     enabled: true
-    
+
     # base name for the feed in CBC, if multiple feeds are needed
     # then they would be named feed_base_name<suffix>
     feed_base_name: StixTaxiiFeedName
-    
+
     # the address of the site (only server ip or dns; don't put https:// or a trailing slash)
     # example: limo.anomali.com
     site: limo.anomali.com
@@ -44,8 +44,8 @@ sites:
     key_file: ''
 
     # (optional) how to score each result. Accepts values [1,10], and defaults to 5
-    default_score: 
-    
+    default_score:
+
     # (optional) specify which collections to convert to feeds list of collections
     # example:
     # - Abuse_ch_Ransomware_IPs_F135
