@@ -1,4 +1,5 @@
-import mock
+import uuid
+from unittest import mock
 
 from cbc_importer.stix_parsers.v1.parser import STIX1Parser
 
@@ -23,7 +24,7 @@ def test_parsing_hashes(cbcsdk_mock):
     ]
 
 
-def test_parsing_single_domain(cbcsdk_mock):
+def test_parsing_observable_single_domain(cbcsdk_mock):
     """Test parsing single domain."""
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_HAT_DNS)
@@ -32,13 +33,49 @@ def test_parsing_single_domain(cbcsdk_mock):
     assert len(iocs) == 1
 
 
-def test_parsing_multiple_domains(cbcsdk_mock):
+def test_parsing_observable_raises_key_error(cbcsdk_mock):
+    """Test parsing observable to raise KeyError"""
+    parser = STIX1Parser(cbcsdk_mock.api)
+    parser.CB_MAPPINGS = {}
+    iocs = parser.parse_file(STIX_HAT_DNS)
+    assert len(iocs) == 0
+
+
+def test_parsing_observable_raises_attribute_error(monkeypatch, cbcsdk_mock):
+    """Test parsing observable to raise AttributeError"""
+    parser = STIX1Parser(cbcsdk_mock.api)
+
+    class ObservableMock:
+
+        object_ = "test"
+
+    class STIXPackageMock:
+
+        observables = [ObservableMock()]
+        indicators = []
+
+    monkeypatch.setattr("stix.core.STIXPackage.from_xml", lambda *args, **kwargs: STIXPackageMock())
+
+    iocs = parser.parse_file(STIX_HAT_DNS)
+
+    assert len(iocs) == 0
+
+
+def test_parsing_indicator_multiple_domains(cbcsdk_mock):
     """Test parse multiple domains."""
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_SIMPLE_DNS_WATCHLIST)
     assert len(iocs) == 2
     assert iocs[0].field == "netconn_domain"
     assert len(iocs[0].values) == 3
+
+
+def test_parsing_indicator_raises_key_error(cbcsdk_mock):
+    """Test parsing indicator to raise KeyError"""
+    parser = STIX1Parser(cbcsdk_mock.api)
+    parser.CB_MAPPINGS = {}
+    iocs = parser.parse_file(STIX_SIMPLE_DNS_WATCHLIST)
+    assert len(iocs) == 0
 
 
 def test_parsing_ips(cbcsdk_mock):
@@ -89,10 +126,3 @@ def test_parsing_uri(cbcsdk_mock):
     assert len(iocs) == 1
     assert iocs[0].field == "netconn_domain"
     assert iocs[0].values == ["http://x4z9arb.cn/4712"]
-
-
-@mock.patch("cbc_importer.stix_parsers.v1.parser.STIX1Parser._parse_stix_observable")
-def test_parser_parsing_observable(mocked_observable, cbcsdk_mock):
-    parser = STIX1Parser(cbcsdk_mock.api)
-    iocs = parser.parse_file(STIX_HAT_DNS)
-    assert mocked_observable.assert_called()

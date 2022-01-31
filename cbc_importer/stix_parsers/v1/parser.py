@@ -13,7 +13,6 @@
 import logging
 import uuid
 from io import BytesIO
-from pydoc import cli
 from typing import List, Union
 
 from cabby import Client10, Client11
@@ -121,7 +120,7 @@ class STIX1Parser:
 
                 except XMLSyntaxError:
                     # Sometimes there is a invalid block of XML
-                    continue
+                    logging.info(f"XMLSyntaxError occurred at {stix_package} with XML Content: {xml_content}")
                 except Exception as e:
                     # Sometimes there is an error within the STIX parsing
                     # such as `GDSParseError` but it can be different.
