@@ -10,4 +10,4 @@
     command: docker/bin/tests_n_reports.sh
   - name: testing ubuntu
     service: testingubuntu
-    command: docker/bin/tests_n_reports.sh
+    command: pytest tests/unit
