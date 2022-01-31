@@ -80,6 +80,8 @@ def process_iocs(
                 feed = get_feed(cb, feed_name=feed_name)
             except ObjectNotFoundError:
                 feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
+
+            # make the reports with batches of iocs per IOCS_BATCH_SIZE or less
             while counter_r <= min(num_reports, counter_f * REPORTS_BATCH_SIZE):
                 iocs_list = iocs[start:end]
                 start, end = end, end + IOCS_BATCH_SIZE
@@ -91,7 +93,6 @@ def process_iocs(
                     # use the builder so that the data is properly formed
                     builder = Report.create(cb, f"Report {feed.name}-{counter_r - 1}", feed.summary, severity)
                     report_data = builder._report_body
-
                     # add the iocs
                     report_data["iocs_v2"] = []
                     [report_data["iocs_v2"].append(ioc._info) for ioc in iocs_list]
@@ -108,7 +109,6 @@ def process_iocs(
 
             # add reports to the current feed
             feed.replace_reports(reports)
-
             # add the created feed
             feeds.append(feed)
 

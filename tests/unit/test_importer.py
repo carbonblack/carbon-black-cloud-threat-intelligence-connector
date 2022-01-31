@@ -26,13 +26,10 @@ from tests.fixtures.cbc_sdk_mock_responses import (
     FEED_GET_ALL_RESP,
     FEED_GET_ALL_RESP_NO_FEED,
     FEED_RESP_POST_STIX,
-    REPORT_INIT_1000_IOCS,
     REPORT_INIT_ONE_IOCS,
-    REPORTS_GET_10000_WITH_1000_IOCS,
     REPORTS_GET_ONE_IOCS,
     WATCHLIST_FROM_FEED_OUT,
-    FEEDS_STIX,
-    FEED_RESP_POST_STIXS,
+    REPORTS_GET_3_WITH_1000_IOCS, REPORTS_3_INIT_1000_IOCS,
 )
 
 
@@ -98,56 +95,48 @@ def test_process_iocs_single_ioc(cbcsdk_mock):
     assert len(feeds[0].reports[0]["iocs_v2"]) == 1
 
 
-def test_process_iocs_couple_of_feeds(cbcsdk_mock):
-    """Test process iocs with enough iocs for two feeds"""
+def test_process_a_few_reports(cbcsdk_mock):
+    """Test process iocs enough for 3 reports"""
     api = cbcsdk_mock.api
     ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")
-    ioc_list = [ioc for i in range(2 * 1000 * 10000)]
-    counter_r = 0
-    counter_f = 0
-
-    def on_get_feed(url, *args, **kwargs):
-        return FEED_GET_ALL_RESP_NO_FEED
-
-    def on_post_feed(url, body, **kwargs):
-        nonlocal counter_f
-        assert body == FEEDS_STIX[counter_f]
-        counter_f += 1
-        return FEED_RESP_POST_STIXS[counter_f - 1]
+    iocs_list = [ioc for i in range(3000)]
+    counter_r = 1
 
     def on_post_report(url, body, **kwargs):
+        nonlocal counter_r
         report_body = copy.deepcopy(body)
         # remove the variable properties
         for i in range(len(report_body["reports"])):
             del report_body["reports"][i]["id"]
             del report_body["reports"][i]["timestamp"]
-            del report_body["reports"][i]["title"]
-        assert len(report_body["reports"]) == 10000
-        return REPORT_INIT_1000_IOCS
+            title = report_body["reports"][i]["title"]
+            assert "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-" + str(counter_r) == title
+            # change the title to match the mock
+            report_body["reports"][i]["title"] = "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1"
+            assert len(report_body["reports"][i]["iocs_v2"]) == 1000
+            counter_r += 1
+
+        assert report_body == REPORTS_3_INIT_1000_IOCS
+        return REPORTS_3_INIT_1000_IOCS
+
+    def on_post_feed(url, body, **kwargs):
+        assert body == FEED_CREATE_STIX
+        return FEED_RESP_POST_STIX
 
     def on_get_reports(url, *args, **kwargs):
-        return REPORTS_GET_10000_WITH_1000_IOCS
+        return REPORTS_GET_3_WITH_1000_IOCS
 
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds", on_get_feed)
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds", FEED_GET_ALL_RESP_NO_FEED)
     cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds", on_post_feed)
     cbcsdk_mock.mock_request(
         "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_post_report
     )
     cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCe/reports", on_post_report
-    )
-    cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYC/reports", on_post_report
-    )
-    cbcsdk_mock.mock_request(
         "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_get_reports
-    )
-    cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCe/reports", on_get_reports
     )
     feeds = process_iocs(
         api,
-        ioc_list,
+        iocs_list,
         "my_base_name",
         "2.0",
         "2022-01-27",
@@ -158,11 +147,11 @@ def test_process_iocs_couple_of_feeds(cbcsdk_mock):
         5,
     )
 
-    assert len(feeds) == 2
-    assert len(feeds[0].reports) == 10000
-    assert len(feeds[1].reports) == 10000
+    assert len(feeds) == 1
+    assert len(feeds[0].reports) == 3
     assert len(feeds[0].reports[0]["iocs_v2"]) == 1000
-    assert len(feeds[1].reports[0]["iocs_v2"]) == 1000
+    assert len(feeds[0].reports[1]["iocs_v2"]) == 1000
+    assert len(feeds[0].reports[2]["iocs_v2"]) == 1000
 
 
 def test_subscribed_to_feed_by_base_name(cbcsdk_mock):

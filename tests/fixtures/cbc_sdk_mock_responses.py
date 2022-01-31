@@ -229,18 +229,16 @@ REPORT_INIT_ONE_IOCS = {
     ]
 }
 
-
-REPORT_INIT_1000_IOCS = {
-    "reports": [
-        {
-            "description": "feed for stix taxii",
-            "severity": 5,
-            "tags": [],
-            "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1",
-            "iocs_v2": [IOC for i in range(1000)],
-        }
-    ]
+REPORT = {
+    "description": "feed for stix taxii",
+    "severity": 5,
+    "tags": [],
+    "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1",
+    "iocs_v2": [IOC for i in range(1000)],
 }
+REPORTS_10000_INIT_1000_IOCS = {"reports": [REPORT for i in range(10000)]}
+
+REPORTS_3_INIT_1000_IOCS = {"reports": [REPORT for i in range(3)]}
 
 REPORTS_GET_ONE_IOCS = {
     "results": [
@@ -262,3 +260,5 @@ REPORT_WITH_1000_IOCS = {
     "iocs_v2": [IOC for i in range(1000)],
 }
 REPORTS_GET_10000_WITH_1000_IOCS = {"results": [REPORT_WITH_1000_IOCS for i in range(10000)]}
+
+REPORTS_GET_3_WITH_1000_IOCS = {"results": [REPORT_WITH_1000_IOCS for i in range(3)]}
