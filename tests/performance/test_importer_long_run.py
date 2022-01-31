@@ -5,10 +5,10 @@ from cbc_sdk.enterprise_edr import IOC_V2
 from cbc_importer.importer import process_iocs
 from tests.fixtures.cbc_sdk_mock_responses import (
     FEED_GET_ALL_RESP_NO_FEED,
-    FEEDS_STIX,
     FEED_RESP_POST_STIXS,
-    REPORTS_GET_10000_WITH_1000_IOCS,
+    FEEDS_STIX,
     REPORTS_10000_INIT_1000_IOCS,
+    REPORTS_GET_10000_WITH_1000_IOCS,
 )
 
 
@@ -80,4 +80,3 @@ def test_process_iocs_couple_of_feeds(cbcsdk_mock):
     assert len(feeds[1].reports) == 10000
     assert len(feeds[0].reports[0]["iocs_v2"]) == 1000
     assert len(feeds[1].reports[0]["iocs_v2"]) == 1000
-

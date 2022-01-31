@@ -12,7 +12,7 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
 """CBC Helpers"""
-from typing import List
+from typing import List, Union
 
 from cbc_sdk import CBCloudAPI
 from cbc_sdk.enterprise_edr import Feed, Report, Watchlist
@@ -53,7 +53,9 @@ def create_feed(
     return feed.save()
 
 
-def get_feed(cb: CBCloudAPI, feed_name: str = None, feed_id: str = None, return_all: bool = False) -> Feed:
+def get_feed(
+    cb: CBCloudAPI, feed_name: str = None, feed_id: str = None, return_all: bool = False
+) -> Union[Feed, List[Feed]]:
     """Return Feed by providing either feed name or feed id.
 
     Args:
