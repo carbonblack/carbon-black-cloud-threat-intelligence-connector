@@ -29,3 +29,15 @@ def test_parser_valid_file_12(cbcsdk_mock):
     objs = parser.parse_file(XML_FEED_TEST_VALID)
     assert len(objs) == 3158
     assert isinstance(objs[0], IOC_V2)
+
+
+def test_parser_raises_value_error(monkeypatch, cbcsdk_mock):
+    """Test raising value error"""
+    parser = STIX1Parser(cbcsdk_mock.api)
+
+    def raise_value_error(*args, **kwargs):
+        raise ValueError
+
+    monkeypatch.setattr("stix.core.STIXPackage.from_xml", raise_value_error)
+    with pytest.raises(ValueError):
+        parser.parse_file(XML_FEED_TEST_VALID)

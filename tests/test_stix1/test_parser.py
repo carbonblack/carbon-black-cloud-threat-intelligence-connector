@@ -1,4 +1,4 @@
-from stix.core import Indicator, STIXPackage
+import mock
 
 from cbc_importer.stix_parsers.v1.parser import STIX1Parser
 
@@ -89,3 +89,10 @@ def test_parsing_uri(cbcsdk_mock):
     assert len(iocs) == 1
     assert iocs[0].field == "netconn_domain"
     assert iocs[0].values == ["http://x4z9arb.cn/4712"]
+
+
+@mock.patch("cbc_importer.stix_parsers.v1.parser.STIX1Parser._parse_stix_observable")
+def test_parser_parsing_observable(mocked_observable, cbcsdk_mock):
+    parser = STIX1Parser(cbcsdk_mock.api)
+    iocs = parser.parse_file(STIX_HAT_DNS)
+    assert mocked_observable.assert_called()
