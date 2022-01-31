@@ -17,14 +17,13 @@ import os
 import sys
 import types
 from typing import List
-from validators import domain, ValidationFailure
-
 
 import yaml
 from cbc_sdk.rest_api import CBCloudAPI
+from validators import ValidationFailure, domain
 
-from cbc_importer.utils import get_feed
 from cbc_importer import __version__
+from cbc_importer.utils import get_feed
 
 CBC_PROFILE_NAME = "default"
 CONFIG_FILE = "../config.yml"
@@ -60,11 +59,9 @@ def enter_api_routes(key: str) -> dict:
     api_routes = {}
     answer = input(f"Would you like to enter `{key}` (y/N) ")
     if answer.upper() == "N" or not answer:
-        return ''
+        return ""
     while True:
-        api_route_title = input(
-            f"Please enter the title for `{key}` or enter to stop: "
-        )
+        api_route_title = input(f"Please enter the title for `{key}` or enter to stop: ")
         if not api_route_title:
             break
         value = input("Please enter the values for collections separated with space or `*` for all: ")
@@ -150,16 +147,12 @@ def get_cb() -> CBCloudAPI:
     Returns:
         CBCloudAPI: A reference to the CBCloudAPI object.
     """
-    return CBCloudAPI(
-        profile=CBC_PROFILE_NAME, integration_name=("STIX/TAXII " + __version__)
-    )
+    return CBCloudAPI(profile=CBC_PROFILE_NAME, integration_name=("STIX/TAXII " + __version__))
 
 
 def migrate() -> None:
     """Migrate the old config.yml to the new format."""
-    filepath = input(
-        f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): "
-    )
+    filepath = input(f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): ")
     if filepath == "":
         filepath = OLD_CONFIG_FILE
 
@@ -178,9 +171,7 @@ def migrate() -> None:
         item_data = {site_name: copy.deepcopy(TEMPLATE_SITE_DATA_V1)}
 
         # add feed name instead of feed_id
-        item_data[site_name]["feed_base_name"] = get_feed(
-            cb, feed_id=values["feed_id"]
-        ).name
+        item_data[site_name]["feed_base_name"] = get_feed(cb, feed_id=values["feed_id"]).name
 
         for inner_key in values:
             if inner_key == "feed_id":
@@ -218,9 +209,7 @@ def enter_feed_data() -> dict:
 
     for key, dvalue in TEMPLATES[version - 1].items():
         if not isinstance(dvalue, types.FunctionType):
-            value = input(
-                f"Please enter value for `{key}` or press enter to use default ({dvalue}): "
-            )
+            value = input(f"Please enter value for `{key}` or press enter to use default ({dvalue}): ")
             if value:
                 feed_data[key] = eval(value) if key in EVAL_VALUES else value
         else:
@@ -250,13 +239,9 @@ def generate_config() -> None:
     """Create config file."""
     print("This script will lead you through the generation of the config file")
     print("=" * 80)
-    cbc_profile_name = (
-        input("Enter cbc profile name or just press enter for default: ") or "default"
-    )
+    cbc_profile_name = input("Enter cbc profile name or just press enter for default: ") or "default"
 
-    default_severity = (
-            input("Enter default severity for the reports or just press enter for default (5): ") or "5"
-    )
+    default_severity = input("Enter default severity for the reports or just press enter for default (5): ") or "5"
     data = {"cbc_profile_name": cbc_profile_name, "default_severity": int(default_severity), "sites": []}
     enter_new_site(data)
 

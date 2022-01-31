@@ -24,7 +24,7 @@ def test_parser_faulty_stix_12(cbcsdk_mock):
 
 
 def test_parser_valid_file_12(cbcsdk_mock):
-    """"Test with valid file v1.2."""
+    """Test with valid file v1.2."""
     parser = STIX1Parser(cbcsdk_mock.api)
     objs = parser.parse_file(XML_FEED_TEST_VALID)
     assert len(objs) == 3158

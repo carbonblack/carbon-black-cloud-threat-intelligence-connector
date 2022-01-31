@@ -15,11 +15,11 @@
 from typing import List
 
 from cbc_sdk import CBCloudAPI
-from cbc_sdk.enterprise_edr import Feed, Watchlist, Report
+from cbc_sdk.enterprise_edr import Feed, Report, Watchlist
 from cbc_sdk.errors import (
-    ObjectNotFoundError,
-    MoreThanOneResultError,
     InvalidObjectError,
+    MoreThanOneResultError,
+    ObjectNotFoundError,
 )
 
 """Feed Helpers"""
@@ -75,7 +75,7 @@ def get_feed(cb: CBCloudAPI, feed_name: str = None, feed_id: str = None, return_
     elif feed_name:
         if return_all:
             # if all feeds with specific base name are needed
-            return [feed for feed in cb.select(Feed) if feed_name in feed.name]
+            return [feed for feed in cb.select(Feed) if feed.name.startswith(feed_name)]
 
         # otherwise, check for feed with specific name
         feeds = [feed for feed in cb.select(Feed) if feed.name == feed_name]
@@ -83,9 +83,7 @@ def get_feed(cb: CBCloudAPI, feed_name: str = None, feed_id: str = None, return_
         if not feeds:
             raise ObjectNotFoundError("No feeds named '{}'".format(feed_name))
         elif len(feeds) > 1:
-            raise MoreThanOneResultError(
-                "More than one feed named '{}'".format(feed_name)
-            )
+            raise MoreThanOneResultError("More than one feed named '{}'".format(feed_name))
         return feeds[0]
     else:
         raise ValueError("expected either feed_id or feed_name")
@@ -113,8 +111,6 @@ def create_watchlist(
         Watchlist: The new watchlist.
     """
     if feed and isinstance(feed, Feed):
-        watchlist = Watchlist.create_from_feed(
-            feed, name=name, description=description, enable_alerts=enable_alerts
-        )
+        watchlist = Watchlist.create_from_feed(feed, name=name, description=description, enable_alerts=enable_alerts)
         return watchlist.save()
     raise InvalidObjectError("invalid Feed")

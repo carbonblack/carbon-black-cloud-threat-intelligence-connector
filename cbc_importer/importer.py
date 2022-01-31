@@ -12,16 +12,17 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
 """Helpers to import everything in CBC"""
-from typing import List
 import uuid
-from cbc_sdk import CBCloudAPI
-from cbc_sdk.errors import ObjectNotFoundError
-from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2, Report, Feed
-from cbc_importer.utils import get_feed, create_feed, create_watchlist
+from typing import List
 
+from cbc_sdk import CBCloudAPI
+from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2, Feed, Report
+from cbc_sdk.errors import ObjectNotFoundError
+
+from cbc_importer.utils import create_feed, create_watchlist, get_feed
 
 # Constants for the batch sizes of reports and iocs
-IOCS_BATCH_SIZE = 5
+IOCS_BATCH_SIZE = 1000
 REPORTS_BATCH_SIZE = 10000
 
 
@@ -52,7 +53,7 @@ def process_iocs(
         provider_url (str): Provider URL for the new feed.
         summary (str): Summary for the new feed.
         category (str): Category for the new feed.
-        severity (int): (optional) severity for the reports
+        severity (int): severity for the reports
     Returns:
         list(Feed): list of feeds created as part of the import
     """
@@ -66,43 +67,64 @@ def process_iocs(
     if not provider_url.startswith("http"):
         provider_url = f"http://{provider_url}"
 
+    print("num of feed", num_feeds)
+    start, end = 0, IOCS_BATCH_SIZE
+
     while counter_f <= num_feeds:
-        start, end = 0, IOCS_BATCH_SIZE
+        print(f"the feed #{counter_f}")
         reports = []
         feed_name = f"{feed_name} ({stix_version}) {start_date} to {end_date} - Part {counter_f}"
 
-        try:
-            feed = get_feed(cb, feed_name=feed_name)
-        except ObjectNotFoundError:
-            feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
-
-        while counter_r <= num_reports:
-            iocs_list = iocs[start:end]
-            counter_r += 1
-
-            # check for the edge case where we have iocs divisible by IOCS_BATCH_SIZE
-            # in that case there will be one-off error
-            if iocs_list:
-                builder = Report.create(cb, f"Report {feed.name}-{counter_r - 1}", feed.summary, severity)
-
-                # use the builder so that the data is properly formed
-                report = builder.build()
-                report.append_iocs(iocs_list)
+        # edge case when the number of iocs is divisible by IOCS_BATCH_SIZE * REPORTS_BATCH_SIZE
+        iocs_list = iocs[start:end]
+        if iocs_list:
+            print(f"create feed #{counter_f}")
+            try:
+                feed = get_feed(cb, feed_name=feed_name)
+            except ObjectNotFoundError:
+                feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
+            # print('check', counter_r, min(num_reports, counter_f * REPORTS_BATCH_SIZE))
+            while counter_r <= min(num_reports, counter_f * REPORTS_BATCH_SIZE):
+                # print(f'the report #{counter_r} feed {counter_f}')
+                iocs_list = iocs[start:end]
                 start, end = end, end + IOCS_BATCH_SIZE
-                report_data = report._info
+                # print(start, end)
+                counter_r += 1
 
-                # add id for the report, because the builder is not include it
-                report_data["id"] = str(uuid.uuid4())
+                # check for the edge case where we have iocs divisible by IOCS_BATCH_SIZE
+                # in that case there will be one-off error
+                if iocs_list:
+                    # print('in', len(iocs_list))
+                    # continue
+                    # print('after', start, end)
 
-                # finally, add the report to the list to be added in the current feed
-                reports.append(Report(cb, initial_data=report_data, feed_id=feed.id))
-        
-        # add reports to the current feed
-        feed.replace_reports(reports)
-        # add the created feed
-        feeds.append(feed)
-        print('here', feed._info)
-        # update the counter of the feed
+                    # use the builder so that the data is properly formed
+                    builder = Report.create(cb, f"Report {feed.name}-{counter_r - 1}", feed.summary, severity)
+                    report_data = builder._report_body
+
+                    # add the iocs
+                    report_data["iocs_v2"] = []
+                    [report_data["iocs_v2"].append(ioc._info) for ioc in iocs_list]
+
+                    # add id for the report, because the builder is not include it
+                    report_data["id"] = str(uuid.uuid4())
+
+                    # create a report with all the data
+                    report = Report(cb, initial_data=report_data, feed_id=feed.id)
+                    report.save()
+
+                    # finally, add the report to the list to be added in the current feed
+                    reports.append(report)
+
+            # add reports to the current feed
+            feed.replace_reports(reports)
+
+            # add the created feed
+            feeds.append(feed)
+
+            # update the counter of the feed
+            print("check2", counter_r, min(num_reports, counter_f * REPORTS_BATCH_SIZE))
+
         counter_f += 1
 
     return feeds
@@ -123,8 +145,8 @@ def subscribe_to_feed(
         feed = get_feed(cb, feed_name=feed_name)
         create_watchlist(feed, enable_alerts=with_alerts)
     elif feed_base_name:
-        feeds = get_feed(cb, feed_name=feed_name, return_all=True)
+        feeds = get_feed(cb, feed_name=feed_base_name, return_all=True)
         for feed in feeds:
             create_watchlist(feed, enable_alerts=with_alerts)
     else:
-        print("Either feed base name or feed name needs to be provided")
+        raise Exception("Either feed base name or feed name needs to be provided")

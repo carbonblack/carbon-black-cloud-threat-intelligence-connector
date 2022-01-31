@@ -13,14 +13,13 @@
 
 """Tests for wizard."""
 import pytest
-from cbc_sdk.credentials import Credentials
 from cbc_sdk.credential_providers.default import default_provider_object
+from cbc_sdk.credentials import Credentials
 
-from tests.fixtures.cbc_sdk_mock_responses import FEED_GET_RESP
-from tests.fixtures.cbc_sdk_mock import CBCSDKMock
+from configurator.wizard import CBCloudAPI, main
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
-
-from configurator.wizard import main, CBCloudAPI
+from tests.fixtures.cbc_sdk_mock import CBCSDKMock
+from tests.fixtures.cbc_sdk_mock_responses import FEED_GET_RESP
 
 
 class MockFileManager:
@@ -43,13 +42,9 @@ def open_file_mock(*args, **kwargs):
 @pytest.fixture(scope="function")
 def cb(monkeypatch):
     """Create CBCloudAPI singleton."""
-    creds = Credentials(
-        {"url": "https://example.com", "token": "ABCDEFGHIJKLM", "org_key": "A1B2C3D4"}
-    )
+    creds = Credentials({"url": "https://example.com", "token": "ABCDEFGHIJKLM", "org_key": "A1B2C3D4"})
     mock_provider = MockCredentialProvider({"default": creds})
-    monkeypatch.setattr(
-        default_provider_object, "get_default_provider", lambda x: mock_provider
-    )
+    monkeypatch.setattr(default_provider_object, "get_default_provider", lambda x: mock_provider)
     return CBCloudAPI(profile="default")
 
 
@@ -83,9 +78,7 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     monkeypatch.setattr("configurator.wizard.get_cb", lambda: cbcsdk_mock.api)
     called = False
     dump_called = False
-    cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/someid", FEED_GET_RESP
-    )
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/someid", FEED_GET_RESP)
 
     def migrate_input(the_prompt=""):
         nonlocal called
@@ -476,7 +469,7 @@ def test_update_config_add_new_site_no_api_routes(monkeypatch):
                         "enabled": True,
                         "feed_base_name": "base_name_2",
                         "site": "site2.com",
-                        "api_routes": '',
+                        "api_routes": "",
                         "username": "guest",
                         "password": "guest",
                     }
