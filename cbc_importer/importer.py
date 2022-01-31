@@ -29,7 +29,7 @@ REPORTS_BATCH_SIZE = 10000
 def process_iocs(
     cb: CBCloudAPI,
     iocs: List[IOC_V2],
-    feed_name: str,
+    feed_base_name: str,
     stix_version: str,
     start_date: str,
     end_date: str,
@@ -46,7 +46,7 @@ def process_iocs(
     Args:
         cb (CBCloudAPI): A reference to the CBCloudAPI object.
         iocs (list): list of iocs
-        feed_name (str): The base name of the feeds
+        feed_base_name (str): The base name of the feeds
         stix_version (str): the stix version
         start_date (str): the start date
         end_date (str): the end date
@@ -67,37 +67,27 @@ def process_iocs(
     if not provider_url.startswith("http"):
         provider_url = f"http://{provider_url}"
 
-    print("num of feed", num_feeds)
     start, end = 0, IOCS_BATCH_SIZE
 
     while counter_f <= num_feeds:
-        print(f"the feed #{counter_f}")
         reports = []
-        feed_name = f"{feed_name} ({stix_version}) {start_date} to {end_date} - Part {counter_f}"
+        feed_name = f"{feed_base_name} ({stix_version}) {start_date} to {end_date} - Part {counter_f}"
+        iocs_list = iocs[start:end]
 
         # edge case when the number of iocs is divisible by IOCS_BATCH_SIZE * REPORTS_BATCH_SIZE
-        iocs_list = iocs[start:end]
         if iocs_list:
-            print(f"create feed #{counter_f}")
             try:
                 feed = get_feed(cb, feed_name=feed_name)
             except ObjectNotFoundError:
                 feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
-            # print('check', counter_r, min(num_reports, counter_f * REPORTS_BATCH_SIZE))
             while counter_r <= min(num_reports, counter_f * REPORTS_BATCH_SIZE):
-                # print(f'the report #{counter_r} feed {counter_f}')
                 iocs_list = iocs[start:end]
                 start, end = end, end + IOCS_BATCH_SIZE
-                # print(start, end)
                 counter_r += 1
 
                 # check for the edge case where we have iocs divisible by IOCS_BATCH_SIZE
                 # in that case there will be one-off error
                 if iocs_list:
-                    # print('in', len(iocs_list))
-                    # continue
-                    # print('after', start, end)
-
                     # use the builder so that the data is properly formed
                     builder = Report.create(cb, f"Report {feed.name}-{counter_r - 1}", feed.summary, severity)
                     report_data = builder._report_body
@@ -122,9 +112,7 @@ def process_iocs(
             # add the created feed
             feeds.append(feed)
 
-            # update the counter of the feed
-            print("check2", counter_r, min(num_reports, counter_f * REPORTS_BATCH_SIZE))
-
+        # update the counter of the feed
         counter_f += 1
 
     return feeds
