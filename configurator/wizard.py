@@ -16,7 +16,7 @@ import copy
 import os
 import sys
 import types
-from typing import List, no_type_check
+from typing import List, no_type_check, Union
 
 import yaml
 from cbc_sdk.rest_api import CBCloudAPI
@@ -41,7 +41,7 @@ EVAL_VALUES = [
 """Helpers for entering data"""
 
 
-def enter_api_routes(key: str) -> dict:
+def enter_api_routes(key: str) -> Union[dict, str]:
     """Helper function to enter the information about the routes.
 
     Example:
