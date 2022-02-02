@@ -7,3 +7,15 @@ testingpython38:
 testingubuntu:
   build:
     dockerfile: ./docker/ubuntu/Dockerfile
+
+testingrhel:
+  build:
+    dockerfile: ./docker/rhel/Dockerfile
+
+testingamazon:
+  build:
+    dockerfile: ./docker/amazon/Dockerfile
+
+testingsuse:
+  build:
+    dockerfile: ./docker/suse/Dockerfile
