@@ -469,7 +469,7 @@ def test_update_config_add_new_site_no_api_routes(monkeypatch):
                         "enabled": True,
                         "feed_base_name": "base_name_2",
                         "site": "site2.com",
-                        "api_routes": "",
+                        "api_routes": {},
                         "username": "guest",
                         "password": "guest",
                     }
