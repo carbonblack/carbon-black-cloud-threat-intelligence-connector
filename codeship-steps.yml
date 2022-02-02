@@ -2,7 +2,7 @@
   service: testingpython38
   command: docker/bin/linters.sh
 
-- name: tests
+- name: Tests
   type: parallel
   exclude: ^main
   steps:
@@ -12,22 +12,23 @@
   - name: testing ubuntu
     service: testingubuntu
     command: pytest tests/unit
-- name: merge to main
+
+- name: Мerge to main
   type: parallel
   tag: ^main
   steps:
-    - name: testing python 3.8
-      service: testingpython38
-      command: docker/bin/tests_n_reports.sh
-    - name: testing ubuntu
-      service: testingubuntu
+  - name: testing python 3.8
+    service: testingpython38
+    command: docker/bin/tests_n_reports.sh
+  - name: testing ubuntu
+    service: testingubuntu
+    command: pytest
+  - name: testing red hat
+      service: testingrhel
       command: pytest
-    - name: testing red hat
-        service: testingrhel
-        command: pytest
-    - name: testing amazon
-        service: testingamazon
-        command: pytest
-    - name: testing suse
-      service: testingsuse
+  - name: testing amazon
+      service: testingamazon
       command: pytest
+  - name: testing suse
+    service: testingsuse
+    command: pytest
