@@ -13,7 +13,7 @@
     service: testingubuntu
     command: pytest tests/unit
 
-- name: Мerge to main
+- name: Tests
   type: parallel
   tag: ^main
   steps:
@@ -24,11 +24,11 @@
     service: testingubuntu
     command: pytest
   - name: testing red hat
-      service: testingrhel
-      command: pytest
+    service: testingrhel
+    command: pytest
   - name: testing amazon
-      service: testingamazon
-      command: pytest
+    service: testingamazon
+    command: pytest
   - name: testing suse
     service: testingsuse
     command: pytest
