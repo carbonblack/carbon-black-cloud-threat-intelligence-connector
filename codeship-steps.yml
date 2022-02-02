@@ -13,7 +13,7 @@
     service: testingubuntu
     command: pytest tests/unit
 
-- name: Tests
+- name: MergeToMain
   type: parallel
   tag: ^main
   steps:
