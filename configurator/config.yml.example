@@ -22,6 +22,15 @@ sites:
     # example: /api/v1/taxii/taxii-discovery-service/
     discovery_path: /api/v1/taxii/taxii-discovery-service/
 
+    # severity for the reports. Accepts values [1,10]
+    severity: 5
+
+    # category for the feed.
+    category: 'STIX Feed'
+
+    # summary for the feed.
+    summary: 'STIX Feed'
+
     # if you require https for your TAXII service connection, set to true
     # defaults to true
     use_https: true
@@ -33,9 +42,6 @@ sites:
     # certificate and key here.
     cert_file: null
     key_file: null
-
-    # (optional) how to score each result. Accepts values [1,10], and defaults to 5
-    default_score: null
 
     # (optional) specify which collections to convert to feeds list of collections
     # example:
@@ -85,6 +91,15 @@ sites:
     # the address of the site (only server ip or dns; don't put https:// or a trailing slash)
     # example: limo.anomali.com
     host: limo.anomali.com
+
+    # severity for the reports. Accepts values [1,10]
+    severity: 5
+
+    # category for the feed.
+    category: 'STIX Feed'
+
+    #  summary for the feed.
+    summary: 'STIX Feed'
 
     # API routes
     api_routes:

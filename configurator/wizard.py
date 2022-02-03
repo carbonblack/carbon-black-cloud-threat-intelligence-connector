@@ -34,7 +34,7 @@ EVAL_VALUES = [
     "enabled",
     "use_https",
     "ssl_verify",
-    "default_score",
+    "severity",
     "size_of_request_in_minutes",
 ]
 
@@ -106,11 +106,13 @@ TEMPLATE_SITE_DATA_V1 = {
     "feed_base_name": "",
     "host": enter_and_validate_url,
     "discovery_path": "",
+    "severity": 5,
+    "category": "STIX Feed",
+    "summary": "STIX Feed",
     "use_https": True,
     "ssl_verify": False,
     "cert_file": None,
     "key_file": None,
-    "default_score": None,
     "collections": enter_collections,
     "start_date": None,
     "size_of_request_in_minutes": None,
@@ -126,6 +128,9 @@ TEMPLATE_SITE_DATA_V2 = {
     "enabled": True,
     "feed_base_name": "",
     "host": enter_and_validate_url,
+    "severity": 5,
+    "category": "STIX Feed",
+    "summary": "STIX Feed",
     "api_routes": enter_api_routes,
     "username": "guest",
     "password": "guest",
@@ -155,7 +160,7 @@ def migrate() -> None:
 
     with open(filepath) as file:
         old_config = yaml.safe_load(file)
-    data = {"cbc_profile_name": CBC_PROFILE_NAME, "default_severity": 5, "sites": []}
+    data = {"cbc_profile_name": CBC_PROFILE_NAME, "sites": []}
 
     cb = get_cb()
     # convert data to the new format
@@ -167,9 +172,13 @@ def migrate() -> None:
         item_data[site_name]["feed_base_name"] = get_feed(cb, feed_id=values["feed_id"]).name
         # add host instead of site
         item_data[site_name]["host"] = values["site"]
+        # add severity, category, summary
+        item_data[site_name]["severity"] = 5
+        item_data[site_name]["summary"] = "STIX Feed"
+        item_data[site_name]["category"] = "STIX Feed"
 
         for inner_key in values:
-            if inner_key in ["feed_id", "site", "collection_management_path", "poll_path"]:
+            if inner_key in ["feed_id", "site", "collection_management_path", "poll_path", "default_score"]:
                 continue
             if item_data[site_name].get(inner_key) and isinstance(item_data[site_name][inner_key], types.FunctionType):
                 func = item_data[site_name][inner_key]
@@ -237,8 +246,7 @@ def generate_config() -> None:
     print("=" * 80)
     cbc_profile_name = input("Enter cbc profile name or just press enter for default: ") or "default"
 
-    default_severity = input("Enter default severity for the reports or just press enter for default (5): ") or "5"
-    data = {"cbc_profile_name": cbc_profile_name, "default_severity": int(default_severity), "sites": []}
+    data = {"cbc_profile_name": cbc_profile_name, "sites": []}
     enter_new_site(data)
 
     with open(CONFIG_FILE, "w") as new_config:
