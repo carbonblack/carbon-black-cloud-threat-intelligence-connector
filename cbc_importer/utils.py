@@ -12,7 +12,7 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
 """CBC Helpers"""
-from typing import List
+from typing import List, Union
 
 from cbc_sdk import CBCloudAPI
 from cbc_sdk.enterprise_edr import Feed, Report, Watchlist
@@ -53,13 +53,16 @@ def create_feed(
     return feed.save()
 
 
-def get_feed(cb: CBCloudAPI, feed_name: str = None, feed_id: str = None) -> Feed:
+def get_feed(
+    cb: CBCloudAPI, feed_name: str = None, feed_id: str = None, return_all: bool = False
+) -> Union[Feed, List[Feed]]:
     """Return Feed by providing either feed name or feed id.
 
     Args:
         cb (CBCloudAPI): A reference to the CBCloudAPI object.
         feed_name (str): Feed name
         feed_id (str): Feed id
+        return_all (bool): (optional, default False) return all feeds that start with specific name
 
     Returns:
         Feed: The found feed.
@@ -72,6 +75,11 @@ def get_feed(cb: CBCloudAPI, feed_name: str = None, feed_id: str = None) -> Feed
     if feed_id:
         return cb.select(Feed, feed_id)
     elif feed_name:
+        if return_all:
+            # if all feeds with specific base name are needed
+            return [feed for feed in cb.select(Feed) if feed.name.startswith(feed_name)]
+
+        # otherwise, check for feed with specific name
         feeds = [feed for feed in cb.select(Feed) if feed.name == feed_name]
 
         if not feeds:

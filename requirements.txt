@@ -15,7 +15,7 @@ charset-normalizer==2.0.10; python_full_version >= "3.6.0" and python_version >=
 colorama==0.4.4; python_version >= "3.6" and python_full_version < "3.0.0" and sys_platform == "win32" or sys_platform == "win32" and python_version >= "3.6" and python_full_version >= "3.5.0"
 colorlog==6.6.0; python_version >= "3.6"
 contextlib2==21.6.0; python_version >= "3.6"
-coverage==6.3; python_version >= "3.7"
+coverage==6.2; python_version >= "3.7"
 coveralls==3.3.1; python_version >= "3.5"
 cpe==1.2.1
 cryptography==36.0.1; python_version >= "3.7" and platform_system == "Darwin" and sys_platform == "linux"

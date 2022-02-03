@@ -55,6 +55,16 @@ FEED_GET_ALL_RESP = {
             "access": "private",
             "id": "QtQcKTyySgaUdXlQPsX123",
         },
+        {
+            "name": "TEST123",
+            "owner": "WNEXFKQ7",
+            "provider_url": "some_url",
+            "summary": "Simple IOC trigger",
+            "category": "None",
+            "source_label": None,
+            "access": "private",
+            "id": "QtQcKTyySgaUdXlQPsX123",
+        },
     ]
 }
 
@@ -66,18 +76,6 @@ FEED_POST_RESP = {
     "source_label": None,
     "access": "private",
     "id": "90TuDxDYQtiGyg5qhwYCg",
-}
-
-FEED_GET_RESP = {
-    "feedinfo": {
-        "name": "base_name",
-        "provider_url": "https://thisistheplace.com",
-        "summary": "this is the details",
-        "category": "thiswouldgood",
-        "source_label": None,
-        "access": "private",
-        "id": "90TuDxDYQtiGyg5qhwYCg",
-    },
 }
 
 REPORT_INIT = {
@@ -136,6 +134,19 @@ WATCHLIST_FROM_FEED_OUT = {
     "classifier": {"key": "feed_id", "value": "qwertyuiop"},
 }
 
+
+FEED_GET_RESP = {
+    "feedinfo": {
+        "name": "base_name",
+        "provider_url": "https://thisistheplace.com",
+        "summary": "this is the details",
+        "category": "thiswouldgood",
+        "source_label": None,
+        "access": "private",
+        "id": "90TuDxDYQtiGyg5qhwYCg",
+    },
+}
+
 FEED_CREATE_NO_REPORT_INIT = {
     "feedinfo": {
         "name": "base_name",
@@ -145,3 +156,109 @@ FEED_CREATE_NO_REPORT_INIT = {
     },
     "reports": [],
 }
+
+FEED_CREATE_STIX = {
+    "feedinfo": {
+        "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
+        "provider_url": "http://limo.domain.com",
+        "summary": "feed for stix taxii",
+        "category": "thiswouldgood",
+    },
+    "reports": [],
+}
+
+FEED_CREATE_STIX_2 = {
+    "feedinfo": {
+        "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 2",
+        "provider_url": "http://limo.domain.com",
+        "summary": "feed for stix taxii",
+        "category": "thiswouldgood",
+    },
+    "reports": [],
+}
+
+FEEDS_STIX = [FEED_CREATE_STIX, FEED_CREATE_STIX_2]
+
+FEED_RESP_POST_STIX = {
+    "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
+    "provider_url": "http://limo.domain.com",
+    "summary": "feed for stix taxii",
+    "category": "thiswouldgood",
+    "source_label": None,
+    "access": "private",
+    "id": "90TuDxDYQtiGyg5qhwYCg",
+}
+
+FEED_RESP_POST_STIX_2 = {
+    "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 2",
+    "provider_url": "http://limo.domain.com",
+    "summary": "feed for stix taxii",
+    "category": "thiswouldgood",
+    "source_label": None,
+    "access": "private",
+    "id": "90TuDxDYQtiGyg5qhwYCe",
+}
+
+FEED_RESP_POST_STIXS = [FEED_RESP_POST_STIX, FEED_RESP_POST_STIX_2]
+
+FEED_GET_ALL_RESP_NO_FEED = {"results": []}
+
+FEED_RESP_POST_REPLACE_REPORTS = {
+    "reports": [
+        {
+            "description": "feed for stix taxii",
+            "id": "a539bb2a-9fcb-4a3c-b722-02a5c5f6ccb1",
+            "severity": 5,
+            "tags": [],
+            "timestamp": 1643305793,
+            "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - " "Part 1-1",
+        }
+    ]
+}
+
+IOC = {"id": "unsigned-chrome", "match_type": "query", "values": ["process_name:chrome.exe"]}
+REPORT_INIT_ONE_IOCS = {
+    "reports": [
+        {
+            "description": "feed for stix taxii",
+            "severity": 5,
+            "tags": [],
+            "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1",
+            "iocs_v2": [IOC],
+        }
+    ]
+}
+
+REPORT = {
+    "description": "feed for stix taxii",
+    "severity": 5,
+    "tags": [],
+    "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1",
+    "iocs_v2": [IOC for i in range(1000)],
+}
+REPORTS_10000_INIT_1000_IOCS = {"reports": [REPORT for i in range(10000)]}
+
+REPORTS_3_INIT_1000_IOCS = {"reports": [REPORT for i in range(3)]}
+
+REPORTS_GET_ONE_IOCS = {
+    "results": [
+        {
+            "description": "feed for stix taxii",
+            "severity": 5,
+            "tags": [],
+            "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1",
+            "iocs_v2": [{"id": "unsigned-chrome", "match_type": "query", "values": ["process_name:chrome.exe"]}],
+        }
+    ]
+}
+
+REPORT_WITH_1000_IOCS = {
+    "description": "feed for stix taxii",
+    "severity": 5,
+    "tags": [],
+    "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
+    "iocs_v2": [IOC for i in range(1000)],
+}
+REPORTS_GET_10000_WITH_1000_IOCS = {"results": [REPORT_WITH_1000_IOCS for i in range(10000)]}
+
+REPORTS_GET_3_WITH_1000_IOCS = {"results": [REPORT_WITH_1000_IOCS for i in range(3)]}

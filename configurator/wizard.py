@@ -20,6 +20,7 @@ from typing import List, no_type_check
 
 import yaml
 from cbc_sdk.rest_api import CBCloudAPI
+from validators import ValidationFailure, domain
 
 from cbc_importer import __version__
 from cbc_importer.utils import get_feed
@@ -87,11 +88,28 @@ def enter_collections(key: str, value: str = None) -> List[str]:
     return value.split()
 
 
+def enter_and_validate_url(key: str, value: str = None) -> str:
+    # if value is provided then this is migration, do not validate the url in that case
+    if value:
+        return value
+
+    # no value, means normal flow
+    done = False
+    value = input(f"Please enter a value for `{key}`: ")
+    while not done:
+        result = domain(value)
+        if isinstance(result, ValidationFailure):
+            value = input(f"Please enter a valid value for `{key}`: ")
+        else:
+            done = True
+    return value
+
+
 TEMPLATE_SITE_DATA_V1 = {
     "version": 1.2,
     "enabled": True,
     "feed_base_name": "",
-    "site": "",
+    "site": enter_and_validate_url,
     "discovery_path": "",
     "collection_management_path": "",
     "poll_path": "",
@@ -114,7 +132,7 @@ TEMPLATE_SITE_DATA_V2 = {
     "version": 2.0,
     "enabled": True,
     "feed_base_name": "",
-    "site": "",
+    "site": enter_and_validate_url,
     "api_routes": enter_api_routes,
     "username": "guest",
     "password": "guest",
@@ -144,7 +162,7 @@ def migrate() -> None:
 
     with open(filepath) as file:
         old_config = yaml.safe_load(file)
-    data = {"cbc_profile_name": CBC_PROFILE_NAME, "sites": []}
+    data = {"cbc_profile_name": CBC_PROFILE_NAME, "default_severity": 5, "sites": []}
 
     cb = get_cb()
     # convert data to the new format
@@ -223,14 +241,15 @@ def generate_config() -> None:
     print("This script will lead you through the generation of the config file")
     print("=" * 80)
     cbc_profile_name = input("Enter cbc profile name or just press enter for default: ") or "default"
-    data = {"cbc_profile_name": cbc_profile_name, "sites": []}
+
+    default_severity = input("Enter default severity for the reports or just press enter for default (5): ") or "5"
+    data = {"cbc_profile_name": cbc_profile_name, "default_severity": int(default_severity), "sites": []}
     enter_new_site(data)
 
     with open(CONFIG_FILE, "w") as new_config:
         yaml.dump(data, new_config, default_flow_style=False, sort_keys=False)
 
 
-@no_type_check
 def update_config() -> None:
     """Update config of the new structure."""
     with open(CONFIG_FILE) as file:
