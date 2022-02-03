@@ -88,12 +88,7 @@ def enter_collections(key: str, value: str = None) -> List[str]:
     return value.split()
 
 
-def enter_and_validate_url(key: str, value: str = None) -> str:
-    # if value is provided then this is migration, do not validate the url in that case
-    if value:
-        return value
-
-    # no value, means normal flow
+def enter_and_validate_url(key: str) -> str:
     done = False
     value = input(f"Please enter a value for `{key}`: ")
     while not done:
@@ -109,21 +104,19 @@ TEMPLATE_SITE_DATA_V1 = {
     "version": 1.2,
     "enabled": True,
     "feed_base_name": "",
-    "site": enter_and_validate_url,
+    "host": enter_and_validate_url,
     "discovery_path": "",
-    "collection_management_path": "",
-    "poll_path": "",
-    "use_https": "",
+    "use_https": True,
     "ssl_verify": False,
-    "cert_file": "",
-    "key_file": "",
-    "default_score": "",
+    "cert_file": None,
+    "key_file": None,
+    "default_score": None,
     "collections": enter_collections,
-    "start_date": "",
-    "size_of_request_in_minutes": "",
-    "ca_cert": "",
-    "http_proxy_url": "",
-    "https_proxy_url": "",
+    "start_date": None,
+    "size_of_request_in_minutes": None,
+    "ca_cert": None,
+    "http_proxy_url": None,
+    "https_proxy_url": None,
     "username": "guest",
     "password": "guest",
 }
@@ -132,7 +125,7 @@ TEMPLATE_SITE_DATA_V2 = {
     "version": 2.0,
     "enabled": True,
     "feed_base_name": "",
-    "site": enter_and_validate_url,
+    "host": enter_and_validate_url,
     "api_routes": enter_api_routes,
     "username": "guest",
     "password": "guest",
@@ -172,11 +165,13 @@ def migrate() -> None:
 
         # add feed name instead of feed_id
         item_data[site_name]["feed_base_name"] = get_feed(cb, feed_id=values["feed_id"]).name
+        # add host instead of site
+        item_data[site_name]["host"] = values["site"]
 
         for inner_key in values:
-            if inner_key == "feed_id":
+            if inner_key in ["feed_id", "site", "collection_management_path", "poll_path"]:
                 continue
-            if isinstance(item_data[site_name][inner_key], types.FunctionType):
+            if item_data[site_name].get(inner_key) and isinstance(item_data[site_name][inner_key], types.FunctionType):
                 func = item_data[site_name][inner_key]
                 item_data[site_name][inner_key] = func(inner_key, values[inner_key])  # type: ignore
             elif values[inner_key]:
@@ -212,7 +207,7 @@ def enter_feed_data() -> dict:
         if not isinstance(dvalue, types.FunctionType):
             value = input(f"Please enter value for `{key}` or press enter to use default ({dvalue}): ")
             if value:
-                feed_data[key] = eval(value) if key in EVAL_VALUES else value
+                feed_data[key] = eval(value) if key in EVAL_VALUES and value else value
         else:
             feed_data[key] = dvalue(key)
     return feed_data

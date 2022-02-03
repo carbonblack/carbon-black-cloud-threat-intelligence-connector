@@ -3,48 +3,39 @@ cbc_profile_name: default
 sites:
 - my_site_name_1:
     # version for the feed - can be 1.2, 2.0, 2.1
+    # this template is for version 1.2
     version: 1.2
 
     # flag, whether the feed will be used
     enabled: true
 
     # base name for the feed in CBC, if multiple feeds are needed
-    # then they would be named feed_base_name<suffix>
+    # then they would be named <feed_base_name> (<version>) <start_date> to <end_date> - Part <feed_number>"
     feed_base_name: StixTaxiiFeedName
 
     # the address of the site (only server ip or dns; don't put https:// or a trailing slash)
     # example: limo.anomali.com
-    site: limo.anomali.com
+    host: limo.anomali.com
 
     # the path of the site for discovering what services are available
     # this is supplied by your taxii provider
     # example: /api/v1/taxii/taxii-discovery-service/
     discovery_path: /api/v1/taxii/taxii-discovery-service/
 
-    # the path of the site for listing what collections are available to you
-    # this is supplied by your taxii provider
-    # example: /api/v1/taxii/collection_management/
-    collection_management_path: /api/v1/taxii/collection_management/
-
-    # the path of the site for polling a collection
-    # this is supplied by your taxii provider
-    # example: /api/v1/taxii/poll/
-    poll_path: /api/v1/taxii/poll/
-
     # if you require https for your TAXII service connection, set to true
     # defaults to true
-    use_https: ''
+    use_https: true
 
     # by default, we validate SSL certificates. Change to false to turn off SSL verification
     ssl_verify: false
 
     # (optional) if you need SSL certificates for authentication, set the path of the
     # certificate and key here.
-    cert_file: ''
-    key_file: ''
+    cert_file: null
+    key_file: null
 
     # (optional) how to score each result. Accepts values [1,10], and defaults to 5
-    default_score:
+    default_score: null
 
     # (optional) specify which collections to convert to feeds list of collections
     # example:
@@ -56,22 +47,50 @@ sites:
     # the start date for which to start requesting data.
     # Use %y-%m-%d %H:%M:%S format
     # example: 2019-01-01 00:00:00
-    start_date: ''
+    start_date: null
 
     # (optional) the minutes to advance for each request.
     # If you don't have a lot of data, you could advance your requests
     # to every 60 minutes, or 1440 minutes for daily chunks
     # defaults to 1440
-    size_of_request_in_minutes:
+    size_of_request_in_minutes: null
 
     # (optional) path to a CA SSL certificate
-    ca_cert: ''
+    ca_cert: null
 
     # (optional) if you need requests to go through a proxy, specify an http URL here
-    http_proxy_url: ''
+    http_proxy_url: null
 
     # (optional) if you need requests to go through a proxy, specify an https URL here
-    https_proxy_url: ''
+    https_proxy_url: null
+
+    # (optional) username for authorization with your taxii provider
+    username: guest
+
+    # (optional) password for authorization with your taxii provider
+    password: guest
+
+- my_site_name_2:
+    # version for the feed - can be 1.2, 2.0, 2.1
+    # this template is for version 2.0 and 2.1
+    version: 2.0
+
+    # flag, whether the feed will be used
+    enabled: true
+
+    # base name for the feed in CBC, if multiple feeds are needed
+    # then they would be named <feed_base_name> (<version>) <start_date> to <end_date> - Part <feed_number>"
+    feed_base_name: StixTaxiiFeedName
+
+    # the address of the site (only server ip or dns; don't put https:// or a trailing slash)
+    # example: limo.anomali.com
+    host: limo.anomali.com
+
+    # API routes
+    api_routes:
+      - myaproute:
+        - col1
+        - col2
 
     # (optional) username for authorization with your taxii provider
     username: guest
