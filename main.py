@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 import arrow
+import validators
 import taxii2client
 import typer
 import yaml
@@ -13,7 +14,7 @@ from cabby import create_client as create_taxii1_client
 from cbc_sdk import CBCloudAPI
 from taxii2client.v20 import Server as create_taxii20_client
 from taxii2client.v21 import Server as create_taxii21_client
-from typer import Argument
+from typer import Argument, BadParameter
 
 from cbc_importer import __version__
 from cbc_importer.importer import process_iocs
@@ -244,6 +245,40 @@ def process_taxii2_server(config: dict, cbcsdk: CBCloudAPI, server_name: str, st
     logging.info(f"Feeds created during the process {len([i for i in feeds])}")
 
 
+def validate_provider_url(value: str) -> str:
+    """Validate if a str is valid URL
+
+    Args:
+        value (str): url value
+
+    Raises:
+        BadParameter: Whenever the value is not a valid URL
+
+    Returns:
+        str: Valid URL
+    """
+    if validators.domain(value) or validators.url(value):
+        return value
+    raise BadParameter("Provider URL is not a valid URL")
+
+
+def validate_severity(value: int) -> int:
+    """Validating the severity
+
+    Args:
+        value (int): Severity integer
+
+    Raises:
+        BadParameter: Whenever an integer is not between 1-10
+
+    Returns:
+        int: int between 1-10
+    """
+    if 1 <= value <= 10:
+        return value
+    raise BadParameter("Severity must be between 1-10")
+
+
 @app.command(
     help="""
     Process and import a single STIX content file into CBC `Accepts *.json (STIX 2.1/2.0) / *.xml (1.x)`
@@ -259,8 +294,8 @@ def process_taxii2_server(config: dict, cbcsdk: CBCloudAPI, server_name: str, st
     """
 )
 def process_file(
-    stix_file_path: str = Argument(..., help="The location of the STIX Content file."),
-    provider_url: str = Argument(..., help="The URL of the provider of the content."),
+    stix_file_path: str = Argument(None, help="The location of the STIX Content file."),
+    provider_url: str = Argument(None, help="The URL of the provider of the content.", callback=validate_provider_url),
     start_date: Optional[str] = Argument(
         None,
         help="If it's not set the start date will be `now` the format is YYYY-MM-DD HH:mm:ss ZZ",
@@ -268,7 +303,7 @@ def process_file(
     end_date: Optional[str] = Argument(
         None, help="If it's not set the end date will be `now` the format is YYYY-MM-DD HH:mm:ss ZZ"
     ),
-    severity: Optional[int] = Argument(5, help="The severity of the generated Reports"),
+    severity: Optional[int] = Argument(5, help="The severity of the generated Reports", callback=validate_severity),
     summary: Optional[str] = Argument("...", help="Summary of the feed"),
     category: Optional[str] = Argument("STIX", help="The category that the feed will have"),
     cbc_profile: Optional[str] = Argument("default", help="The CBC Profile set in the CBC Credentials"),
