@@ -11,6 +11,7 @@
 # * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
+import re
 from typing import Union
 
 import validators
@@ -65,6 +66,7 @@ class AddressParser:
             value = value["value"]
 
         id_ = self.address._parent.id_
+        clean_id = re.sub(r"\W+", "", id_)
         values = []
         if isinstance(value, list):
             for v in value:
@@ -74,7 +76,7 @@ class AddressParser:
             if validators.ipv4(value):
                 values.append(value)
         if values:
-            return {"id": id_, "match_type": "equality", "field": self.CB_FIELD_IPV4, "values": values}
+            return {"id": clean_id, "match_type": "equality", "field": self.CB_FIELD_IPV4, "values": values}
         return None
 
     def _parse_ipv6(self) -> Union[dict, None]:
@@ -91,6 +93,7 @@ class AddressParser:
             value = value["value"]
 
         id_ = self.address._parent.id_
+        clean_id = re.sub(r"\W+", "", id_)
         values = []
         if isinstance(value, list):
             for v in value:
@@ -100,7 +103,7 @@ class AddressParser:
             if validators.ipv6(value):
                 values.append(value)
         if values:
-            return {"id": id_, "match_type": "equality", "field": self.CB_FIELD_IPV6, "values": values}
+            return {"id": clean_id, "match_type": "equality", "field": self.CB_FIELD_IPV6, "values": values}
         return None
 
 
@@ -134,6 +137,7 @@ class DomainNameParser:
             value = value["value"]
 
         id_ = self.domain_name._parent.id_
+        clean_id = re.sub(r"\W+", "", id_)
         values = []
         if isinstance(value, list):
             for v in value:
@@ -143,7 +147,7 @@ class DomainNameParser:
             if validators.domain(value):
                 values.append(value)
         if values:
-            return {"id": id_, "match_type": "equality", "field": self.CB_FIELD, "values": values}
+            return {"id": clean_id, "match_type": "equality", "field": self.CB_FIELD, "values": values}
         return None
 
 
@@ -154,7 +158,8 @@ class FileParser:
     that can be used as `initial_data` for `cbc_sdk.enterprise_edr.IOC_V2`
     """
 
-    CB_FIELD = "process_hash"
+    CB_FIELD_PROCESS_HASH = "process_hash"
+    CB_FIELD_FILE_NAME = "process_name"
 
     def __init__(self, file: File) -> None:
         """
@@ -171,16 +176,21 @@ class FileParser:
         """
         value = self.file
         id_ = self.file._parent.id_
-        values = []
-        for i in value.hashes:
-            if str(i.type_) == "SHA256":
-                if validators.sha256(str(i)):
-                    values.append(str(i))
-            elif str(i.type_) == "MD5":
-                if validators.md5(str(i)):
-                    values.append(str(i))
-        if values:
-            return {"id": id_, "match_type": "equality", "field": self.CB_FIELD, "values": values}
+        clean_id = re.sub(r"\W+", "", id_)
+        query_string = []
+        if hasattr(value, "file_name") and value.file_name is not None:
+            query_string.append(f"{self.CB_FIELD_FILE_NAME}:{str(value.file_name)}")
+        elif hasattr(value, "hashes"):
+            for i in value.hashes:
+                if str(i.type_) == "SHA256":
+                    if validators.sha256(str(i)):
+                        query_string.append(f"{self.CB_FIELD_PROCESS_HASH}:{str(i)}")
+                elif str(i.type_) == "MD5":
+                    if validators.md5(str(i)):
+                        query_string.append(f"{self.CB_FIELD_PROCESS_HASH}:{str(i)}")
+        if query_string:
+            _query_string = " OR ".join(query_string)
+            return {"id": clean_id, "match_type": "query", "values": [_query_string]}
         return None
 
 
@@ -214,6 +224,7 @@ class URIParser:
             value = value["value"]
 
         id_ = self.uri._parent.id_
+        clean_id = re.sub(r"\W+", "", id_)
         values = []
         if isinstance(value, list):
             for v in value:
@@ -223,5 +234,5 @@ class URIParser:
             if validators.url(value):
                 values.append(value)
         if values:
-            return {"id": id_, "match_type": "equality", "field": self.CB_FIELD, "values": values}
+            return {"id": clean_id, "match_type": "equality", "field": self.CB_FIELD, "values": values}
         return None

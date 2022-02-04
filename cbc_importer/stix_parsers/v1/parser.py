@@ -36,6 +36,8 @@ from cbc_importer.stix_parsers.v1.object_parsers import (
     URIParser,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class STIX1Parser:
     """Parser for translating STIX Indicator
@@ -98,6 +100,8 @@ class STIX1Parser:
         Args:
             client (Union[Client11, Client10]): authenticated cabby client
             collections (list | str): the list of collections to be gathered
+            **kwargs (dict): commonly used for `begin_date` and `end_date` to
+                support content range.
 
         Returns:
             List[IOC_V2]: List of parsed Indicators into IOCs
@@ -106,6 +110,7 @@ class STIX1Parser:
         for collection_name in collections_to_gather:
             content_block = client.poll(collection_name, **kwargs)
             for block in content_block:
+                logger.info(f"{block} found processing.")
                 try:
                     xml_content = etree.parse(BytesIO(block.content))
                     stix_package = STIXPackage.from_xml(xml_content)
@@ -114,18 +119,20 @@ class STIX1Parser:
                     observables = stix_package.observables
 
                     if indicators and len(indicators) > 0:
+                        logger.info(f"{len(indicators)} Indicators found.")
                         self._parse_stix_indicators(indicators)
                     elif observables and len(observables) > 0:
+                        logger.info(f"{len(Observables)} Indicators found.")
                         self._parse_stix_observable(observables)
 
-                except XMLSyntaxError:
+                except XMLSyntaxError as e:
                     # Sometimes there is a invalid block of XML
-                    logging.info(f"XMLSyntaxError occurred at {stix_package} with XML Content: {xml_content}")
+                    logger.exception(msg=e)
+                    logging.error(f"XMLSyntaxError occurred at {stix_package} with XML Content: {xml_content}")
                 except Exception as e:
                     # Sometimes there is an error within the STIX parsing
                     # such as `GDSParseError` but it can be different.
-                    logging.error(e, exc_info=True)
-                    continue
+                    logger.exception(msg=e)
         return self.iocs
 
     def _parse_stix_observable(self, observables: Observables) -> None:
@@ -147,6 +154,7 @@ class STIX1Parser:
                 # If there is not parser for that object
                 return None
             except AttributeError:
+                logger.warn(f"Observable {observable} has no `object_.properties`")
                 # Sometimes the `observable.object_.properties` has no properties
                 return None
 
@@ -160,19 +168,40 @@ class STIX1Parser:
             if not indicator.observable:
                 return None
             try:
-                observable_props = indicator.observable.object_.properties
-                parser = self.CB_MAPPINGS[type(observable_props)](observable_props)
-                ioc_dict = parser.parse()  # type: ignore
-                ioc_id = str(uuid.uuid4())
-                if ioc_dict:
-                    ioc = IOC_V2(self.cbcapi, ioc_id, ioc_dict)
-                    self.iocs.append(ioc)
+                if (
+                    hasattr(indicator.observable, "observable_composition")
+                    and indicator.observable.observable_composition is not None
+                ):
+                    # Whenever there is a composition within the `observable`
+                    for observable in indicator.observable.observable_composition:
+                        observable_props = observable.object_.properties
+                        self._create_ioc_from_observable_props(observable_props)
+                elif (
+                    hasattr(indicator.observable, "object_")
+                    and hasattr(indicator.observable.object_, "properties")
+                    and indicator.observable.object_.properties is not None
+                ):
+                    observable_props = indicator.observable.object_.properties
+                    self._create_ioc_from_observable_props(observable_props)
             except KeyError:
+                logger.info(f"No parser found for {type(observable_props)}")
                 # If there is no parser for that object
                 return None
             except AttributeError:
-                # Sometimes the `observable.object_.properties` has no properties
-                return None
+                logger.info("Not a valid Indicator.")
+
+    def _create_ioc_from_observable_props(self, observable_props: Union[Address, DomainName, File, URI]) -> None:
+        """Creates an IOC from observable properties
+
+        Args:
+            observable_props (Union[Address, DomainName, File, URI]): the properties of the observable.
+        """
+        parser = self.CB_MAPPINGS[type(observable_props)](observable_props)
+        ioc_dict = parser.parse()  # type: ignore
+        ioc_id = str(uuid.uuid4())
+        if ioc_dict:
+            ioc = IOC_V2(self.cbcapi, ioc_id, ioc_dict)
+            self.iocs.append(ioc)
 
     @staticmethod
     def _get_collections(client_collections: List[Collection], collections: Union[list, str]) -> list:
