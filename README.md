@@ -83,7 +83,7 @@ An example usage of the command:
 $ python wizard.py
 ```
 This is going to provide a menu with the options:
-* migration your current config
+* migrate your current config
 * create new config file
 * add new site/feed information
 
