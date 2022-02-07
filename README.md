@@ -76,8 +76,22 @@ Alternatively if you have used our old connector you can use the `configurator/w
 
 #### Using the configuration wizard
 
-...
+You can use the configuration wizard to easily manage the config.yml.
 
+An example usage of the command:
+```console
+$ python wizard.py
+```
+This is going to provide a menu with the options:
+* migration your current config
+* create new config file
+* add new site/feed information
+
+If you were using the old [config.yml](https://github.com/carbonblack/carbon-black-cloud-sdk-python/blob/master/examples/enterprise_edr/threat_intelligence/config.yml) and want to migrate it, copy the old config.yml in the root directory of your project and run the wizard using the first option. This is going to override the old config and convert it in the new format [new config](https://github.com/carbonblack/cbc-taxii-connector/blob/create-entrypoint-script/configurator/config.yml.example).
+
+With the second option of the wizard you will be able to create a completely new config (if there was existing config.yml it will be deleted). The wizard will lead you through the configurations and values you need to provide to have a valid config. Please enable only the feeds that you would like to use.
+
+The last option allows you to add one more site information to the existing ones. You need to have a valid config.yml in the new format with existing site/feed information in order to use it.
 
 ## Developing the connector
 
