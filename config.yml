@@ -1,0 +1,98 @@
+# cbc profile that would be used to connect to CBC
+cbc_profile_name: default
+sites:
+- OTXAlienVault:
+    # version for the feed - can be 1.2, 2.0, 2.1
+    # this template is for version 1.2
+    version: 1.2
+
+    # flag, whether the feed will be used
+    enabled: true
+
+    # base name for the feed in CBC, if multiple feeds are needed
+    # then they would be named <feed_base_name> (<version>) <start_date> to <end_date> - Part <feed_number>"
+    feed_base_name: StixTaxiiFeedName
+
+    # the address of the site (only server ip or dns; don't put https:// or a trailing slash)
+    # example: limo.anomali.com
+    host: otx.alienvault.com
+
+    # the path of the site for discovering what services are available
+    # this is supplied by your taxii provider
+    # example: /api/v1/taxii/taxii-discovery-service/
+    discovery_path: /taxii/discovery
+
+    # if you require https for your TAXII service connection, set to true
+    # defaults to true
+    use_https: true
+
+    # by default, we validate SSL certificates. Change to false to turn off SSL verification
+    ssl_verify: false
+
+    # (optional) if you need SSL certificates for authentication, set the path of the
+    # certificate and key here.
+    cert_file: null
+    key_file: null
+
+    # (optional) how to score each result. Accepts values [1,10], and defaults to 5
+    default_score: null
+
+    # (optional) specify which collections to convert to feeds list of collections
+    # example:
+    # - Abuse_ch_Ransomware_IPs_F135
+    # - DShield_Scanning_IPs_F150
+    collections: "*"
+
+    # the start date for which to start requesting data.
+    # Use %y-%m-%d %H:%M:%S format
+    # example: 2019-01-01 00:00:00
+    start_date: null
+
+    # (optional) path to a CA SSL certificate
+    ca_cert: null
+
+    # (optional) if you need requests to go through a proxy, specify an http URL here
+    http_proxy_url: null
+
+    # (optional) if you need requests to go through a proxy, specify an https URL here
+    https_proxy_url: null
+
+    # (optional) username for authorization with your taxii provider
+    username: de0c2679c17c994077fa7fa12764780f915505dc4c89c82ca763fe39bc9802a0
+
+    # (optional) password for authorization with your taxii provider
+    password: electricpower1E
+
+    severity: 5 
+    summary: "AlienVault OTX"
+    category: "STIX"
+
+- LimoAnomaliV2:
+    # version for the feed - can be 1.2, 2.0, 2.1
+    # this template is for version 2.0 and 2.1
+    version: 2.0
+
+    # flag, whether the feed will be used
+    enabled: false
+
+    # base name for the feed in CBC, if multiple feeds are needed
+    # then they would be named <feed_base_name> (<version>) <start_date> to <end_date> - Part <feed_number>"
+    feed_base_name: StixTaxiiFeedName
+
+    # the address of the site (only server ip or dns; don't put https:// or a trailing slash)
+    # example: limo.anomali.com
+    host: https://limo.anomali.com/api/v1/taxii2/taxii/
+    severity: 5 
+    summary: "Limo Anomali Feed"
+    category: "STIX"
+    # API routes
+    api_routes: "*"
+
+    # (optional) username for authorization with your taxii provider
+    username: guest
+
+    # (optional) password for authorization with your taxii provider
+    password: guest
+
+    # 
+    added_after: 
