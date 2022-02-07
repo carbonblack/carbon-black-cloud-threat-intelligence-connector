@@ -59,5 +59,5 @@ def test_configure_taxii1_server():
     taxii_client = configure_taxii1_server(config)
     assert taxii_client.__dict__["host"] == "otx.alienvault.com"
     assert taxii_client.__dict__["discovery_path"] == "/taxii/discovery"
-    assert taxii_client.__dict__["use_https"] == True
-    assert taxii_client.__dict__["verify_ssl"] == True
+    assert taxii_client.__dict__["use_https"]
+    assert taxii_client.__dict__["verify_ssl"]
