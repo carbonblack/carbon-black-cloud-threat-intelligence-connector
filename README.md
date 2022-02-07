@@ -70,7 +70,9 @@ An example usage and description of that command can be found with:
 $ python main.py process-server --help
 ```
 
-This command will gather your config file and it will start to ingest STIX content that is served by those TAXII Servers. In the `configurator/config.yml.example` file you can find an example configuration that you can use to setup your STIX content providers. 
+The default path for your config path is `{CURRENT_DIR}/config.yml`.
+
+This command will get your config file and it will start to ingest STIX content that is served by those TAXII Servers. In the `configurator/config.yml.example` file you can find an example configuration that you can use to setup your STIX content providers. 
 
 Alternatively if you have used our old connector you can use the `configurator/wizard.py` to migrate your old configuration into the new one. 
 
@@ -80,24 +82,28 @@ You can use the configuration wizard to easily manage the config.yml.
 
 An example usage of the command:
 ```console
-$ python wizard.py
+$ cd configurator && python wizard.py
 ```
 This is going to provide a menu with the options:
 * migrate your current config
 * create new config file
 * add new site/feed information
 
-If you were using the old [config.yml](https://github.com/carbonblack/carbon-black-cloud-sdk-python/blob/master/examples/enterprise_edr/threat_intelligence/config.yml) and want to migrate it, copy the old config.yml in the root directory of your project and run the wizard using the first option. This is going to override the old config and convert it in the new format [new config](https://github.com/carbonblack/cbc-taxii-connector/blob/create-entrypoint-script/configurator/config.yml.example).
+If you were using the old [config.yml](https://github.com/carbonblack/carbon-black-cloud-sdk-python/blob/master/examples/enterprise_edr/threat_intelligence/config.yml) and want to migrate it, copy the old config.yml in the root directory of your project and run the wizard using the first option. This is going to override the old config and convert it in the new format [new config](configurator/example.yml).
 
 With the second option of the wizard you will be able to create a completely new config (if there was existing config.yml it will be deleted). The wizard will lead you through the configurations and values you need to provide to have a valid config. Please enable only the feeds that you would like to use.
 
 The last option allows you to add one more site information to the existing ones. You need to have a valid config.yml in the new format with existing site/feed information in order to use it.
 
+#### Creating the configuration manually
+
+If you don't want to use the wizard tool for creating a config interactively you can create the config by yourself following the [example config](configurator/example.yml) and their descriptions inside.
+
 ## Developing the connector
 
 We rely on pull requests to keep this project maintained. By participating in this project, you agree to abide by the VMware [code of conduct](CODE-OF-CONDUCT.md).
 
-## Setup
+### Setup
 
 It is recommended to use Python3.8 / Python3.9 version for that project, assuming that you installed the deps with either virtualenv or poetry. 
 
@@ -113,6 +119,6 @@ For a good code quality make sure to install the hooks from `pre-commit` as well
 $ pre-commit install
 ``` 
 
-## Submitting a PR
+### Submitting a PR
 
 It is strongly recommended to have written tests and documentation for your changes before submitting a PR to the project. Make sure to write good commit messages as well. 

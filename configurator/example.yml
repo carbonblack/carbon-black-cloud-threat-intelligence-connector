@@ -1,0 +1,157 @@
+# The CBC Profile that will authenticate the CBCloud API
+cbc_profile_name: default
+sites:
+- TAXII_CONFIG_FOR_TAXII_1:
+    # Version of the TAXII provider 
+    # (required)
+    version: 1.2
+
+    # If the feed will be enabled during the run, it is going to be skipped if `false`
+    # (required)
+    enabled: true
+
+    # Base name for the Feed in CBC, if multiple Feeds are needed
+    # then they would be named `<feed_base_name> (<STIX version>) <start_date> to <end_date> - Part <feed_number>`
+    # (required)
+    feed_base_name:
+
+    # The host of the TAXII provider
+    # example: taxii.provider.com
+    # (required)
+    host: 
+
+    # The endpoint of the host for discovering what services are available
+    # this is supplied by your TAXII provider
+    # Example: /api/v1/taxii/taxii-discovery-service/
+    # (required)
+    discovery_path:
+
+    # Severity for the reports. Accepts values [1,10]
+    # (optional)
+    # Default: 5
+    severity:
+
+    # The category for the Feed.
+    # (required)
+    category:
+
+    # Summary for the feed. Usually used with short descriptions for the feeds.
+    # (required)
+    summary:
+
+    # If you require https for your TAXII service connection, set to true
+    # Default: true
+    # (required)
+    use_https:
+
+    # Wether to validate the SSL connection
+    # Default: true
+    # (required)
+    ssl_verify:
+
+    # If you need SSL certificates for authentication, set the path of the
+    # certificate and key here.
+    # (optional) 
+    cert_file:
+    key_file:
+
+    # Specify which collections to ingest.
+    # (optional)
+    # Example:
+    # 
+    # collections: 
+    #   - collection_name_1
+    #   - collection_name_2
+    # 
+    # This will ingest data gathered only by those specified collections. Alternatively 
+    # you can add "*" wildcard to gather all the collections from the TAXII Server
+
+    collections: *
+
+    # The start date for which to start requesting data.
+    # The accepted formats are ISO 8601.
+    # Default: (date object represents now-1month)
+    # Example: 2022-01-01 00:00:00
+    start_date:
+
+    # Path to a CA SSL certificate
+    # (optional) 
+    ca_cert:
+
+    # If you need requests to go through a proxy, specify an http URL here
+    # (optional)
+    http_proxy_url:
+
+    # If you need requests to go through a proxy, specify an https URL here
+    # (optional)
+    https_proxy_url:
+
+    # Username for authorization with your TAXII provider
+    # (optional)
+    username:
+
+    # Password for authorization with your TAXII provider
+    # (optional)
+    password:
+
+- TAXII_CONFIG_FOR_TAXII_2:
+    # Version of the TAXII provider 
+    # (required)
+    # Example: 2.0 or 2.1
+    version: 2.1
+
+    # If the feed will be enabled during the run, it is going to be skipped if `false`
+    # (required)
+    enabled: true
+
+    # Base name for the Feed in CBC, if multiple Feeds are needed
+    # then they would be named `<feed_base_name> (<STIX version>) <start_date> to <end_date> - Part <feed_number>`
+    # (required)
+    feed_base_name:
+
+    # The host of the TAXII provider
+    # example: taxii.provider.com
+    # (required)
+    host:
+
+    # Severity for the reports. Accepts values [1,10]
+    # (optional)
+    # Default: 5
+    severity:
+
+    # The category for the Feed.
+    # (required)
+    category:
+
+    # Summary for the feed. Usually used with short descriptions for the feeds.
+    # (required)
+    summary:
+
+    # The routes that are going to get ingested. This option supports multiple API roots with 
+    # multiple collections inside. 
+    # 
+    # Example:
+    #
+    # api_routes:
+    # - api_root1_title:
+    #   - collection_id
+    #   - collection_id
+    # - api_root2_title: *
+    # 
+    # It supports `*` wildcards both for routes and the collections inside.
+    # It needs the `title` of the root and the `id` of the collection.
+    api_routes:
+
+    # Username for authorization with your TAXII provider
+    # (optional)
+    username:
+
+    # Password for authorization with your TAXII provider
+    # (optional)
+    password:
+
+    # The start date for which to start requesting data.
+    # The accepted formats are ISO 8601.
+    # (optional)
+    # Example: 2022-01-01 00:00:00
+    added_after: 
