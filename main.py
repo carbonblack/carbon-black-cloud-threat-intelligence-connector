@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*-
+
+# *******************************************************
+# Copyright (c) VMware, Inc. 2022. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
+# *******************************************************
+# *
+# * DISCLAIMER. THIS PROGRAM IS PROVIDED TO YOU "AS IS" WITHOUT
+# * WARRANTIES OR CONDITIONS OF ANY KIND, WHETHER ORAL OR WRITTEN,
+# * EXPRESS OR IMPLIED. THE AUTHOR SPECIFICALLY DISCLAIMS ANY IMPLIED
+# * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
+# * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 import logging
 import os.path
 import sys
@@ -37,7 +49,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler(sys.stdout)]
 )
 
-app = typer.Typer()
+app = typer.Typer(no_args_is_help=True)
 
 
 def init_cbcsdk(cbc_profile_name: str) -> CBCloudAPI:
@@ -116,6 +128,7 @@ def configure_taxii1_server(config: dict) -> Union[Client10, Client11]:
         "discovery_path",
         "use_https",
         "discovery_url",
+        "ssl_verify",
         "headers",
     ]
 
@@ -124,11 +137,22 @@ def configure_taxii1_server(config: dict) -> Union[Client10, Client11]:
     taxii_config = _get_only_set_values(taxii_client_keys, config)
     taxii_auth_config = _get_only_set_values(authentication_keys, config)
 
+    if "ssl_verify" in taxii_config.items():
+        taxii_config["verify_ssl"] = taxii_client_keys.pop("ssl_verify")
+
     if taxii_auth_config:
         taxii_client = create_taxii1_client(**taxii_config)
         taxii_client.set_auth(**taxii_auth_config)
     else:
         taxii_client = create_taxii1_client(**taxii_config)
+
+    proxy_dict = {}
+    if "http_proxy_url" in config.items():
+        proxy_dict["http_proxy_url"]
+        taxii_client.set_proxies(proxy_dict)
+    elif "https_proxy_url" in config.items():
+        proxy_dict["https_proxy_url"]
+        taxii_client.set_proxies(proxy_dict)
 
     return taxii_client
 
@@ -183,6 +207,7 @@ def process_taxii1_server(config: dict, cbcsdk: CBCloudAPI, server_name: str) ->
         cbcsdk (CBCloudAPI): The Authenticated instance of CBC
         server_name (str): The name of the TAXII Server
     """
+    breakpoint()
     if "start_date" in config and "end_date" in config:
         start_date = arrow.get(config["start_date"], tzinfo="UTC").datetime
         end_date = arrow.get(config["end_date"], tzinfo="UTC").datetime
@@ -283,7 +308,7 @@ def validate_severity(value: int) -> int:
     help="""
     Process and import a single STIX content file into CBC `Accepts *.json (STIX 2.1/2.0) / *.xml (1.x)`
 
-    Example usage: 
+    Example usage:
 
         python main.py process-file ./stix_content.xml --provider-url=http://yourprovider.com/
 
@@ -294,8 +319,8 @@ def validate_severity(value: int) -> int:
     """
 )
 def process_file(
-    stix_file_path: str = Argument(None, help="The location of the STIX Content file."),
-    provider_url: str = Argument(None, help="The URL of the provider of the content.", callback=validate_provider_url),
+    stix_file_path: str = Argument(None, help="[required] The location of the STIX Content file."),
+    provider_url: str = Argument(None, help="[required] The URL of the provider of the content.", callback=validate_provider_url),
     start_date: Optional[str] = Argument(
         None,
         help="If it's not set the start date will be `now` the format is YYYY-MM-DD HH:mm:ss ZZ",
@@ -309,6 +334,22 @@ def process_file(
     cbc_profile: Optional[str] = Argument("default", help="The CBC Profile set in the CBC Credentials"),
     feed_base_name: str = Argument("STIX Feed", help="The base name for the feed that is going to be created"),
 ) -> None:
+    """Processing a single STIX file content.
+
+    Args:
+        stix_file_path (str): the path to the file
+        provider_url (str): An url of the provider of that STIX content
+        start_date (Optional[str]): The start date of the script
+        end_date (Optional[str]): The end date of the script
+        severity (Optional[int]): The severity of the reports that are going to be imported
+        summary (Optional[str]): Summary of the Feed
+        category (Optional[str]): The category of the Feed
+        cbc_profile (Optional[str]): The CBC Profile set in the CBC Credentials
+        feed_base_name (str, optional): The base name for the feed that is going to be created
+
+    Raises:
+        ValueError: If the `stix_file_path` has invalid extension
+    """
     extension = os.path.splitext(stix_file_path)[1]
     cbcsdk = CBCloudAPI(profile=cbc_profile)
 
@@ -339,10 +380,10 @@ def process_file(
 
 
 @app.command(
-    help=f"""
+    help="""
     Process and import a TAXII Server (2.0/2.1/1.x)
 
-    Example usage: 
+    Example usage:
 
         python main.py process-server --config-file=./config.yml
 
@@ -350,6 +391,14 @@ def process_file(
     """
 )
 def process_server(config_file: str = Argument(DEFAULT_CONFIG_PATH, help="The configuration of the servers")) -> None:
+    """Processing a TAXII Server
+
+    Args:
+        config_file (str, optional): configuration file for the server, uses default config path if none provided
+
+    Raises:
+        ValueError: Whenever a STIX Version is incompatible
+    """
     config = yaml.safe_load(Path(config_file).read_text())
     cbcsdk = init_cbcsdk(config["cbc_profile_name"])
 
@@ -364,9 +413,20 @@ def process_server(config_file: str = Argument(DEFAULT_CONFIG_PATH, help="The co
             elif stix_version == 2.1 or stix_version == 2.0:
                 process_taxii2_server(site[server_name], cbcsdk, server_name, stix_version)
             else:
-                raise ValueError(f"Invalid STIX Version")
+                raise ValueError("Invalid STIX Version")
         else:
             logger.info(f"{server_name} is not enabled, skipping")
+
+
+@app.command(help="Shows the version of the connector")
+def version():
+    """Shows the version of the connector in the cli
+
+    Raises:
+        typer.Exit
+    """
+    typer.echo(__version__)
+    raise typer.Exit()
 
 
 if __name__ == "__main__":
