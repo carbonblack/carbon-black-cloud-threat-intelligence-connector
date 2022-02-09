@@ -26,7 +26,7 @@ from cabby import create_client as create_taxii1_client
 from cbc_sdk import CBCloudAPI
 from taxii2client.v20 import Server as create_taxii20_client
 from taxii2client.v21 import Server as create_taxii21_client
-from typer import Argument, BadParameter
+from typer import Argument, BadParameter, Option
 
 from cbc_importer import __version__
 from cbc_importer.importer import process_iocs
@@ -88,11 +88,11 @@ def process_stix1_file(**kwargs) -> None:
     """
     file_path = kwargs.pop("stix_file_path")
     iocs = STIX1Parser(kwargs["cb"]).parse_file(file_path)
-    kwargs.update({"iocs": iocs, "stix_version": 1.2})
+    kwargs.update({"iocs": iocs, "stix_version": 1})
     feeds = process_iocs(**kwargs)
     logging.info(f"Successfully imported {file_path} into CBC.")
-    logging.info(f"Feeds created during the process {len([i for i in feeds])}")
-
+    for i in feeds:
+        logging.info(f"Created feed with ID: {i.id}")
 
 def process_stix2_file(**kwargs) -> None:
     """Processing a STIX 2 Content file
@@ -102,10 +102,11 @@ def process_stix2_file(**kwargs) -> None:
     """
     file_path = kwargs.pop("stix_file_path")
     iocs = STIX2Parser(kwargs["cb"]).parse_file(file_path)
-    kwargs.update({"iocs": iocs, "stix_version": 2.1})
+    kwargs.update({"iocs": iocs, "stix_version": 2})
     feeds = process_iocs(**kwargs)
     logging.info(f"Successfully imported {file_path} into CBC.")
-    logging.info(f"Feeds created during the process {len([i for i in feeds])}")
+    for i in feeds:
+        logging.info(f"Created feed with ID: {i.id}")
 
 
 def configure_taxii1_server(config: dict) -> Union[Client10, Client11]:
@@ -304,35 +305,53 @@ def validate_severity(value: int) -> int:
     raise BadParameter("Severity must be between 1-10")
 
 
+def transform_date(value: str) -> arrow.Arrow:
+    """Transform a str date to Arrow object 
+
+    Args:
+        value (str): The date as a string
+
+    Raises:
+        arrow.ParserError: Whenever the provided date is not valid.
+
+    Returns:
+        arrow.Arrow: Arrow object of that date
+    """
+    date = arrow.get(value)
+    return date.datetime
+
 @app.command(
     help="""
     Process and import a single STIX content file into CBC `Accepts *.json (STIX 2.1/2.0) / *.xml (1.x)`
 
     Example usage:
 
-        python main.py process-file ./stix_content.xml --provider-url=http://yourprovider.com/
+        python main.py process-file ./stix_content.xml http://yourprovider.com/
 
-        python main.py process-file ./stix_content.xml --start-date=2022-01-01 --end-date=2022-02-01 --provider-url=http://yourprovider.com/
+        python main.py process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01 
 
-        python main.py process-file ./stix_content.xml --provider-url=http://yourprovider.com/ --severity=9
+        python main.py process-file ./stix_content.xml -http://yourprovider.com/ --severity=9
 
     """
 )
 def process_file(
-    stix_file_path: str = Argument(None, help="[required] The location of the STIX Content file."),
-    provider_url: str = Argument(None, help="[required] The URL of the provider of the content.", callback=validate_provider_url),
-    start_date: Optional[str] = Argument(
-        None,
-        help="If it's not set the start date will be `now` the format is YYYY-MM-DD HH:mm:ss ZZ",
+    stix_file_path: str = Argument(None, help="The location of the STIX Content file."),
+    provider_url: str = Argument(None, help="The URL of the provider of the content.", callback=validate_provider_url),
+    start_date: Optional[str] = Option(
+        f"{arrow.utcnow().shift(months=-1).format()}",
+        help="The start date of the STIX Content, The format should be ISO 8601",
+        callback=transform_date
     ),
-    end_date: Optional[str] = Argument(
-        None, help="If it's not set the end date will be `now` the format is YYYY-MM-DD HH:mm:ss ZZ"
+    end_date: Optional[str] = Option(
+        f"{arrow.utcnow().format()}",
+        help="The start end of the STIX Content, The format should be ISO 8601",
+        callback=transform_date
     ),
-    severity: Optional[int] = Argument(5, help="The severity of the generated Reports", callback=validate_severity),
-    summary: Optional[str] = Argument("...", help="Summary of the feed"),
-    category: Optional[str] = Argument("STIX", help="The category that the feed will have"),
-    cbc_profile: Optional[str] = Argument("default", help="The CBC Profile set in the CBC Credentials"),
-    feed_base_name: str = Argument("STIX Feed", help="The base name for the feed that is going to be created"),
+    severity: Optional[int] = Option(5, help="The severity of the generated Reports", callback=validate_severity),
+    summary: Optional[str] = Option("...", help="Summary of the feed"),
+    category: Optional[str] = Option("STIX", help="The category that the feed will have"),
+    cbc_profile: Optional[str] = Option("default", help="The CBC Profile set in the CBC Credentials"),
+    feed_base_name: str = Option("STIX Feed", help="The base name for the feed that is going to be created"),
 ) -> None:
     """Processing a single STIX file content.
 
@@ -352,13 +371,7 @@ def process_file(
     """
     extension = os.path.splitext(stix_file_path)[1]
     cbcsdk = CBCloudAPI(profile=cbc_profile)
-
-    if not start_date and not end_date:
-        start_date, end_date = arrow.utcnow().shift(months=-1).datetime, arrow.utcnow().datetime
-    else:
-        start_date = arrow.get(start_date, tzinfo="UTC").datetime
-        end_date = arrow.get(end_date, tzinfo="UTC").datetime
-
+    
     kwargs = {
         "stix_file_path": stix_file_path,
         "provider_url": provider_url,
@@ -390,7 +403,7 @@ def process_file(
 
     """
 )
-def process_server(config_file: str = Argument(DEFAULT_CONFIG_PATH, help="The configuration of the servers")) -> None:
+def process_server(config_file: str = Option(DEFAULT_CONFIG_PATH, help="The configuration of the servers")) -> None:
     """Processing a TAXII Server
 
     Args:

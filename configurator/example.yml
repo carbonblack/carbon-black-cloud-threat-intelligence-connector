@@ -74,6 +74,12 @@ sites:
     # Example: 2022-01-01 00:00:00
     start_date:
 
+    # The end date for which to stop requesting data.
+    # The accepted formats are ISO 8601.
+    # Default: (date object represents now-1month)
+    # Example: 2022-02-01 00:00:00
+    end_date:
+
     # Path to a CA SSL certificate
     # (optional) 
     ca_cert:
