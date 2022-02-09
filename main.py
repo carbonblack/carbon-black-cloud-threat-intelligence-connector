@@ -94,6 +94,7 @@ def process_stix1_file(**kwargs) -> None:
     logging.info(f"Successfully imported {file_path} into CBC.")
     for i in feeds:
         logging.info(f"Created feed with ID: {i.id}")
+    logging.info(f"Created {len(feeds)} Feeds.")
 
 def process_stix2_file(**kwargs) -> None:
     """Processing a STIX 2 Content file
@@ -108,6 +109,7 @@ def process_stix2_file(**kwargs) -> None:
     logging.info(f"Successfully imported {file_path} into CBC.")
     for i in feeds:
         logging.info(f"Created feed with ID: {i.id}")
+    logging.info(f"Created {len(feeds)} Feeds.")
 
 
 def configure_taxii1_server(config: dict) -> Union[Client10, Client11]:
@@ -231,7 +233,10 @@ def process_taxii1_server(config: dict, cbcsdk: CBCloudAPI, server_name: str) ->
         severity=config["severity"],
     )
     logging.info(f"Successfully imported {server_name} into CBC.")
-    logging.info(f"Feeds created during the process {len(feeds)}")
+    for i in feeds:
+        logging.info(f"Created feed with ID: {i.id}")
+    logging.info(f"Created {len(feeds)} Feeds.")
+    
 
 
 def process_taxii2_server(config: dict, cbcsdk: CBCloudAPI, server_name: str, stix_version: float) -> None:
@@ -265,7 +270,9 @@ def process_taxii2_server(config: dict, cbcsdk: CBCloudAPI, server_name: str, st
         severity=config["severity"],
     )
     logging.info(f"Successfully imported {server_name} into CBC.")
-    logging.info(f"Feeds created during the process {len([i for i in feeds])}")
+    for i in feeds:
+        logging.info(f"Created feed with ID: {i.id}")
+    logging.info(f"Created {len(feeds)} Feeds.")
 
 
 def validate_provider_url(value: str) -> str:
