@@ -10,6 +10,7 @@
 # * EXPRESS OR IMPLIED. THE AUTHOR SPECIFICALLY DISCLAIMS ANY IMPLIED
 # * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
+from datetime import tzinfo
 import logging
 import os.path
 import sys
@@ -138,9 +139,6 @@ def configure_taxii1_server(config: dict) -> Union[Client10, Client11]:
     taxii_config = _get_only_set_values(taxii_client_keys, config)
     taxii_auth_config = _get_only_set_values(authentication_keys, config)
 
-    if "ssl_verify" in taxii_config.items():
-        taxii_config["verify_ssl"] = taxii_client_keys.pop("ssl_verify")
-
     if taxii_auth_config:
         taxii_client = create_taxii1_client(**taxii_config)
         taxii_client.set_auth(**taxii_auth_config)
@@ -208,11 +206,17 @@ def process_taxii1_server(config: dict, cbcsdk: CBCloudAPI, server_name: str) ->
         cbcsdk (CBCloudAPI): The Authenticated instance of CBC
         server_name (str): The name of the TAXII Server
     """
-
+    if "start_date" in config and "end_date" in config:
+        start_date = arrow.get(config["start_date"], tzinfo="UTC").datetime
+        end_date = arrow.get(config["end_date"], tzinfo="UTC").datetime
+    else:
+        # Set the default range to be (now-1month to now)
+        start_date = arrow.utcnow().shift(days=-1).datetime
+        end_date = arrow.utcnow().datetime
 
     taxii_client = configure_taxii1_server(config)
     iocs = STIX1Parser(cbcsdk).parse_taxii_server(
-        taxii_client, config["collections"], begin_date=config["start_date"], end_date=config["end_date"]
+        taxii_client, config["collections"], begin_date=start_date, end_date=end_date
     )
     feeds = process_iocs(
         cbcsdk,
@@ -240,7 +244,7 @@ def process_taxii2_server(config: dict, cbcsdk: CBCloudAPI, server_name: str, st
         server_name (str): The name of the TAXII Server
         stix_version (float): The version of STIX
     """
-    if "added_after" in config:
+    if "added_after" in config and config["added_after"]:
         config["added_after"] = arrow.get(config["added_after"], tzinfo="UTC").datetime
     else:
         # Set the default to be a month ago
@@ -310,7 +314,7 @@ def transform_date(value: str) -> arrow.Arrow:
     Returns:
         arrow.Arrow: Arrow object of that date
     """
-    date = arrow.get(value)
+    date = arrow.get(value).replace(tzinfo="UTC")
     return date.datetime
 
 @app.command(
