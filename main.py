@@ -208,18 +208,11 @@ def process_taxii1_server(config: dict, cbcsdk: CBCloudAPI, server_name: str) ->
         cbcsdk (CBCloudAPI): The Authenticated instance of CBC
         server_name (str): The name of the TAXII Server
     """
-    breakpoint()
-    if "start_date" in config and "end_date" in config:
-        start_date = arrow.get(config["start_date"], tzinfo="UTC").datetime
-        end_date = arrow.get(config["end_date"], tzinfo="UTC").datetime
-    else:
-        # Set the default range to be (now-1month to now)
-        start_date = arrow.utcnow().shift(days=-1).datetime
-        end_date = arrow.utcnow().datetime
+
 
     taxii_client = configure_taxii1_server(config)
     iocs = STIX1Parser(cbcsdk).parse_taxii_server(
-        taxii_client, config["collections"], begin_date=start_date, end_date=end_date
+        taxii_client, config["collections"], begin_date=config["start_date"], end_date=config["end_date"]
     )
     feeds = process_iocs(
         cbcsdk,

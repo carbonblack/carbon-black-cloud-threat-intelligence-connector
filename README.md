@@ -16,14 +16,14 @@ You will need to [install poetry](https://python-poetry.org/docs/#installation) 
 
 To install the connector run:
 
-```console
+```bash
 $ poetry install --no-dev
 $ poetry run python ./main.py --help
 ```
 
 Or if you don't want to type `poetry run` every time.
 
-```console
+```bash
 $ poetry shell 
 (cbc-taxii-connector-WePRHx-s-py3.8) $ python ./main.py --help
 ```
@@ -32,7 +32,7 @@ $ poetry shell
 
 You will need to [install virtualenv](https://python-poetry.org/docs/#installation) first. 
 
-```console
+```bash
 $ virtualenv venv
 ...
 $ source ./venv/bin/activate
@@ -49,12 +49,12 @@ You can parse a file with the connector with the `process-file` command.
 
 An example usage and description of that command can be found with:
 
-```console
+```
 $ python main.py process-file --help
 ```
 
 It can be as simple as: 
-```console
+```bash
 $ python main.py process-file ./stix_content.xml http://yourprovider.com/
 ``` 
 
@@ -66,7 +66,7 @@ You can start parsing STIX content served by a TAXII Server with the connector w
 
 An example usage and description of that command can be found with:
 
-```console
+```bash
 $ python main.py process-server --help
 ```
 
@@ -81,7 +81,7 @@ Alternatively if you have used our old connector you can use the `configurator/w
 You can use the configuration wizard to easily manage the config.yml.
 
 An example usage of the command:
-```console
+```bash
 $ cd configurator && python wizard.py
 ```
 This is going to provide a menu with the options:
@@ -109,13 +109,13 @@ It is recommended to use Python3.8 / Python3.9 version for that project, assumin
 
 If you have used poetry run the following command:
 
-```
+```bash
 $ poetry install 
 ```
 
 For a good code quality make sure to install the hooks from `pre-commit` as well.
 
-```
+```bash
 $ pre-commit install
 ``` 
 
