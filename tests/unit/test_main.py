@@ -10,17 +10,18 @@
 # * EXPRESS OR IMPLIED. THE AUTHOR SPECIFICALLY DISCLAIMS ANY IMPLIED
 # * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
-from main import configure_taxii1_server, configure_taxii2_server
+from main import configure_taxii1_server, configure_taxii2_server, process_taxii1_server, process_taxii2_server
 
 
 def test_configure_taxii2_server():
+    """Test for passing the configuration correctly to the client"""
     config = {
         "version": 2.0,
         "enabled": True,
         "feed_base_name": "StixTaxiiFeedName",
-        "host": "https://limo.anomali.com/api/v1/taxii2/taxii/",
+        "host": "test.server.test",
         "severity": 5,
-        "summary": "Limo Anomali Feed",
+        "summary": "TestFeed",
         "category": "STIX",
         "api_routes": "*",
         "username": "guest",
@@ -30,18 +31,18 @@ def test_configure_taxii2_server():
     taxii_client = configure_taxii2_server(config, stix_version=2.0)
     assert taxii_client.__dict__["_user"] == "guest"
     assert taxii_client.__dict__["_password"] == "guest"
-    assert taxii_client.__dict__["url"] == "https://limo.anomali.com/api/v1/taxii2/taxii/"
+    assert taxii_client.__dict__["url"] == "test.server.test/"
 
 
 def test_configure_taxii1_server():
+    """Test for passing the configuration correctly to the client"""
     config = {
         "version": 1.2,
         "enabled": True,
         "feed_base_name": "StixTaxiiFeedName",
-        "host": "otx.alienvault.com",
+        "host": "test.server.test",
         "discovery_path": "/taxii/discovery",
         "use_https": True,
-        "ssl_verify": False,
         "cert_file": None,
         "key_file": None,
         "default_score": None,
@@ -57,7 +58,7 @@ def test_configure_taxii1_server():
         "category": "STIX",
     }
     taxii_client = configure_taxii1_server(config)
-    assert taxii_client.__dict__["host"] == "otx.alienvault.com"
+    assert taxii_client.__dict__["host"] == "test.server.test"
     assert taxii_client.__dict__["discovery_path"] == "/taxii/discovery"
     assert taxii_client.__dict__["use_https"]
-    assert taxii_client.__dict__["verify_ssl"]
+

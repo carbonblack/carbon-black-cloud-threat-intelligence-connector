@@ -132,7 +132,6 @@ def configure_taxii1_server(config: dict) -> Union[Client10, Client11]:
         "discovery_path",
         "use_https",
         "discovery_url",
-        "ssl_verify",
         "headers",
     ]
 
@@ -208,7 +207,7 @@ def process_taxii1_server(config: dict, cbcsdk: CBCloudAPI, server_name: str) ->
         cbcsdk (CBCloudAPI): The Authenticated instance of CBC
         server_name (str): The name of the TAXII Server
     """
-    if "start_date" in config and "end_date" in config:
+    if config.get("start_date", None) and config.get("start_date", None):
         start_date = arrow.get(config["start_date"], tzinfo="UTC").datetime
         end_date = arrow.get(config["end_date"], tzinfo="UTC").datetime
     else:

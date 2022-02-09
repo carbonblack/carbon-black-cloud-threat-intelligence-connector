@@ -44,11 +44,6 @@ sites:
     # (required)
     use_https:
 
-    # Wether to validate the SSL connection
-    # Default: true
-    # (required)
-    ssl_verify:
-
     # If you need SSL certificates for authentication, set the path of the
     # certificate and key here.
     # (optional) 
@@ -62,11 +57,14 @@ sites:
     # collections: 
     #   - collection_name_1
     #   - collection_name_2
+    #
+    # OR
+    #
+    # collections: "*"
     # 
     # This will ingest data gathered only by those specified collections. Alternatively 
     # you can add "*" wildcard to gather all the collections from the TAXII Server
-
-    collections: *
+    collections: 
 
     # The start date for which to start requesting data.
     # The accepted formats are ISO 8601.
@@ -142,11 +140,11 @@ sites:
     # - api_root1_title:
     #   - collection_id
     #   - collection_id
-    # - api_root2_title: *
+    # - api_root2_title: "*""
     # 
     # It supports `*` wildcards both for routes and the collections inside.
     # It needs the `title` of the root and the `id` of the collection.
-    api_routes:
+    api_routes: 
 
     # Username for authorization with your TAXII provider
     # (optional)
