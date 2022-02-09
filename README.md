@@ -55,7 +55,7 @@ $ python main.py process-file --help
 
 It can be as simple as: 
 ```console
-$ python main.py process-file ./stix_content.xml --provider-url=http://yourprovider.com/
+$ python main.py process-file ./stix_content.xml http://yourprovider.com/
 ``` 
 
 The connector will automatically figure out the STIX version for you and use its appropriate parsers (you can use json files too), all you need to do is to pass the file and the required parameters.
