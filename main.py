@@ -347,7 +347,7 @@ def process_file(
     ),
     end_date: Optional[str] = Option(
         f"{arrow.utcnow().format()}",
-        help="The start end of the STIX Content, The format should be ISO 8601",
+        help="The end date of the STIX Content, The format should be ISO 8601",
         callback=transform_date
     ),
     severity: Optional[int] = Option(5, help="The severity of the generated Reports", callback=validate_severity),
