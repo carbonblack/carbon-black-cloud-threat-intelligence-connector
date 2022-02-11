@@ -11,15 +11,23 @@
 # * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 from datetime import datetime
-import arrow
 from unittest.mock import patch
+
+import arrow
 from cabby import Client11 as TAXIIClient11
-from taxii2client import Server as TAXIIClient2
 from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2
+from taxii2client import Server as TAXIIClient2
+
 from cbc_importer.stix_parsers.v1.parser import STIX1Parser
 from cbc_importer.stix_parsers.v2.parser import STIX2Parser
-from main import connect_taxii1_server, connect_taxii2_server, process_taxii1_server, process_taxii2_server, get_default_time_range_taxii1, get_default_time_range_taxii2
-
+from main import (
+    connect_taxii1_server,
+    connect_taxii2_server,
+    get_default_time_range_taxii1,
+    get_default_time_range_taxii2,
+    process_taxii1_server,
+    process_taxii2_server,
+)
 
 
 def test_configure_taxii2_server():
@@ -90,10 +98,7 @@ def test_get_default_time_range_taxii1_defaults():
 def test_get_default_time_range_taxii1_custom():
     """Test for getting the custom time range"""
 
-    start_date, end_date = get_default_time_range_taxii1({
-        "start_date": "2022-01-01",
-        "end_date": "2022-02-01"
-    })
+    start_date, end_date = get_default_time_range_taxii1({"start_date": "2022-01-01", "end_date": "2022-02-01"})
     assert isinstance(start_date, datetime)
     assert start_date.tzname() == "UTC"
     assert start_date.isoformat() == "2022-01-01T00:00:00+00:00"
@@ -113,9 +118,7 @@ def test_get_default_time_range_taxii2_defaults():
 
 def test_get_default_time_range_taxii2_custom():
     """Tests for getting the default `added_after`"""
-    added_after = get_default_time_range_taxii2({
-        "added_after": "2022-01-01"
-    })
+    added_after = get_default_time_range_taxii2({"added_after": "2022-01-01"})
     assert isinstance(added_after, datetime)
     assert added_after.isoformat() == "2022-01-01T00:00:00+00:00"
     assert added_after.tzname() == "UTC"
@@ -130,7 +133,7 @@ def test_process_taxii1_server(
     mock_parse_taxii_server,
     mock_connect_taxii1_server,
     mock_get_default_time_range_taxii1,
-    cbcsdk_mock
+    cbcsdk_mock,
 ):
     """Test for calling the right functions with the right values"""
     config = {
@@ -163,25 +166,25 @@ def test_process_taxii1_server(
     mock_connect_taxii1_server.return_value = client
     mock_get_default_time_range_taxii1.return_value = (start_date, end_date)
     mock_parse_taxii_server.return_value = iocs
-    
+
     process_taxii1_server(config, cbcsdk_mock, "test_name")
 
     mock_parse_taxii_server.assert_called_with(client, "*", begin_date=start_date, end_date=end_date)
     mock_get_default_time_range_taxii1.assert_called_with(config)
     mock_connect_taxii1_server.assert_called_with(config)
     mock_process_iocs.assert_called_with(
-        cbcsdk_mock, 
-        iocs, 
-        "StixTaxiiFeedName", 
+        cbcsdk_mock,
+        iocs,
+        "StixTaxiiFeedName",
         1.2,
         start_date=arrow.get(start_date).format("YYYY-MM-DD HH:mm:ss ZZ"),
         end_date=arrow.get(end_date).format("YYYY-MM-DD HH:mm:ss ZZ"),
         provider_url="test.server.test",
         summary="TEST SUMMARY",
         category="STIX",
-        severity=5
+        severity=5,
     )
-    
+
 
 @patch("main.get_default_time_range_taxii2")
 @patch("main.connect_taxii2_server")
@@ -192,7 +195,7 @@ def test_process_taxii2_server_calls(
     mock_parse_taxii_server,
     mock_connect_taxii2_server,
     mock_get_default_time_range_taxii2,
-    cbcsdk_mock
+    cbcsdk_mock,
 ):
     """Test for calling the right functions with the right values"""
     iocs = [IOC_V2.create_query(cbcsdk_mock.api, "unsigned-chrome", "process_name:chrome.exe")]
@@ -223,14 +226,14 @@ def test_process_taxii2_server_calls(
     mock_connect_taxii2_server.assert_called_with(config, 2.0)
     mock_parse_taxii_server.assert_called_with(client, "*", added_after=added_after)
     mock_process_iocs.assert_called_with(
-        cbcsdk_mock, 
-        iocs, 
-        "StixTaxiiFeedName", 
+        cbcsdk_mock,
+        iocs,
+        "StixTaxiiFeedName",
         2.0,
         start_date=arrow.get(added_after).format("YYYY-MM-DD HH:mm:ss ZZ"),
         end_date=arrow.utcnow().format("YYYY-MM-DD HH:mm:ss ZZ"),
         provider_url="test.server.test",
         summary="TEST SUMMARY",
         category="STIX",
-        severity=5
+        severity=5,
     )
