@@ -61,4 +61,3 @@ def test_configure_taxii1_server():
     assert taxii_client.__dict__["host"] == "test.server.test"
     assert taxii_client.__dict__["discovery_path"] == "/taxii/discovery"
     assert taxii_client.__dict__["use_https"]
-
