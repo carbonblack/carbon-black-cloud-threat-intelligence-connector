@@ -10,12 +10,12 @@
 # * EXPRESS OR IMPLIED. THE AUTHOR SPECIFICALLY DISCLAIMS ANY IMPLIED
 # * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
-from datetime import tzinfo
+from datetime import datetime
 import logging
 import os.path
 import sys
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 
 import arrow
 import validators
@@ -112,7 +112,7 @@ def process_stix2_file(**kwargs) -> None:
     logging.info(f"Created {len(feeds)} Feeds.")
 
 
-def configure_taxii1_server(config: dict) -> Union[Client10, Client11]:
+def connect_taxii1_server(config: dict) -> Union[Client10, Client11]:
     """Configuring and creating a TAXII 1.x Client instance
 
     Args:
@@ -157,7 +157,7 @@ def configure_taxii1_server(config: dict) -> Union[Client10, Client11]:
     return taxii_client
 
 
-def configure_taxii2_server(
+def connect_taxii2_server(
     config: dict, stix_version: float
 ) -> Union[taxii2client.v20.Server, taxii2client.v21.Server]:
     """Configuring and creating a TAXII 2.0/2.1 Client instance
@@ -207,18 +207,9 @@ def process_taxii1_server(config: dict, cbcsdk: CBCloudAPI, server_name: str) ->
         cbcsdk (CBCloudAPI): The Authenticated instance of CBC
         server_name (str): The name of the TAXII Server
     """
-    if config.get("start_date", None) and config.get("start_date", None):
-        start_date = arrow.get(config["start_date"], tzinfo="UTC").datetime
-        end_date = arrow.get(config["end_date"], tzinfo="UTC").datetime
-    else:
-        # Set the default range to be (now-1month to now)
-        start_date = arrow.utcnow().shift(days=-1).datetime
-        end_date = arrow.utcnow().datetime
-
-    taxii_client = configure_taxii1_server(config)
-    iocs = STIX1Parser(cbcsdk).parse_taxii_server(
-        taxii_client, config["collections"], begin_date=start_date, end_date=end_date
-    )
+    start_date, end_date = get_default_time_range_taxii1(config)
+    taxii_client = connect_taxii1_server(config)
+    iocs = STIX1Parser(cbcsdk).parse_taxii_server(taxii_client, config["collections"], begin_date=start_date, end_date=end_date)
     feeds = process_iocs(
         cbcsdk,
         iocs,
@@ -248,20 +239,16 @@ def process_taxii2_server(config: dict, cbcsdk: CBCloudAPI, server_name: str, st
         server_name (str): The name of the TAXII Server
         stix_version (float): The version of STIX
     """
-    if "added_after" in config and config["added_after"]:
-        config["added_after"] = arrow.get(config["added_after"], tzinfo="UTC").datetime
-    else:
-        # Set the default to be a month ago
-        config["added_after"] = arrow.utcnow().shift(months=-1).datetime
+    added_after = get_default_time_range_taxii2(config)
 
-    taxii_client = configure_taxii2_server(config, stix_version)
-    iocs = STIX2Parser(cbcsdk).parse_taxii_server(taxii_client, config["api_routes"], added_after=config["added_after"])
+    taxii_client = connect_taxii2_server(config, stix_version)
+    iocs = STIX2Parser(cbcsdk).parse_taxii_server(taxii_client, config["api_routes"], added_after=added_after)
     feeds = process_iocs(
         cbcsdk,
         iocs,
         config["feed_base_name"],
         config["version"],
-        start_date=arrow.get(config["added_after"]).format("YYYY-MM-DD HH:mm:ss ZZ"),
+        start_date=arrow.get(added_after).format("YYYY-MM-DD HH:mm:ss ZZ"),
         end_date=arrow.utcnow().format("YYYY-MM-DD HH:mm:ss ZZ"),
         provider_url=config["host"],
         summary=config["summary"],
@@ -272,6 +259,43 @@ def process_taxii2_server(config: dict, cbcsdk: CBCloudAPI, server_name: str, st
     for i in feeds:
         logging.info(f"Created feed with ID: {i.id}")
     logging.info(f"Created {len(feeds)} Feeds.")
+
+
+def get_default_time_range_taxii2(config: dict) -> datetime:
+    """Getting the default `added_after` date for TAXII 2 Server
+
+    Args:
+        config (dict): The configuration dictionary
+
+    Returns:
+        datetime: The `added_after` value
+    """
+    if config.get("added_after", None):
+        added_after = arrow.get(config["added_after"], tzinfo="UTC").datetime
+    else:
+        # Set the default to be a month ago
+        added_after = arrow.utcnow().shift(months=-1).datetime
+
+    return added_after
+
+def get_default_time_range_taxii1(config: dict) -> Tuple[datetime, datetime]:
+    """Get the default time range for TAXII 1 Server
+
+    Args:
+        config (dict): The configuration dictionary
+
+    Returns:
+        datetime, datetime: Tuple of `start_date` and `end_date`
+    """
+    if config.get("start_date", None) and config.get("start_date", None):
+        start_date = arrow.get(config["start_date"], tzinfo="UTC").datetime
+        end_date = arrow.get(config["end_date"], tzinfo="UTC").datetime
+    else:
+        # Set the default range to be (now-1month to now)
+        start_date = arrow.utcnow().shift(months=-1).datetime
+        end_date = arrow.utcnow().datetime
+    
+    return start_date, end_date
 
 
 def validate_provider_url(value: str) -> str:
