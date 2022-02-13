@@ -17,10 +17,9 @@ def test_parsing_hashes(cbcsdk_mock):
     parser = STIX1Parser(cbcsdk_mock.api)
     iocs = parser.parse_file(STIX_FILE_HASHES)
     assert len(iocs) == 1
-    assert iocs[0].field == "process_hash"
+    assert iocs[0].match_type == "query"
     assert iocs[0].values == [
-        "ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c",
-        "0d2a3f99885def98abb093a4768bce0c",
+        "process_hash:ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c OR process_hash:0d2a3f99885def98abb093a4768bce0c"
     ]
 
 

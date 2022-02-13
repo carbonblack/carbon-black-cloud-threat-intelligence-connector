@@ -27,6 +27,8 @@ from taxii2client import as_pages
 
 from cbc_importer.stix_parsers.v2.pattern_parser import STIXPatternParser
 
+logger = logging.getLogger(__name__)
+
 
 class STIX2Parser:
     """Parser for translating STIX Indicator
@@ -57,7 +59,7 @@ class STIX2Parser:
         Returns:
             List[IOC_V2]: of parsed STIX Objects into IOCs.
         """
-
+        logging.info(f"Parsing a file {file}")
         if self.stix_version == "2.1" or self.stix_version == "2.0":
             validate = validate_file(file)
             if validate.is_valid:
@@ -223,10 +225,12 @@ class STIX2Parser:
             List[IOC_V2]: of parsed STIX Objects into IOCs.
         """
         iocs = []
-        for stix_obj in stix_content.objects:
-            stix_type = getattr(stix_obj, "type", None)
-            if stix_type and stix_type == "indicator":
-                iocs += self._parse_stix_indicator(stix_obj)
+        # Sometimes the Bundle doesn't have `objects`
+        if hasattr(stix_content, "objects"):
+            for stix_obj in stix_content.objects:
+                stix_type = getattr(stix_obj, "type", None)
+                if stix_type and stix_type == "indicator":
+                    iocs += self._parse_stix_indicator(stix_obj)
         return iocs
 
     def _parse_stix_indicator(self, indicator: Indicator) -> List[IOC_V2]:
@@ -247,6 +251,7 @@ class STIX2Parser:
             stix_pattern_parser = STIXPatternParser()
             Pattern(indicator.pattern).walk(stix_pattern_parser)
         except InvalidValueError:
+            logger.warn(f"Indicator {indicator.id} has invalid pattern.")
             return []
         for ioc in stix_pattern_parser.matched_iocs:
             iocs.append(IOC_V2.create_equality(self.cbcapi, indicator.id, ioc["field"], ioc["value"]))
