@@ -16,7 +16,7 @@ import copy
 import os
 import sys
 import types
-from typing import List, no_type_check
+from typing import List, Union, no_type_check
 
 import yaml
 from cbc_sdk.rest_api import CBCloudAPI
@@ -26,16 +26,14 @@ from cbc_importer import __version__
 from cbc_importer.utils import get_feed
 
 CBC_PROFILE_NAME = "default"
-CONFIG_FILE = "../config.yml"
-OLD_CONFIG_FILE = "../config.yml"
+CONFIG_FILE = "config.yml"
+OLD_CONFIG_FILE = "config.yml"
 CBC_FEED_FIELD = "feed_base_name"
 EVAL_VALUES = [
     "version",
     "enabled",
     "use_https",
-    "ssl_verify",
     "severity",
-    "size_of_request_in_minutes",
 ]
 
 """Helpers for entering data"""
@@ -64,7 +62,7 @@ def enter_api_routes(key: str) -> dict:
         api_route_title = input(f"Please enter the title for `{key}` or enter to stop: ")
         if not api_route_title:
             break
-        value = input("Please enter the values for collections separated with space or `*` for all: ")
+        value = input("Please enter the values for api routes separated with space or `*` for all: ")
         if value == "*":
             api_routes[api_route_title] = "*"
         else:
@@ -72,7 +70,7 @@ def enter_api_routes(key: str) -> dict:
     return api_routes
 
 
-def enter_collections(key: str, value: str = None) -> List[str]:
+def enter_collections(key: str, value: str = None) -> Union[List[str], str]:
     """Helper function to enter and parse the collections for v1.2
 
     Args:
@@ -81,14 +79,22 @@ def enter_collections(key: str, value: str = None) -> List[str]:
                      where the property is present.
 
     Returns:
-        list: list of collections
+        list: list of collections or '*' for all
     """
     if not value:
-        value = input(f"Please enter the values for `{key}` separated with space: ")
-    return value.split()
+        value = input(f"Please enter the values for `{key}` separated with space or * for all: ")
+    return value if value == "*" else value.split()
 
 
 def enter_and_validate_url(key: str) -> str:
+    """Helper function to enter and validate site url.
+
+    Args:
+        key (str): key of the property
+
+    Returns:
+        str: the site url
+    """
     done = False
     value = input(f"Please enter a value for `{key}`: ")
     while not done:
@@ -100,22 +106,37 @@ def enter_and_validate_url(key: str) -> str:
     return value
 
 
+def enter_cbc_config(key: str = None) -> dict:
+    """Helper function to enter cbc configs.
+
+    Args:
+        key (str): key of the property
+
+    Returns:
+        dict: dictionary with all the values
+    """
+    cbc_info = {"category": "STIX Feed", "summary": "STIX Feed", "severity": 5, "feed_id": None}
+    for key in cbc_info.keys():
+        value = input(f"Please enter value for {key} or enter for default ({cbc_info[key]})")
+        if value:
+            cbc_info[key] = eval(value) if value and key in EVAL_VALUES else value
+    return cbc_info
+
+
 TEMPLATE_SITE_DATA_V1 = {
+    "cbc_config": enter_cbc_config,
+    "name": "",
     "version": 1.2,
     "enabled": True,
     "feed_base_name": "",
     "host": enter_and_validate_url,
     "discovery_path": "",
-    "severity": 5,
-    "category": "STIX Feed",
-    "summary": "STIX Feed",
     "use_https": True,
-    "ssl_verify": False,
     "cert_file": None,
     "key_file": None,
     "collections": enter_collections,
     "start_date": None,
-    "size_of_request_in_minutes": None,
+    "end_date": None,
     "ca_cert": None,
     "http_proxy_url": None,
     "https_proxy_url": None,
@@ -124,16 +145,16 @@ TEMPLATE_SITE_DATA_V1 = {
 }
 
 TEMPLATE_SITE_DATA_V2 = {
+    "cbc_config": enter_cbc_config,
+    "name": "",
     "version": 2.0,
     "enabled": True,
     "feed_base_name": "",
     "host": enter_and_validate_url,
-    "severity": 5,
-    "category": "STIX Feed",
-    "summary": "STIX Feed",
     "api_routes": enter_api_routes,
     "username": "guest",
     "password": "guest",
+    "added_after": None,
 }
 
 TEMPLATES = [TEMPLATE_SITE_DATA_V1, TEMPLATE_SITE_DATA_V2]
@@ -151,6 +172,15 @@ def get_cb() -> CBCloudAPI:
 def migrate() -> None:
     """Migrate the old config.yml to the new format."""
     filepath = input(f"Please enter the path to the old config or enter for default ({OLD_CONFIG_FILE}): ")
+    FIELDS_NOT_TO_MIGRATE = [
+        "feed_id",
+        "site",
+        "collection_management_path",
+        "poll_path",
+        "default_score",
+        "ssl_verify",
+        "size_in_request_minutes",
+    ]
     if filepath == "":
         filepath = OLD_CONFIG_FILE
 
@@ -166,25 +196,29 @@ def migrate() -> None:
     # convert data to the new format
     for site_name, values in old_config["sites"].items():
         # for each site in the old config, add one item
-        item_data = {site_name: copy.deepcopy(TEMPLATE_SITE_DATA_V1)}
+        item_data = copy.deepcopy(TEMPLATE_SITE_DATA_V1)
 
+        # set the name
+        item_data["name"] = site_name
         # add feed name instead of feed_id
-        item_data[site_name]["feed_base_name"] = get_feed(cb, feed_id=values["feed_id"]).name
+        item_data["feed_base_name"] = get_feed(cb, feed_id=values["feed_id"]).name
         # add host instead of site
-        item_data[site_name]["host"] = values["site"]
+        item_data["host"] = values["site"]
         # add severity, category, summary
-        item_data[site_name]["severity"] = 5
-        item_data[site_name]["summary"] = "STIX Feed"
-        item_data[site_name]["category"] = "STIX Feed"
+        item_data["cbc_config"] = {}
+        item_data["cbc_config"]["severity"] = 5
+        item_data["cbc_config"]["summary"] = "STIX Feed"
+        item_data["cbc_config"]["category"] = "STIX Feed"
+        item_data["cbc_config"]["feed_id"] = values["feed_id"]
 
         for inner_key in values:
-            if inner_key in ["feed_id", "site", "collection_management_path", "poll_path", "default_score"]:
+            if inner_key in FIELDS_NOT_TO_MIGRATE:
                 continue
-            if item_data[site_name].get(inner_key) and isinstance(item_data[site_name][inner_key], types.FunctionType):
-                func = item_data[site_name][inner_key]
-                item_data[site_name][inner_key] = func(inner_key, values[inner_key])  # type: ignore
+            if item_data.get(inner_key) and isinstance(item_data[inner_key], types.FunctionType):
+                func = item_data[inner_key]
+                item_data[inner_key] = func(inner_key, values[inner_key])  # type: ignore
             elif values[inner_key]:
-                item_data[site_name][inner_key] = values[inner_key]
+                item_data[inner_key] = values[inner_key]
 
         # add this site information
         data["sites"].append(item_data)  # type: ignore
@@ -232,12 +266,10 @@ def enter_new_site(data: dict = None) -> None:
         choice = input("Add a site (y/N) ")
         if not choice or choice.lower() == "n":
             break
-        site_name = input("Enter site name: ")
         feed_data = enter_feed_data()
         if not feed_data:
             return
-        site_data = {site_name: feed_data}
-        data["sites"].append(site_data)  # type: ignore
+        data["sites"].append(feed_data)  # type: ignore
 
 
 def generate_config() -> None:

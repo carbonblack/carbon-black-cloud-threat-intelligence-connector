@@ -1,8 +1,24 @@
 # The CBC Profile that will authenticate the CBCloud API
 cbc_profile_name: default
 sites:
-- TAXII_CONFIG_FOR_TAXII_1:
-    # Version of the TAXII provider 
+  - cbc_config:
+        # Severity for the reports. Accepts values [1,10]
+        # (optional)
+        # Default: 5
+      - severity:
+        # Summary for the feed. Usually used with short descriptions for the feeds.
+        # (required)
+        summary:
+        # Category for the creation of the feed
+        # (required)
+        category:
+        # Feed ID to be used instead of creating a new one every time
+        # (optional)
+        feed_id:
+
+    name: TAXII_CONFIG_FOR_TAXII_1
+
+    # Version of the TAXII provider
     # (required)
     version: 1.2
 
@@ -18,26 +34,13 @@ sites:
     # The host of the TAXII provider
     # example: taxii.provider.com
     # (required)
-    host: 
+    host:
 
     # The endpoint of the host for discovering what services are available
     # this is supplied by your TAXII provider
     # Example: /api/v1/taxii/taxii-discovery-service/
     # (required)
     discovery_path:
-
-    # Severity for the reports. Accepts values [1,10]
-    # (optional)
-    # Default: 5
-    severity:
-
-    # The category for the Feed.
-    # (required)
-    category:
-
-    # Summary for the feed. Usually used with short descriptions for the feeds.
-    # (required)
-    summary:
 
     # If you require https for your TAXII service connection, set to true
     # Default: true
@@ -46,25 +49,25 @@ sites:
 
     # If you need SSL certificates for authentication, set the path of the
     # certificate and key here.
-    # (optional) 
+    # (optional)
     cert_file:
     key_file:
 
     # Specify which collections to ingest.
     # (optional)
     # Example:
-    # 
-    # collections: 
+    #
+    # collections:
     #   - collection_name_1
     #   - collection_name_2
     #
     # OR
     #
     # collections: "*"
-    # 
-    # This will ingest data gathered only by those specified collections. Alternatively 
+    #
+    # This will ingest data gathered only by those specified collections. Alternatively
     # you can add "*" wildcard to gather all the collections from the TAXII Server
-    collections: 
+    collections:
 
     # The start date for which to start requesting data.
     # The accepted formats are ISO 8601.
@@ -79,7 +82,7 @@ sites:
     end_date:
 
     # Path to a CA SSL certificate
-    # (optional) 
+    # (optional)
     ca_cert:
 
     # If you need requests to go through a proxy, specify an http URL here
@@ -97,9 +100,24 @@ sites:
     # Password for authorization with your TAXII provider
     # (optional)
     password:
+  - cbc_config:
+      # Severity for the reports. Accepts values [1,10]
+      # (optional)
+      # Default: 5
+      - severity:
+        # Summary for the feed. Usually used with short descriptions for the feeds.
+        # (required)
+        summary:
+        # The category for the Feed.
+        # (required)
+        category:
+        # Feed ID to be used instead of creating a new one every time
+        # (optional)
+        feed_id:
 
-- TAXII_CONFIG_FOR_TAXII_2:
-    # Version of the TAXII provider 
+    name: TAXII_CONFIG_FOR_TAXII_2
+
+    # Version of the TAXII provider
     # (required)
     # Example: 2.0 or 2.1
     version: 2.1
@@ -118,22 +136,9 @@ sites:
     # (required)
     host:
 
-    # Severity for the reports. Accepts values [1,10]
-    # (optional)
-    # Default: 5
-    severity:
-
-    # The category for the Feed.
-    # (required)
-    category:
-
-    # Summary for the feed. Usually used with short descriptions for the feeds.
-    # (required)
-    summary:
-
-    # The routes that are going to get ingested. This option supports multiple API roots with 
-    # multiple collections inside. 
-    # 
+    # The routes that are going to get ingested. This option supports multiple API roots with
+    # multiple collections inside.
+    #
     # Example:
     #
     # api_routes:
@@ -141,10 +146,10 @@ sites:
     #   - collection_id
     #   - collection_id
     # - api_root2_title: "*""
-    # 
+    #
     # It supports `*` wildcards both for routes and the collections inside.
     # It needs the `title` of the root and the `id` of the collection.
-    api_routes: 
+    api_routes:
 
     # Username for authorization with your TAXII provider
     # (optional)
@@ -158,4 +163,4 @@ sites:
     # The accepted formats are ISO 8601.
     # (optional)
     # Example: 2022-01-01 00:00:00
-    added_after: 
+    added_after:
