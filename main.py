@@ -10,29 +10,30 @@
 # * EXPRESS OR IMPLIED. THE AUTHOR SPECIFICALLY DISCLAIMS ANY IMPLIED
 # * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
-from datetime import datetime
 import logging
 import os.path
 import sys
+from datetime import datetime
 from pathlib import Path
-from typing import Optional, Union, Tuple
+from typing import Optional, Tuple, Union
 
 import arrow
-import validators
 import taxii2client
 import typer
+import validators
 import yaml
 from cabby import Client10, Client11
 from cabby import create_client as create_taxii1_client
 from cbc_sdk import CBCloudAPI
 from taxii2client.v20 import Server as create_taxii20_client
 from taxii2client.v21 import Server as create_taxii21_client
-from typer import Argument, BadParameter, Option
+from typer import Argument, Option
 
 from cbc_importer import __version__
 from cbc_importer.importer import process_iocs
 from cbc_importer.stix_parsers.v1.parser import STIX1Parser
 from cbc_importer.stix_parsers.v2.parser import STIX2Parser
+from cbc_importer.utils import transform_date, validate_provider_url, validate_severity
 
 DEBUG = True
 
@@ -96,6 +97,7 @@ def process_stix1_file(**kwargs) -> None:
         logging.info(f"Created feed with ID: {i.id}")
     logging.info(f"Created {len(feeds)} Feeds.")
 
+
 def process_stix2_file(**kwargs) -> None:
     """Processing a STIX 2 Content file
 
@@ -146,20 +148,15 @@ def connect_taxii1_server(config: dict) -> Union[Client10, Client11]:
     else:
         taxii_client = create_taxii1_client(**taxii_config)
 
-    proxy_dict = {}
-    if "http_proxy_url" in config.items():
-        proxy_dict["http_proxy_url"]
-        taxii_client.set_proxies(proxy_dict)
-    elif "https_proxy_url" in config.items():
-        proxy_dict["https_proxy_url"]
-        taxii_client.set_proxies(proxy_dict)
+    if config.get("http_proxy_url", None):
+        taxii_client.set_proxies(config["http_proxy_url"])
+    elif config.get("https_proxy_url", None):
+        taxii_client.set_proxies(config["https_proxy_url"])
 
     return taxii_client
 
 
-def connect_taxii2_server(
-    config: dict, stix_version: float
-) -> Union[taxii2client.v20.Server, taxii2client.v21.Server]:
+def connect_taxii2_server(config: dict, stix_version: float) -> Union[taxii2client.v20.Server, taxii2client.v21.Server]:
     """Configuring and creating a TAXII 2.0/2.1 Client instance
 
     Note: The config file contains `host` param, but the TAXII Client accepts it as `url`,
@@ -209,24 +206,25 @@ def process_taxii1_server(config: dict, cbcsdk: CBCloudAPI, server_name: str) ->
     """
     start_date, end_date = get_default_time_range_taxii1(config)
     taxii_client = connect_taxii1_server(config)
-    iocs = STIX1Parser(cbcsdk).parse_taxii_server(taxii_client, config["collections"], begin_date=start_date, end_date=end_date)
+    iocs = STIX1Parser(cbcsdk).parse_taxii_server(
+        taxii_client, config["collections"], begin_date=start_date, end_date=end_date
+    )
     feeds = process_iocs(
         cbcsdk,
         iocs,
-        config["feed_base_name"],
+        config["cbc_config"]["feed_base_name"],
         config["version"],
         start_date=arrow.get(start_date).format("YYYY-MM-DD HH:mm:ss ZZ"),
         end_date=arrow.get(end_date).format("YYYY-MM-DD HH:mm:ss ZZ"),
         provider_url=config["host"],
-        summary=config["summary"],
-        category=config["category"],
-        severity=config["severity"],
+        summary=config["cbc_config"]["summary"],
+        category=config["cbc_config"]["category"],
+        severity=config["cbc_config"]["severity"],
     )
     logging.info(f"Successfully imported {server_name} into CBC.")
     for i in feeds:
         logging.info(f"Created feed with ID: {i.id}")
     logging.info(f"Created {len(feeds)} Feeds.")
-    
 
 
 def process_taxii2_server(config: dict, cbcsdk: CBCloudAPI, server_name: str, stix_version: float) -> None:
@@ -246,14 +244,14 @@ def process_taxii2_server(config: dict, cbcsdk: CBCloudAPI, server_name: str, st
     feeds = process_iocs(
         cbcsdk,
         iocs,
-        config["feed_base_name"],
+        config["cbc_config"]["feed_base_name"],
         config["version"],
         start_date=arrow.get(added_after).format("YYYY-MM-DD HH:mm:ss ZZ"),
         end_date=arrow.utcnow().format("YYYY-MM-DD HH:mm:ss ZZ"),
         provider_url=config["host"],
-        summary=config["summary"],
-        category=config["category"],
-        severity=config["severity"],
+        summary=config["cbc_config"]["summary"],
+        category=config["cbc_config"]["category"],
+        severity=config["cbc_config"]["severity"],
     )
     logging.info(f"Successfully imported {server_name} into CBC.")
     for i in feeds:
@@ -278,6 +276,7 @@ def get_default_time_range_taxii2(config: dict) -> datetime:
 
     return added_after
 
+
 def get_default_time_range_taxii1(config: dict) -> Tuple[datetime, datetime]:
     """Get the default time range for TAXII 1 Server
 
@@ -294,58 +293,9 @@ def get_default_time_range_taxii1(config: dict) -> Tuple[datetime, datetime]:
         # Set the default range to be (now-1month to now)
         start_date = arrow.utcnow().shift(months=-1).datetime
         end_date = arrow.utcnow().datetime
-    
+
     return start_date, end_date
 
-
-def validate_provider_url(value: str) -> str:
-    """Validate if a str is valid URL
-
-    Args:
-        value (str): url value
-
-    Raises:
-        BadParameter: Whenever the value is not a valid URL
-
-    Returns:
-        str: Valid URL
-    """
-    if validators.domain(value) or validators.url(value):
-        return value
-    raise BadParameter("Provider URL is not a valid URL")
-
-
-def validate_severity(value: int) -> int:
-    """Validating the severity
-
-    Args:
-        value (int): Severity integer
-
-    Raises:
-        BadParameter: Whenever an integer is not between 1-10
-
-    Returns:
-        int: int between 1-10
-    """
-    if 1 <= value <= 10:
-        return value
-    raise BadParameter("Severity must be between 1-10")
-
-
-def transform_date(value: str) -> arrow.Arrow:
-    """Transform a str date to Arrow object 
-
-    Args:
-        value (str): The date as a string
-
-    Raises:
-        arrow.ParserError: Whenever the provided date is not valid.
-
-    Returns:
-        arrow.Arrow: Arrow object of that date
-    """
-    date = arrow.get(value).replace(tzinfo="UTC")
-    return date.datetime
 
 @app.command(
     help="""
@@ -355,7 +305,7 @@ def transform_date(value: str) -> arrow.Arrow:
 
         python main.py process-file ./stix_content.xml http://yourprovider.com/
 
-        python main.py process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01 
+        python main.py process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
 
         python main.py process-file ./stix_content.xml -http://yourprovider.com/ --severity=9
 
@@ -367,12 +317,12 @@ def process_file(
     start_date: Optional[str] = Option(
         f"{arrow.utcnow().shift(months=-1).format()}",
         help="The start date of the STIX Content, The format should be ISO 8601",
-        callback=transform_date
+        callback=transform_date,
     ),
     end_date: Optional[str] = Option(
         f"{arrow.utcnow().format()}",
         help="The end date of the STIX Content, The format should be ISO 8601",
-        callback=transform_date
+        callback=transform_date,
     ),
     severity: Optional[int] = Option(5, help="The severity of the generated Reports", callback=validate_severity),
     summary: Optional[str] = Option("...", help="Summary of the feed"),
@@ -398,7 +348,7 @@ def process_file(
     """
     extension = os.path.splitext(stix_file_path)[1]
     cbcsdk = CBCloudAPI(profile=cbc_profile)
-    
+
     kwargs = {
         "stix_file_path": stix_file_path,
         "provider_url": provider_url,
@@ -440,18 +390,19 @@ def process_server(config_file: str = Option(DEFAULT_CONFIG_PATH, help="The conf
         ValueError: Whenever a STIX Version is incompatible
     """
     config = yaml.safe_load(Path(config_file).read_text())
+
     cbcsdk = init_cbcsdk(config["cbc_profile_name"])
 
     for site in config["sites"]:
-        server_name = list(site.keys())[0]
+        server_name = site["name"]
         logger.info(f"Processing {server_name}")
-        stix_version = site[server_name]["version"]
-        enabled = site[server_name]["enabled"]
+        stix_version = site["version"]
+        enabled = site["enabled"]
         if enabled:
             if stix_version == 1.2:
-                process_taxii1_server(site[server_name], cbcsdk, server_name)
+                process_taxii1_server(site, cbcsdk, server_name)
             elif stix_version == 2.1 or stix_version == 2.0:
-                process_taxii2_server(site[server_name], cbcsdk, server_name, stix_version)
+                process_taxii2_server(site, cbcsdk, server_name, stix_version)
             else:
                 raise ValueError("Invalid STIX Version")
         else:
