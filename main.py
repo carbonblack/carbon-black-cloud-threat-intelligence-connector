@@ -20,7 +20,6 @@ from typing import Optional, Tuple, Union
 import arrow
 import taxii2client
 import typer
-import validators
 import yaml
 from cabby import Client10, Client11
 from cabby import create_client as create_taxii1_client

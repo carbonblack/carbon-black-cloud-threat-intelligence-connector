@@ -416,8 +416,9 @@ def test_process_stix2_file(mock_process_iocs, mock_parse_file, cbcsdk_mock, cap
         assert "Created feed with ID" in caplog.text
 
 
+@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
 @patch("main.process_stix2_file", return_value=[])
-def test_process_file_json(process_stix2_file):
+def test_process_file_json(process_stix2_file, *args):
     """Test process_file with JSON extension"""
     process_file(
         "./test.json",
@@ -433,8 +434,9 @@ def test_process_file_json(process_stix2_file):
     process_stix2_file.assert_called()
 
 
+@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
 @patch("main.process_stix1_file", return_value=[])
-def test_process_file_xml(process_stix1_file):
+def test_process_file_xml(process_stix1_file, *args):
     """Test process_file with XML extension"""
     process_file(
         "./test.xml",
@@ -450,7 +452,8 @@ def test_process_file_xml(process_stix1_file):
     process_stix1_file.assert_called()
 
 
-def test_process_file_invalid():
+@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
+def test_process_file_invalid(*args):
     """Test process_file with invalid extension"""
     with pytest.raises(ValueError):
         process_file(
