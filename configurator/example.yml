@@ -2,19 +2,22 @@
 cbc_profile_name: default
 sites:
   - cbc_config:
-        # Severity for the reports. Accepts values [1,10]
-        # (optional)
-        # Default: 5
-      - severity:
-        # Summary for the feed. Usually used with short descriptions for the feeds.
-        # (required)
-        summary:
-        # Category for the creation of the feed
-        # (required)
-        category:
-        # Feed ID to be used instead of creating a new one every time
-        # (optional)
-        feed_id:
+      # Severity for the reports. Accepts values [1,10]
+      # (optional)
+      # Default: 5
+      severity:
+
+      # Summary for the feed. Usually used with short descriptions for the feeds.
+      # (required)
+      summary:
+
+      # Category for the creation of the feed
+      # (required)
+      category:
+
+      # Feed ID to be used instead of creating a new one every time
+      # (optional)
+      feed_id:
 
     name: TAXII_CONFIG_FOR_TAXII_1
 
