@@ -211,7 +211,7 @@ def process_taxii1_server(config: dict, cbcsdk: CBCloudAPI, server_name: str) ->
     feeds = process_iocs(
         cbcsdk,
         iocs,
-        config["cbc_config"]["feed_base_name"],
+        config["feed_base_name"],
         config["version"],
         start_date=arrow.get(start_date).format("YYYY-MM-DD HH:mm:ss ZZ"),
         end_date=arrow.get(end_date).format("YYYY-MM-DD HH:mm:ss ZZ"),
@@ -243,7 +243,7 @@ def process_taxii2_server(config: dict, cbcsdk: CBCloudAPI, server_name: str, st
     feeds = process_iocs(
         cbcsdk,
         iocs,
-        config["cbc_config"]["feed_base_name"],
+        config["feed_base_name"],
         config["version"],
         start_date=arrow.get(added_after).format("YYYY-MM-DD HH:mm:ss ZZ"),
         end_date=arrow.utcnow().format("YYYY-MM-DD HH:mm:ss ZZ"),
