@@ -159,6 +159,89 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     assert dump_called
 
 
+def test_migrate_file_exists_no_proxy(monkeypatch, cbcsdk_mock):
+    """Test for migrating config without proxy- success."""
+    monkeypatch.setattr("wizard.get_cb", lambda: cbcsdk_mock.api)
+    called = False
+    dump_called = False
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/90TuDxDYQtiGyg5qhwYCg", FEED_GET_RESP)
+
+    def migrate_input(the_prompt=""):
+        nonlocal called
+        if not called:
+            called = True
+            return "1"
+        return ""
+
+    def dump_method(data, config, **kwargs):
+        expected_data = {
+            "cbc_profile_name": "default",
+            "sites": [
+                {
+                    "cbc_config": {
+                        "category": "STIX Feed",
+                        "summary": "STIX Feed",
+                        "severity": 5,
+                        "feed_id": "90TuDxDYQtiGyg5qhwYCg",
+                    },
+                    "name": "my_site_name_1",
+                    "version": 1.2,
+                    "enabled": True,
+                    "feed_base_name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
+                    "host": "site.com",
+                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
+                    "use_https": True,
+                    "cert_file": None,
+                    "key_file": None,
+                    "collections": ["collection1"],
+                    "start_date": None,
+                    "end_date": None,
+                    "ca_cert": None,
+                    "proxy": {},
+                    "username": "guest",
+                    "password": "guest",
+                }
+            ],
+        }
+        nonlocal dump_called
+        assert data == expected_data
+        assert kwargs["sort_keys"] is False
+        dump_called = True
+
+    old_config_data = {
+        "sites": {
+            "my_site_name_1": {
+                "feed_id": "90TuDxDYQtiGyg5qhwYCg",
+                "site": "site.com",
+                "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
+                "collection_management_path": "/api/v1/taxii/collection_management/",
+                "poll_path": "/api/v1/taxii/poll/",
+                "use_https": None,
+                "ssl_verify": False,
+                "cert_file": None,
+                "key_file": None,
+                "default_score": None,
+                "username": "guest",
+                "password": "guest",
+                "collections": "collection1",
+                "start_date": None,
+                "size_of_request_in_minutes": None,
+                "ca_cert": None,
+                "http_proxy_url": "",
+                "https_proxy_url": "",
+            }
+        }
+    }
+
+    monkeypatch.setattr("builtins.input", migrate_input)
+    monkeypatch.setattr("yaml.safe_load", lambda x: old_config_data)
+    monkeypatch.setattr("yaml.dump", dump_method)
+    monkeypatch.setattr("os.path.exists", lambda x: True)
+    monkeypatch.setattr("builtins.open", open_file_mock)
+    main()
+    assert dump_called
+
+
 def test_generate_config(monkeypatch):
     """Test generate config - successful case"""
     called = -1
@@ -190,6 +273,28 @@ def test_generate_config(monkeypatch):
             "",
             "y",
             "http://some:8080",
+            "",
+            "",
+            "y",
+            "1",
+            "",
+            "",
+            "6",
+            "someid",
+            "my_site_name_3",
+            "",
+            "",
+            "basename2",
+            "site2.com",
+            "/api/v1/taxii/taxii-discovery-service/",
+            "",
+            "",
+            "",
+            "*",
+            "",
+            "",
+            "",
+            "",
             "",
             "",
             "y",
@@ -236,6 +341,25 @@ def test_generate_config(monkeypatch):
                     "end_date": None,
                     "ca_cert": None,
                     "proxy": {'http': 'http://some:8080', 'https': 'http://some:8080'},
+                    "username": "guest",
+                    "password": "guest",
+                },
+                {
+                    "cbc_config": {"category": "STIX Feed", "summary": "STIX Feed", "severity": 6, "feed_id": "someid"},
+                    "name": "my_site_name_3",
+                    "version": 1.2,
+                    "enabled": True,
+                    "feed_base_name": "basename2",
+                    "host": "site2.com",
+                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
+                    "use_https": True,
+                    "cert_file": None,
+                    "key_file": None,
+                    "collections": "*",
+                    "start_date": None,
+                    "end_date": None,
+                    "ca_cert": None,
+                    "proxy": {},
                     "username": "guest",
                     "password": "guest",
                 },
