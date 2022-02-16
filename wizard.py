@@ -39,6 +39,29 @@ EVAL_VALUES = [
 """Helpers for entering data"""
 
 
+def enter_proxy(key: str) -> dict:
+    """Helper function to enter the information about the proxy settings.
+
+    Example:
+    {
+        'http': '<entered_url>',
+        'https': '<entered_url>',
+    }
+
+    Args:
+        key (str): key of the property
+
+    Returns:
+        dict: dictionary with the proxy information
+    """
+    answer = input(f"Would you like to proxy settings (y/N) ")
+    if answer.upper() == "N" or not answer:
+        return {}
+    else:
+        http_url = input("Please enter url for the proxy: ")
+        return {"http": http_url, "https": http_url}
+
+
 def enter_api_routes(key: str) -> dict:
     """Helper function to enter the information about the routes.
 
@@ -118,7 +141,7 @@ def enter_cbc_config(key: str = None) -> dict:
     """
     cbc_info = {"category": "STIX Feed", "summary": "STIX Feed", "severity": 5, "feed_id": None}
     for key in cbc_info.keys():
-        value = input(f"Please enter value for {key} or enter for default ({cbc_info[key]})")
+        value = input(f"Please enter value for {key} or enter for default ({cbc_info[key]}) ")
         if value:
             cbc_info[key] = eval(value) if value and key in EVAL_VALUES else value
     return cbc_info
@@ -139,8 +162,7 @@ TEMPLATE_SITE_DATA_V1 = {
     "start_date": None,
     "end_date": None,
     "ca_cert": None,
-    "http_proxy_url": None,
-    "https_proxy_url": None,
+    "proxy": enter_proxy,
     "username": "guest",
     "password": "guest",
 }
@@ -181,6 +203,8 @@ def migrate() -> None:
         "default_score",
         "ssl_verify",
         "size_in_request_minutes",
+        "http_proxy_url",
+        "https_proxy_url"
     ]
     if filepath == "":
         filepath = OLD_CONFIG_FILE
@@ -199,6 +223,11 @@ def migrate() -> None:
         # for each site in the old config, add one item
         item_data = copy.deepcopy(TEMPLATE_SITE_DATA_V1)
 
+        # migrate the proxy settings
+        if values.get("http_proxy_url"):
+            item_data["proxy"] = {"https": values.get("http_proxy_url"), "http": values.get("http_proxy_url")}
+        else:
+            item_data["proxy"] = {}
         # set the name
         item_data["name"] = site_name
         # add feed name instead of feed_id

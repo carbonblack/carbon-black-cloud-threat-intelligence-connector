@@ -90,11 +90,10 @@ sites:
 
     # If you need requests to go through a proxy, specify an http URL here
     # (optional)
-    http_proxy_url:
-
-    # If you need requests to go through a proxy, specify an https URL here
-    # (optional)
-    https_proxy_url:
+    # proxy configs, http and https are the same, so use the same values
+    - proxy:
+      - http:
+        https:
 
     # Username for authorization with your TAXII provider
     # (optional)
