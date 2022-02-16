@@ -126,7 +126,7 @@ def test_get_feed_by_id(cbcsdk_mock):
         FEED_GET_RESP,
     )
     obj = get_feed(api, feed_id="90TuDxDYQtiGyg5qhwYCg")
-    assert obj.name == "base_name"
+    assert obj.name == "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1"
 
 
 def test_get_feed_by_name(cbcsdk_mock):

@@ -37,6 +37,7 @@ def process_iocs(
     summary: str,
     category: str,
     severity: int,
+    feed_id: int = None,
 ) -> List[Feed]:
     """Create reports and add the iocs to the reports.
 
@@ -54,6 +55,7 @@ def process_iocs(
         summary (str): Summary for the new feed.
         category (str): Category for the new feed.
         severity (int): severity for the reports
+        feed_id (int): (optional) id of an existing feed to be used for the import
     Returns:
         list(Feed): list of feeds created as part of the import
     """
@@ -77,7 +79,12 @@ def process_iocs(
         # edge case when the number of iocs is divisible by IOCS_BATCH_SIZE * REPORTS_BATCH_SIZE
         if iocs_list:
             try:
-                feed = get_feed(cb, feed_name=feed_name)
+                # if feed_id is provided, use the existing feed, but only for the first feed
+                # if more feeds are needed, they will be created using the default logic
+                if feed_id is not None and counter_f == 1:
+                    feed = get_feed(cb, feed_id=feed_id)
+                else:
+                    feed = get_feed(cb, feed_name=feed_name)
             except ObjectNotFoundError:
                 feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
 

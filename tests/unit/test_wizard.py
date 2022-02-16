@@ -78,7 +78,7 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     monkeypatch.setattr("wizard.get_cb", lambda: cbcsdk_mock.api)
     called = False
     dump_called = False
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/someid", FEED_GET_RESP)
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/90TuDxDYQtiGyg5qhwYCg", FEED_GET_RESP)
 
     def migrate_input(the_prompt=""):
         nonlocal called
@@ -92,11 +92,16 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
             "cbc_profile_name": "default",
             "sites": [
                 {
-                    "cbc_config": {"category": "STIX Feed", "summary": "STIX Feed", "severity": 5, "feed_id": "someid"},
+                    "cbc_config": {
+                        "category": "STIX Feed",
+                        "summary": "STIX Feed",
+                        "severity": 5,
+                        "feed_id": "90TuDxDYQtiGyg5qhwYCg",
+                    },
                     "name": "my_site_name_1",
                     "version": 1.2,
                     "enabled": True,
-                    "feed_base_name": "base_name",
+                    "feed_base_name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
                     "host": "site.com",
                     "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
                     "use_https": True,
@@ -121,7 +126,7 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     old_config_data = {
         "sites": {
             "my_site_name_1": {
-                "feed_id": "someid",
+                "feed_id": "90TuDxDYQtiGyg5qhwYCg",
                 "site": "site.com",
                 "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
                 "collection_management_path": "/api/v1/taxii/collection_management/",

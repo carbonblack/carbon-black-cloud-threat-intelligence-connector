@@ -20,10 +20,10 @@ from typing import List, Union, no_type_check
 
 import yaml
 from cbc_sdk.rest_api import CBCloudAPI
-from validators import ValidationFailure, domain
+from typer import BadParameter
 
 from cbc_importer import __version__
-from cbc_importer.utils import get_feed
+from cbc_importer.utils import get_feed, validate_provider_url
 
 CBC_PROFILE_NAME = "default"
 CONFIG_FILE = "config.yml"
@@ -98,8 +98,9 @@ def enter_and_validate_url(key: str) -> str:
     done = False
     value = input(f"Please enter a value for `{key}`: ")
     while not done:
-        result = domain(value)
-        if isinstance(result, ValidationFailure):
+        try:
+            result = validate_provider_url(value)
+        except BadParameter:
             value = input(f"Please enter a valid value for `{key}`: ")
         else:
             done = True
