@@ -34,6 +34,7 @@ EVAL_VALUES = [
     "enabled",
     "use_https",
     "severity",
+    "port"
 ]
 
 """Helpers for entering data"""
@@ -154,6 +155,7 @@ TEMPLATE_SITE_DATA_V1 = {
     "enabled": True,
     "feed_base_name": "",
     "host": enter_and_validate_url,
+    "port": None,
     "discovery_path": "",
     "use_https": True,
     "cert_file": None,

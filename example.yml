@@ -39,6 +39,10 @@ sites:
     # (required)
     host:
 
+    # The port of the TAXII provider
+    # (optional)
+    port:
+
     # The endpoint of the host for discovering what services are available
     # this is supplied by your TAXII provider
     # Example: /api/v1/taxii/taxii-discovery-service/
@@ -102,6 +106,7 @@ sites:
     # Password for authorization with your TAXII provider
     # (optional)
     password:
+
   - cbc_config:
       # Severity for the reports. Accepts values [1,10]
       # (optional)
