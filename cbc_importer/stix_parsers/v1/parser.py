@@ -87,7 +87,11 @@ class STIX1Parser:
         return self.iocs
 
     def parse_taxii_server(
-        self, client: Union[Client11, Client10], collections: Union[list, str] = "*", **kwargs
+        self,
+        client: Union[Client11, Client10],
+        collections: Union[list, str] = "*",
+        collection_management_uri: str = None,
+        **kwargs,
     ) -> List[IOC_V2]:
         """Parsing a TAXII Server
 
@@ -100,13 +104,17 @@ class STIX1Parser:
         Args:
             client (Union[Client11, Client10]): authenticated cabby client
             collections (list | str): the list of collections to be gathered
+            collection_management_uri (str): the uri for the collection management
             **kwargs (dict): commonly used for `begin_date` and `end_date` to
                 support content range.
 
         Returns:
             List[IOC_V2]: List of parsed Indicators into IOCs
         """
-        collections_to_gather = self._get_collections(client.get_collections(), collections)
+        # `get_collections` needs management path
+        collections_to_gather = self._get_collections(
+            client.get_collections(uri=collection_management_uri), collections
+        )
         for collection_name in collections_to_gather:
             content_block = client.poll(collection_name, **kwargs)
             for block in content_block:

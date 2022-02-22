@@ -30,7 +30,7 @@ class ContentBlockMock:
 
 class TAXII1ServerMock:
     @staticmethod
-    def get_collections():
+    def get_collections(uri=None):
         return [MockCollection("COLLECTION_1"), MockCollection("COLLECTION_2")]
 
     @staticmethod

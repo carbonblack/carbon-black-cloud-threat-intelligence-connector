@@ -37,7 +37,7 @@ def process_iocs(
     summary: str,
     category: str,
     severity: int,
-    feed_id: int = None,
+    feed_id: str = None,
 ) -> List[Feed]:
     """Create reports and add the iocs to the reports.
 
@@ -55,7 +55,7 @@ def process_iocs(
         summary (str): Summary for the new feed.
         category (str): Category for the new feed.
         severity (int): severity for the reports
-        feed_id (int): (optional) id of an existing feed to be used for the import
+        feed_id (str): (optional) id of an existing feed to be used for the import
     Returns:
         list(Feed): list of feeds created as part of the import
     """
