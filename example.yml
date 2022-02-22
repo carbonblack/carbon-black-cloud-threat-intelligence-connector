@@ -9,6 +9,7 @@
 
 # The CBC Authentication profile.
 # The authentication happens with a file (https://carbon-black-cloud-python-sdk.readthedocs.io/en/latest/authentication/#authentication-methods)
+# The file is locate by default `~/.carbonblack/my_credentials.cbc`
 cbc_auth_profile: default
 
 servers:
