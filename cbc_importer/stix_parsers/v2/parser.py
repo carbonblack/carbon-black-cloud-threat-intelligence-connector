@@ -74,7 +74,7 @@ class STIX2Parser:
     def parse_taxii_server(
         self,
         server: taxii2client.Server,
-        gather_data: Union[str, dict] = "*",
+        gather_data: Union[str, List[dict]] = "*",
         **kwargs,
     ) -> List[IOC_V2]:
         """Parsing a TAXII Server with STIX 2.0 and 2.1 data
@@ -114,7 +114,7 @@ class STIX2Parser:
 
         Args:
             server (taxii2client.Server): Initialized instance of a `taxii2client.Server` class.
-            gather_data (str | dict): String or dict representing what data will be gathered.
+            gather_data (str | List[dict]): String or dict representing what data will be gathered.
             **kwargs (dict): Dictionary to be provided in `as_pages`, usually used for `added_after`
                 kwarg which will query the server with specific time frame results.
 
