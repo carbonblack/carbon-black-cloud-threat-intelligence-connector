@@ -1,4 +1,4 @@
-from ctypes import Union
+from typing import Union
 
 import arrow
 from cabby import Client10, Client11
