@@ -1,173 +1,202 @@
-# The CBC Profile that will authenticate the CBCloud API
-cbc_profile_name: default
-sites:
-  - cbc_config:
-      # Severity for the reports. Accepts values [1,10]
-      # (optional)
-      # Default: 5
-      severity:
+---
 
-      # Summary for the feed. Usually used with short descriptions for the feeds.
-      # (required)
-      summary:
+# This example config shows how to configure TAXII1 or TAXII2 servers.
+#
+# The required fields are indicated with the asterisk sign (*)
+#
+# - `optional_field`: means that the field is optional
+# - `*required_field`: means that the field is required.
 
-      # Category for the creation of the feed
-      # (required)
-      category:
+# The CBC Authentication profile.
+# The authentication happens with a file (https://carbon-black-cloud-python-sdk.readthedocs.io/en/latest/authentication/#authentication-methods)
+cbc_auth_profile: default
 
-      # Feed ID to be used instead of creating a new one every time
-      # (optional)
-      feed_id:
+servers:
+  # ================================= TAXI 1 Server Configuration =================================
+  - name: TestServer1
 
-    name: TAXII_CONFIG_FOR_TAXII_1
-
-    # Version of the TAXII provider
-    # (required)
+    # The version of the TAXII Server
     version: 1.2
 
-    # If the feed will be enabled during the run, it is going to be skipped if `false`
-    # (required)
+    # If the following configuration is enabled, if its false it gets skipped.
     enabled: true
 
-    # Base name for the Feed in CBC, if multiple Feeds are needed
-    # then they would be named `<feed_base_name> (<STIX version>) <start_date> to <end_date> - Part <feed_number>`
-    # (required)
-    feed_base_name:
+    # The options for the feed that goes into Carbon Black Cloud.
+    # - `*feed_base_name`: Base name for the Feed in CBC, if multiple Feeds are needed
+    #   the construction of that would be: `<feed_base_name> (<STIX version>) <start_date> to <end_date> - Part <feed_number>`
+    # - `*severity`: Severity for the reports. Accepts values [1,10]
+    # - `*summary`: Summary for the feed. Usually used with short descriptions for the feeds.
+    # - `*category`: The category that is going to be set for the Feed in CBC.
+    # - `feed_id`: If you want to replace an existing feed place the Feed ID otherwise leave it as null
+    cbc_feed_options:
+      feed_base_name: TestServer1
+      severity: 5
+      summary: "Summary of the Feed"
+      category: "Feed Category"
+      feed_id: null
 
-    # The host of the TAXII provider
-    # example: taxii.provider.com
-    # (required)
-    host:
+    # If you have any proxies that you want to use
+    #
+    # Example
+    # =================================
+    # proxies:
+    #   http:
+    #     - "http://proxy.test/"
+    #   https:
+    #     - "https://proxy.test/"
+    proxies: null
 
-    # The port of the TAXII provider
-    # (optional)
-    port:
+    # Everything that goes into the connection of the TAXII Server
+    # - `*host`: The TAXII Server host
+    # - `*discovery_path`: The path to the service discovery
+    # - `port`: The specified port of the server (defaults to 80)
+    # - `use_https`
+    # - `headers` - If you need to specify special headers
+    # - `timeout` - The timeout of the connection
+    connection:
+      host: test.host.test
+      discovery_path: /taxii/discovery
+      port: null
+      use_https: true
+      headers: null
+      timeout: null
 
-    # The endpoint of the host for discovering what services are available
-    # this is supplied by your TAXII provider
-    # Example: /api/v1/taxii/taxii-discovery-service/
-    # (required)
-    discovery_path:
+    # Everything about authentication goes here.
+    # https://cabby.readthedocs.io/en/latest/user.html#authentication-methods
+    # You can use every method accordingly to the fields below.
+    # - `username`
+    # - `password`
+    # - `cert_file`
+    # - `key_file`
+    # - `ca_cert`
+    # - `key_password`
+    # - `jwt_auth_url`
+    # - `verify_ssl`
+    auth:
+      username: test
+      password: test
+      cert_file: null
+      key_file: null
+      ca_cert: null
+      key_password: null
+      jwt_auth_url: null
+      verify_ssl: true
 
-    # If you require https for your TAXII service connection, set to true
-    # Default: true
-    # (required)
-    use_https:
-
-    # If you need SSL certificates for authentication, set the path of the
-    # certificate and key here.
-    # (optional)
-    cert_file:
-    key_file:
-
-    # Specify which collections to ingest.
-    # (optional)
-    # Example:
+    # The `options` contains options about the search
+    # - `begin_date` - The start date for which to start requesting data. (Defaulting to month ago)
+    # - `end_date` - The end date for which to stop requesting data. (Defaulting to current time)
+    # - `collection_management_uri` - If there is a specific URI to the collection management endpoint.
+    #   if there is more than one URI, you have to copy-paste the same configuration with the other URIs.
+    #   if not specified it will get the default collection management URI.
+    # - `collections` - Specify which collections to ingest.
+    #
+    # Example 1
+    # =================================
     #
     # collections:
-    #   - collection_name_1
-    #   - collection_name_2
+    #   - "collection-a"
+    #   - "collection-b"
     #
-    # OR
+    # Example 2
+    # =================================
     #
     # collections: "*"
     #
-    # This will ingest data gathered only by those specified collections. Alternatively
-    # you can add "*" wildcard to gather all the collections from the TAXII Server
-    collections:
+    # In Example 1 you will ingest data gathered only by those specified collections. Alternatively
+    # (Example 2) you can add "*" wildcard to gather all the collections from the TAXII Server's default collection
+    # management URI.
+    options:
+      begin_date: null
+      end_date: null
+      collection_management_uri: null
+      collections:
+        - "collection-a"
+        - "collection-b"
 
-    # The start date for which to start requesting data.
-    # The accepted formats are ISO 8601.
-    # Default: (date object represents now-1month)
-    # Example: 2022-01-01 00:00:00
-    start_date:
+  # ================================= TAXI 2 Server Configuration =================================
+  - name: TestServer2
 
-    # The end date for which to stop requesting data.
-    # The accepted formats are ISO 8601.
-    # Default: (date object represents now-1month)
-    # Example: 2022-02-01 00:00:00
-    end_date:
+    # The version of the TAXII Server
+    version: 2.0
 
-    # Path to a CA SSL certificate
-    # (optional)
-    ca_cert:
-
-    # If you need requests to go through a proxy, specify an http URL here
-    # (optional)
-    # proxy configs, http and https are the same, so use the same values
-    - proxy:
-      - http:
-        https:
-
-    # Username for authorization with your TAXII provider
-    # (optional)
-    username:
-
-    # Password for authorization with your TAXII provider
-    # (optional)
-    password:
-
-  - cbc_config:
-      # Severity for the reports. Accepts values [1,10]
-      # (optional)
-      # Default: 5
-      - severity:
-        # Summary for the feed. Usually used with short descriptions for the feeds.
-        # (required)
-        summary:
-        # The category for the Feed.
-        # (required)
-        category:
-        # Feed ID to be used instead of creating a new one every time
-        # (optional)
-        feed_id:
-
-    name: TAXII_CONFIG_FOR_TAXII_2
-
-    # Version of the TAXII provider
-    # (required)
-    # Example: 2.0 or 2.1
-    version: 2.1
-
-    # If the feed will be enabled during the run, it is going to be skipped if `false`
-    # (required)
+    # If the following configuration is enabled, if its false it gets skipped.
     enabled: true
 
-    # Base name for the Feed in CBC, if multiple Feeds are needed
-    # then they would be named `<feed_base_name> (<STIX version>) <start_date> to <end_date> - Part <feed_number>`
-    # (required)
-    feed_base_name:
+    # The options for the feed that goes into Carbon Black Cloud.
+    # - `*feed_base_name`: Base name for the Feed in CBC, if multiple Feeds are needed
+    #   the construction of that would be: `<feed_base_name> (<STIX version>) <start_date> to <end_date> - Part <feed_number>`
+    # - `*severity`: Severity for the reports. Accepts values [1,10]
+    # - `*summary`: Summary for the feed. Usually used with short descriptions for the feeds.
+    # - `*category`: The category that is going to be set for the Feed in CBC.
+    # - `feed_id`: If you want to replace an existing feed place the Feed ID otherwise leave it as null
+    cbc_feed_options:
+      feed_base_name: TestServer1
+      severity: 5
+      summary: "Summary of the Feed"
+      category: "Feed Category"
+      feed_id: null
 
-    # The host of the TAXII provider
-    # example: taxii.provider.com
-    # (required)
-    host:
+    # The configuration about the connection to the TAXII Server
+    # - `*url` - The URL of the TAXII Server
+    connection:
+      url: https://test.host.test/v2
 
-    # The routes that are going to get ingested. This option supports multiple API roots with
-    # multiple collections inside.
+    # If you have any proxies that you want to use
     #
-    # Example:
+    # Example
+    # =================================
+    # proxies:
+    #   http:
+    #     - "http://proxy.test/"
+    #   https:
+    #     - "https://proxy.test/"
+    proxies: null
+
+    # Everything about authentication goes here.
+    # - `username`
+    # - `password`
+    # - `verify`
+    # - `cert` - This is a tuple so pass a list here the first value should
+    #   be the key file and the second the certificate.
+    auth:
+      username: guest
+      password: guest
+      verify: true
+      cert: null
+
+
+    # The `options` contains options about the search
+    # that is going to be performed by the TAXII Client.
+    # For TAXII 2 there are 2 fields:
+    # - `added_after`: The start date for which to start requesting data.
+    # _ `roots`: The routes that are going to get ingested. This option supports multiple API roots with
+    #   multiple collections inside.
     #
-    # api_routes:
-    # - api_root1_title:
-    #   - collection_id
-    #   - collection_id
-    # - api_root2_title: "*""
+    # Example 1:
+    # =================================
+    # roots:
+    #     - title: "Test Root Title"
+    #       collections:
+    #         - "collection-a"
+    #         - "collection-b"
+    #     - title: "Test Root Title 2"
+    #       collections: "*"
+    #
+    # Example 2:
+    # =================================
+    # roots: "*"
     #
     # It supports `*` wildcards both for routes and the collections inside.
     # It needs the `title` of the root and the `id` of the collection.
-    api_routes:
+    options:
+      added_after: "2022-01-01 00:00:00"
 
-    # Username for authorization with your TAXII provider
-    # (optional)
-    username:
-
-    # Password for authorization with your TAXII provider
-    # (optional)
-    password:
-
-    # The start date for which to start requesting data.
-    # The accepted formats are ISO 8601.
-    # (optional)
-    # Example: 2022-01-01 00:00:00
-    added_after:
+      roots:
+        - title: "Test Root Title"
+          collections:
+            - "collection-a"
+            - "collection-b"
+        - title: "Test Root Title 2"
+          collections:
+            - "collection-c"
+            - "collection-d"
