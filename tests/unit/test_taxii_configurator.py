@@ -6,302 +6,113 @@ from taxii2client.v21 import Server as Client21
 
 from cbc_importer.taxii_configurator import TAXIIConfigurator
 
-DEFAULT_TAXII_CONFIG_v2 = {
-    "cbc_auth_profile": "default",
-    "servers": [
-        {
-            "name": "Test",
-            "version": 2.1,
-            "enabled": True,
-            "cbc_feed_options": {
-                "feed_base_name": "Test",
-                "severity": 5,
-                "summary": "empty summary",
-                "category": "STIX",
-                "feed_id": None,
-            },
-            "connection": {"url": "test.test"},
-            "proxies": None,
-            "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
-            "options": {"added_after": "2022-01-01 00:00:00", "roots": "*"},
-        },
-    ],
-}
 
-DEFAULT_TAXII_CONFIG_v1 = {
-    "cbc_auth_profile": "default",
-    "servers": [
-        {
-            "name": "Test",
-            "version": 1.1,
-            "enabled": False,
-            "cbc_feed_options": {
-                "feed_base_name": "TestSTIX",
-                "severity": 5,
-                "summary": "empty summary",
-                "category": "STIX",
-                "feed_id": None,
-            },
-            "proxies": None,
-            "connection": {
-                "host": "test.test.com",
-                "discovery_path": "/taxii/discovery",
-                "port": None,
-                "use_https": True,
-                "headers": None,
-                "timeout": None,
-            },
-            "auth": {
-                "username": "test",
-                "password": "test",
-                "cert_file": None,
-                "key_file": None,
-                "ca_cert": None,
-                "key_password": None,
-                "jwt_auth_url": None,
-                "verify_ssl": True,
-            },
-            "options": {
-                "begin_date": "2022-01-01 00:00:00",
-                "end_date": "2022-02-01 00:00:00",
-                "collection_management_uri": "/test/",
-                "collections": "*",
-            },
-        },
-    ],
-}
-
-
-def test_get_client_10():
+def test_get_client_10(example_configuration):
     """Test for selecting the client"""
-    configuration = {
-        "cbc_auth_profile": "default",
-        "servers": [
-            {
-                "name": "Test",
-                "version": 1.0,
-                "enabled": False,
-                "cbc_feed_options": {
-                    "feed_base_name": "TestSTIX",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
-                "proxies": None,
-                "connection": {
-                    "host": "test.test.com",
-                    "discovery_path": "/taxii/discovery",
-                    "port": None,
-                    "use_https": True,
-                    "headers": None,
-                    "timeout": None,
-                },
-                "auth": {
-                    "username": "test",
-                    "password": "test",
-                    "cert_file": None,
-                    "key_file": None,
-                    "ca_cert": None,
-                    "key_password": None,
-                    "jwt_auth_url": None,
-                    "verify_ssl": True,
-                },
-                "options": {
-                    "begin_date": "2022-01-01 00:00:00",
-                    "end_date": "2022-02-01 00:00:00",
-                    "collection_management_uri": "/test/",
-                    "collections": "*",
-                },
-            },
-        ],
-    }
-    configurator = TAXIIConfigurator(configuration["servers"][0])
+    example_configuration["servers"][0]["version"] = 1.0
+    configurator = TAXIIConfigurator(example_configuration["servers"][0])
     assert isinstance(configurator.client, Client10)
 
 
-def test_get_client_11():
+def test_get_client_11(example_configuration):
     """Test for selecting the client"""
-    configuration = {
-        "cbc_auth_profile": "default",
-        "servers": [
-            {
-                "name": "Test",
-                "version": 1.1,
-                "enabled": False,
-                "cbc_feed_options": {
-                    "feed_base_name": "TestSTIX",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
-                "proxies": None,
-                "connection": {
-                    "host": "test.test.com",
-                    "discovery_path": "/taxii/discovery",
-                    "port": None,
-                    "use_https": True,
-                    "headers": None,
-                    "timeout": None,
-                },
-                "auth": {
-                    "username": "test",
-                    "password": "test",
-                    "cert_file": None,
-                    "key_file": None,
-                    "ca_cert": None,
-                    "key_password": None,
-                    "jwt_auth_url": None,
-                    "verify_ssl": True,
-                },
-                "options": {
-                    "begin_date": "2022-01-01 00:00:00",
-                    "end_date": "2022-02-01 00:00:00",
-                    "collection_management_uri": "/test/",
-                    "collections": "*",
-                },
-            },
-        ],
-    }
-    configurator = TAXIIConfigurator(configuration["servers"][0])
+    example_configuration["servers"][0]["version"] = 1.1
+    configurator = TAXIIConfigurator(example_configuration["servers"][0])
     assert isinstance(configurator.client, Client11)
 
 
-def test_get_client_20():
+def test_get_client_12(example_configuration):
     """Test for selecting the client"""
-    configuration = {
-        "cbc_auth_profile": "default",
-        "servers": [
-            {
-                "name": "Test",
-                "version": 2.0,
-                "enabled": True,
-                "cbc_feed_options": {
-                    "feed_base_name": "Test",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
-                "connection": {"url": "test.test"},
-                "proxies": None,
-                "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
-                "options": {"added_after": "2022-01-01 00:00:00", "roots": "*"},
-            },
-        ],
-    }
-    configurator = TAXIIConfigurator(configuration["servers"][0])
+    example_configuration["servers"][0]["version"] = 1.2
+    configurator = TAXIIConfigurator(example_configuration["servers"][0])
+    # The client for 1.2 is actually the 1.1
+    assert isinstance(configurator.client, Client11)
+
+
+def test_get_client_20(example_configuration):
+    """Test for selecting the client"""
+    example_configuration["servers"][1]["version"] = 2.0
+    configurator = TAXIIConfigurator(example_configuration["servers"][1])
     assert isinstance(configurator.client, Client20)
 
 
-def test_get_client_21():
+def test_get_client_21(example_configuration):
     """Test for selecting the client"""
-    configuration = {
-        "cbc_auth_profile": "default",
-        "servers": [
-            {
-                "name": "Test",
-                "version": 2.1,
-                "enabled": True,
-                "cbc_feed_options": {
-                    "feed_base_name": "Test",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
-                "connection": {"url": "test.test"},
-                "proxies": None,
-                "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
-                "options": {"added_after": "2022-01-01 00:00:00", "roots": "*"},
-            },
-        ],
-    }
-    configurator = TAXIIConfigurator(configuration["servers"][0])
+    example_configuration["servers"][1]["version"] = 2.1
+    configurator = TAXIIConfigurator(example_configuration["servers"][1])
     assert isinstance(configurator.client, Client21)
 
 
-def test_get_client_raises_value_error():
+def test_get_client_raises_value_error(example_configuration):
     """Test for selecting the client"""
-    configuration = {
-        "cbc_auth_profile": "default",
-        "servers": [
-            {
-                "name": "Test",
-                "version": 2.2,
-                "enabled": True,
-                "cbc_feed_options": {
-                    "feed_base_name": "Test",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
-                "connection": {"url": "test.test"},
-                "proxies": None,
-                "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
-                "options": {"added_after": "2022-01-01 00:00:00", "roots": "*"},
-            },
-        ],
-    }
+    example_configuration["servers"][1]["version"] = 2.2
     with pytest.raises(ValueError):
-        TAXIIConfigurator(configuration["servers"][0])
+        TAXIIConfigurator(example_configuration["servers"][1])
 
 
-def test_get_search_options_1x():
+def test_get_search_options_1x(example_configuration):
     """Test for setting the search options"""
-    configurator = TAXIIConfigurator(DEFAULT_TAXII_CONFIG_v1["servers"][0])
+    example_configuration["servers"][0]["options"]["collection_management_uri"] = "/test/"
+    example_configuration["servers"][0]["options"]["begin_date"] = "2022-01-01 00:00:00"
+    example_configuration["servers"][0]["options"]["end_date"] = "2022-02-01 00:00:00"
+    configurator = TAXIIConfigurator(example_configuration["servers"][0])
     begin_date = arrow.get("2022-01-01 00:00:00", tzinfo="UTC")
     end_date = arrow.get("2022-02-01 00:00:00", tzinfo="UTC")
 
     assert configurator.search_options["collection_management_uri"] == "/test/"
     assert configurator.search_options["begin_date"] == begin_date
     assert configurator.search_options["end_date"] == end_date
-    assert configurator.search_options["collections"] == "*"
+    assert configurator.search_options["collections"] == ["collection-a", "collection-b"]
 
 
-def test_get_search_options_2x():
+def test_get_search_options_2x(example_configuration):
     """Test for setting the search options"""
-    configurator = TAXIIConfigurator(DEFAULT_TAXII_CONFIG_v2["servers"][0])
+    configurator = TAXIIConfigurator(example_configuration["servers"][1])
     added_after = arrow.get("2022-01-01 00:00:00", tzinfo="UTC")
 
-    assert configurator.search_options["gather_data"] == "*"
+    assert configurator.search_options["gather_data"] == [
+        {"collections": ["collection-a", "collection-b"], "title": "Test Root Title"},
+        {"collections": ["collection-c", "collection-d"], "title": "Test Root Title 2"},
+    ]
     assert configurator.search_options["added_after"] == added_after
 
 
-def test_set_cbc_feed_options_1x():
+def test_set_cbc_feed_options_1x(example_configuration):
     """Test for setting the feed options"""
     start_date = arrow.get("2022-01-01 00:00:00", tzinfo="UTC").format("YYYY-MM-DD HH:mm:ss ZZ")
     end_date = arrow.get("2022-02-01 00:00:00", tzinfo="UTC").format("YYYY-MM-DD HH:mm:ss ZZ")
+    example_configuration["servers"][0]["options"]["begin_date"] = "2022-01-01 00:00:00"
+    example_configuration["servers"][0]["options"]["end_date"] = "2022-02-01 00:00:00"
 
-    configurator = TAXIIConfigurator(DEFAULT_TAXII_CONFIG_v1["servers"][0])
+    configurator = TAXIIConfigurator(example_configuration["servers"][0])
 
-    assert configurator.cbc_feed_options == DEFAULT_TAXII_CONFIG_v1["servers"][0]["cbc_feed_options"]
+    assert configurator.cbc_feed_options == example_configuration["servers"][0]["cbc_feed_options"]
     assert configurator.cbc_feed_options["start_date"] == start_date
     assert configurator.cbc_feed_options["end_date"] == end_date
-    assert configurator.cbc_feed_options["provider_url"] == "test.test.com"
+    assert configurator.cbc_feed_options["provider_url"] == "test.host.test"
 
 
-def test_set_cbc_feed_options_2x():
+def test_set_cbc_feed_options_2x(example_configuration):
     """Test for setting the feed options"""
     start_date = arrow.get("2022-01-01 00:00:00", tzinfo="UTC").format("YYYY-MM-DD HH:mm:ss ZZ")
     end_date = arrow.utcnow().format("YYYY-MM-DD HH:mm:ss ZZ")
 
-    configurator = TAXIIConfigurator(DEFAULT_TAXII_CONFIG_v2["servers"][0])
+    configurator = TAXIIConfigurator(example_configuration["servers"][1])
 
-    assert configurator.cbc_feed_options == DEFAULT_TAXII_CONFIG_v2["servers"][0]["cbc_feed_options"]
+    assert configurator.cbc_feed_options == example_configuration["servers"][1]["cbc_feed_options"]
     assert configurator.cbc_feed_options["start_date"] == start_date
     assert configurator.cbc_feed_options["end_date"] == end_date
-    assert configurator.cbc_feed_options["provider_url"] == "test.test"
+    assert configurator.cbc_feed_options["provider_url"] == "https://test.host.test/v2"
 
 
-def test_set_default_time_range_taxii1_custom():
+def test_set_default_time_range_taxii1_custom(example_configuration):
     """Test for getting the default time range"""
+    example_configuration["servers"][0]["options"]["begin_date"] = "2022-01-01 00:00:00"
+    example_configuration["servers"][0]["options"]["end_date"] = "2022-02-01 00:00:00"
     begin_date = arrow.get("2022-01-01 00:00:00", tzinfo="UTC").datetime
     end_date = arrow.get("2022-02-01 00:00:00", tzinfo="UTC").datetime
 
-    configurator = TAXIIConfigurator(DEFAULT_TAXII_CONFIG_v1["servers"][0])
+    configurator = TAXIIConfigurator(example_configuration["servers"][0])
 
     assert isinstance(configurator.dates[0], arrow.Arrow)
     assert isinstance(configurator.dates[1], arrow.Arrow)
@@ -311,53 +122,13 @@ def test_set_default_time_range_taxii1_custom():
     assert configurator.dates[1] == end_date
 
 
-def test_set_default_time_range_taxii1_defaults():
+def test_set_default_time_range_taxii1_defaults(example_configuration):
     """Test for getting the default time range"""
     begin_date = arrow.utcnow().shift(months=-1)
     end_date = arrow.utcnow()
-    configuration = {
-        "cbc_auth_profile": "default",
-        "servers": [
-            {
-                "name": "Test",
-                "version": 1.1,
-                "enabled": False,
-                "cbc_feed_options": {
-                    "feed_base_name": "TestSTIX",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
-                "proxies": None,
-                "connection": {
-                    "host": "test.test.com",
-                    "discovery_path": "/taxii/discovery",
-                    "port": None,
-                    "use_https": True,
-                    "headers": None,
-                    "timeout": None,
-                },
-                "auth": {
-                    "username": "test",
-                    "password": "test",
-                    "cert_file": None,
-                    "key_file": None,
-                    "ca_cert": None,
-                    "key_password": None,
-                    "jwt_auth_url": None,
-                    "verify_ssl": True,
-                },
-                "options": {
-                    "begin_date": None,
-                    "end_date": None,
-                    "collection_management_uri": "/test/",
-                    "collections": "*",
-                },
-            },
-        ],
-    }
-    configurator = TAXIIConfigurator(configuration["servers"][0])
+    example_configuration["servers"][0]["options"]["begin_date"] = None
+    example_configuration["servers"][0]["options"]["end_date"] = None
+    configurator = TAXIIConfigurator(example_configuration["servers"][0])
 
     assert isinstance(configurator.dates[0], arrow.Arrow)
     assert isinstance(configurator.dates[1], arrow.Arrow)
@@ -367,52 +138,31 @@ def test_set_default_time_range_taxii1_defaults():
     assert configurator.dates[1].replace(microsecond=0) == end_date.replace(microsecond=0)
 
 
-def test_set_default_time_range_taxii2_custom():
+def test_set_default_time_range_taxii2_custom(example_configuration):
     """Test for getting the default time range"""
     added_after = arrow.get("2022-01-01 00:00:00", tzinfo="UTC").datetime
 
-    configurator = TAXIIConfigurator(DEFAULT_TAXII_CONFIG_v2["servers"][0])
+    configurator = TAXIIConfigurator(example_configuration["servers"][1])
 
     assert isinstance(configurator.dates, arrow.Arrow)
     assert configurator.dates.tzname() == "UTC"
     assert configurator.dates == added_after
 
 
-def test_set_default_time_range_taxii2_default():
+def test_set_default_time_range_taxii2_default(example_configuration):
     """Tests for getting the default `added_after`"""
-    configuration = {
-        "cbc_auth_profile": "default",
-        "servers": [
-            {
-                "name": "Test",
-                "version": 2.1,
-                "enabled": True,
-                "cbc_feed_options": {
-                    "feed_base_name": "Test",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
-                "connection": {"url": "test.test"},
-                "proxies": None,
-                "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
-                "options": {"added_after": None, "roots": "*"},
-            },
-        ],
-    }
+    example_configuration["servers"][1]["options"]["added_after"] = None
     added_after = arrow.utcnow().shift(months=-1)
-    configurator = TAXIIConfigurator(configuration["servers"][0])
+    configurator = TAXIIConfigurator(example_configuration["servers"][1])
 
     assert isinstance(configurator.dates, arrow.Arrow)
     assert configurator.dates.tzname() == "UTC"
     assert configurator.dates.replace(microsecond=0) == added_after.replace(microsecond=0)
 
 
-def test_authenticate_client_taxii1():
+def test_authenticate_client_taxii1(example_configuration):
     """Tests for authenticating"""
-    configurator = TAXIIConfigurator(DEFAULT_TAXII_CONFIG_v1["servers"][0])
-
+    configurator = TAXIIConfigurator(example_configuration["servers"][0])
     assert configurator.client.username == "test"
     assert configurator.client.password == "test"
     assert configurator.client.cert_file is None
@@ -421,10 +171,9 @@ def test_authenticate_client_taxii1():
     assert configurator.client.verify_ssl
 
 
-def test_authenticate_client_taxii2():
+def test_authenticate_client_taxii2(example_configuration):
     """Tests for authenticating"""
-    configurator = TAXIIConfigurator(DEFAULT_TAXII_CONFIG_v2["servers"][0])
-
+    configurator = TAXIIConfigurator(example_configuration["servers"][1])
     assert configurator.client._user == "guest"
     assert configurator.client._password == "guest"
     assert configurator.client._verify
