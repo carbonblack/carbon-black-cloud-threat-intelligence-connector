@@ -33,7 +33,7 @@
     command: pytest
   - name: testing red hat
     service: testingrhel
-    command: pytest
+    command: pytest tests/unit
   - name: testing amazon
     service: testingamazon
-    command: pytest
+    command: pytest tests/unit
