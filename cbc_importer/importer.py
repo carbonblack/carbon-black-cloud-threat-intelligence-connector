@@ -14,12 +14,15 @@
 """Helpers to import everything in CBC"""
 import uuid
 from typing import List
+import logging
 
 from cbc_sdk import CBCloudAPI
 from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2, Feed, Report
 from cbc_sdk.errors import ObjectNotFoundError
 
 from cbc_importer.utils import create_feed, create_watchlist, get_feed
+
+logger = logging.getLogger(__name__)
 
 # Constants for the batch sizes of reports and iocs
 IOCS_BATCH_SIZE = 1000
@@ -83,13 +86,13 @@ def process_iocs(
                 # if more feeds are needed, they will be created using the default logic
                 if feed_id is not None and counter_f == 1:
                     feed = get_feed(cb, feed_id=feed_id)
-                    print(f"Using existing feed with name: {feed.name}")
+                    logger.info(f"Using existing feed with name: {feed.name}")
                 else:
                     feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
-                    print(f"Feed was created with name: {feed.name}")
+                    logger.info(f"Feed was created with name: {feed.name}")
             except ObjectNotFoundError:
                 feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
-                print(f"Feed was created with name: {feed.name}")
+                logger.info(f"Feed was created with name: {feed.name}")
 
             # make the reports with batches of iocs per IOCS_BATCH_SIZE or less
             while counter_r <= min(num_reports, counter_f * REPORTS_BATCH_SIZE):
