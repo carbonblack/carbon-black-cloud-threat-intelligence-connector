@@ -83,10 +83,13 @@ def process_iocs(
                 # if more feeds are needed, they will be created using the default logic
                 if feed_id is not None and counter_f == 1:
                     feed = get_feed(cb, feed_id=feed_id)
+                    print(f"Using existing feed with name: {feed.name}")
                 else:
-                    feed = get_feed(cb, feed_name=feed_name)
+                    feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
+                    print(f"Feed was created with name: {feed.name}")
             except ObjectNotFoundError:
                 feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
+                print(f"Feed was created with name: {feed.name}")
 
             # make the reports with batches of iocs per IOCS_BATCH_SIZE or less
             while counter_r <= min(num_reports, counter_f * REPORTS_BATCH_SIZE):

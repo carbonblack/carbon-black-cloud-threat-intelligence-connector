@@ -18,6 +18,7 @@ import copy
 import pytest
 from cbc_sdk import CBCloudAPI
 from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2
+from cbc_sdk.errors import ObjectNotFoundError
 
 from cbc_importer.importer import process_iocs, subscribe_to_feed
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
@@ -111,6 +112,56 @@ def test_process_iocs_with_existing_feed(cbcsdk_mock):
         assert report_body == REPORT_INIT_ONE_IOCS
         return REPORT_INIT_ONE_IOCS
 
+    def on_get_reports(url, *args, **kwargs):
+        return REPORTS_GET_ONE_IOCS
+
+    cbcsdk_mock.mock_request(
+        "GET",
+        "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg",
+        FEED_GET_RESP,
+    )
+    cbcsdk_mock.mock_request(
+        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_post_report
+    )
+    cbcsdk_mock.mock_request(
+        "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_get_reports
+    )
+    feeds = process_iocs(
+        api,
+        [ioc],
+        "my_base_name",
+        "2.0",
+        "2022-01-27",
+        "2022-02-27",
+        "limo.domain.com",
+        "feed for stix taxii",
+        "thiswouldgood",
+        5,
+        feed_id="90TuDxDYQtiGyg5qhwYCg",
+    )
+
+    assert len(feeds) == 1
+    assert len(feeds[0].reports) == 1
+    assert len(feeds[0].reports[0]["iocs_v2"]) == 1
+
+
+def test_process_iocs_with_feed_id_doesnt_exist(cbcsdk_mock):
+    """Test process iocs by providing feed_id for a non-existing feed"""
+    api = cbcsdk_mock.api
+    ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")
+
+    def get_feed_se(*args):
+        raise ObjectNotFoundError("/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg")
+
+    def on_post_report(url, body, **kwargs):
+        report_body = copy.deepcopy(body)
+        # remove the variable properties
+        if report_body["reports"]:
+            del report_body["reports"][0]["id"]
+            del report_body["reports"][0]["timestamp"]
+        assert report_body == REPORT_INIT_ONE_IOCS
+        return REPORT_INIT_ONE_IOCS
+
     def on_post_feed(url, body, **kwargs):
         assert body == FEED_CREATE_STIX
         return FEED_RESP_POST_STIX
@@ -121,8 +172,9 @@ def test_process_iocs_with_existing_feed(cbcsdk_mock):
     cbcsdk_mock.mock_request(
         "GET",
         "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg",
-        FEED_GET_RESP,
+        get_feed_se,
     )
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds", on_post_feed)
     cbcsdk_mock.mock_request(
         "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_post_report
     )
