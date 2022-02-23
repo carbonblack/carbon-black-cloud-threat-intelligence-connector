@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import pytest
+import yaml
 from cbc_sdk import CBCloudAPI
 
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
@@ -20,3 +23,8 @@ def taxii2_server_mock():
 @pytest.fixture(scope="function")
 def taxii1_server_mock():
     return TAXII1ServerMock()
+
+
+@pytest.fixture(scope="function")
+def example_configuration():
+    return yaml.safe_load(Path("./tests/fixtures/files/test_configuration.yml").read_text())

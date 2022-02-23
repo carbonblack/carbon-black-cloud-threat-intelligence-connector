@@ -14,12 +14,15 @@
 """Helpers to import everything in CBC"""
 import uuid
 from typing import List
+import logging
 
 from cbc_sdk import CBCloudAPI
 from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2, Feed, Report
 from cbc_sdk.errors import ObjectNotFoundError
 
 from cbc_importer.utils import create_feed, create_watchlist, get_feed
+
+logger = logging.getLogger(__name__)
 
 # Constants for the batch sizes of reports and iocs
 IOCS_BATCH_SIZE = 1000
@@ -37,6 +40,7 @@ def process_iocs(
     summary: str,
     category: str,
     severity: int,
+    feed_id: str = None,
 ) -> List[Feed]:
     """Create reports and add the iocs to the reports.
 
@@ -54,6 +58,7 @@ def process_iocs(
         summary (str): Summary for the new feed.
         category (str): Category for the new feed.
         severity (int): severity for the reports
+        feed_id (str): (optional) id of an existing feed to be used for the import
     Returns:
         list(Feed): list of feeds created as part of the import
     """
@@ -77,9 +82,17 @@ def process_iocs(
         # edge case when the number of iocs is divisible by IOCS_BATCH_SIZE * REPORTS_BATCH_SIZE
         if iocs_list:
             try:
-                feed = get_feed(cb, feed_name=feed_name)
+                # if feed_id is provided, use the existing feed, but only for the first feed
+                # if more feeds are needed, they will be created using the default logic
+                if feed_id is not None and counter_f == 1:
+                    feed = get_feed(cb, feed_id=feed_id)
+                    logger.info(f"Using existing feed with name: {feed.name}")
+                else:
+                    feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
+                    logger.info(f"Feed was created with name: {feed.name}")
             except ObjectNotFoundError:
                 feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
+                logger.info(f"Feed was created with name: {feed.name}")
 
             # make the reports with batches of iocs per IOCS_BATCH_SIZE or less
             while counter_r <= min(num_reports, counter_f * REPORTS_BATCH_SIZE):

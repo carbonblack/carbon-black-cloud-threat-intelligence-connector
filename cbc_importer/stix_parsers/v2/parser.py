@@ -74,7 +74,7 @@ class STIX2Parser:
     def parse_taxii_server(
         self,
         server: taxii2client.Server,
-        gather_data: Union[str, dict] = "*",
+        gather_data: Union[str, List[dict]] = "*",
         **kwargs,
     ) -> List[IOC_V2]:
         """Parsing a TAXII Server with STIX 2.0 and 2.1 data
@@ -82,51 +82,39 @@ class STIX2Parser:
         The structure of the `gather_data` follows:
 
         ```
-        {
-            "STIX DATA": {
-                "collections" : [
-                    "collection_id_1",
-                    "collection_id_2"
-                ]
-            }
-        }
+        [
+            {
+                "title": "api_root_title",
+                "collections": ["collection-a", "collection-b"]
+            },
+        ]
         ```
 
         The following structure will get the API Root that has title `STIX DATA` and
         gather the list of collections that is provided `collection_id_1` and collection_id_2`.
 
-        If all the collections are desired, a `*` can be used as an argument in `collections` like  so:
-
-        ```
-        {
-            "STIX DATA": {
-                "collections" : "*"
-            }
-        }
-        ```
-
         By default, `gather_data` equals to `*` which means that it will get all the API Roots and
-        all the collections inside them.
+        all the collections inside them. If all the collections are desired, a `*` can be used as
+        an argument in `collections`.
 
         You can also specify multiple API Roots.
 
         ```
-        {
-            "STIX DATA": {
-                "collections" : "*"
+        [
+            {
+                "title": "api_root_title",
+                "collections": ["collection-a", "collection-b"]
             },
-            "STIX Indicators": {
-                "collections" : [
-                    "random_uid_1",
-                    "random_uid_2"
-                ]
+            {
+                "title": "api_root_title2",
+                "collections": "*"
             }
-        }
+        ]
         ```
 
         Args:
             server (taxii2client.Server): Initialized instance of a `taxii2client.Server` class.
-            gather_data (str | dict): String or dict representing what data will be gathered.
+            gather_data (str | List[dict]): String or dict representing what data will be gathered.
             **kwargs (dict): Dictionary to be provided in `as_pages`, usually used for `added_after`
                 kwarg which will query the server with specific time frame results.
 
@@ -145,7 +133,7 @@ class STIX2Parser:
     def _gather_collections(
         self,
         api_roots: Union[List[taxii2client.ApiRoot], str],
-        gather_data: Union[str, dict],
+        gather_data: Union[List[dict], str],
     ) -> List[taxii2client.Collection]:
         """Gather the specified collections from the `gather_data` dictionary.
 
@@ -174,12 +162,12 @@ class STIX2Parser:
         return collections_to_gather
 
     @staticmethod
-    def _get_roots(api_roots: List[taxii2client.ApiRoot], gather_data: dict) -> List[taxii2client.ApiRoot]:
+    def _get_roots(api_roots: List[taxii2client.ApiRoot], gather_data: List[dict]) -> List[taxii2client.ApiRoot]:
         """Gather the specified roots from the `gather_data` dictionary.
 
         Args:
             api_roots (List[taxii2client.ApiRoot] | str): List of ApiRoot objects.
-            gather_data (dict): Dictionary of data to be gathered, containing
+            gather_data (List[dict]): List of dictionaries of data to be gathered, containing
                 API Root titles and collections IDs inside of them.
 
         Returns:
@@ -187,17 +175,20 @@ class STIX2Parser:
         """
         roots_to_gather = []
         for root in api_roots:
-            if root.title in gather_data.keys():
-                roots_to_gather.append(root)
+            for entry in gather_data:
+                if entry["title"] == root.title:
+                    roots_to_gather.append(root)
         return roots_to_gather
 
     @staticmethod
-    def _get_collections(api_roots: List[taxii2client.ApiRoot], gather_data: dict) -> List[taxii2client.Collection]:
+    def _get_collections(
+        api_roots: List[taxii2client.ApiRoot], gather_data: List[dict]
+    ) -> List[taxii2client.Collection]:
         """Gather the specified collections from gathered API roots.
 
         Args:
             api_roots (List[taxii2client.ApiRoot] | str): List of ApiRoot objects.
-            gather_data (dict): Dictionary of data to be gathered, containing
+            gather_data (List[dict]): List of dictionaries of data to be gathered, containing
                 API Root titles and collections IDs inside of them.
 
         Returns:
@@ -205,14 +196,16 @@ class STIX2Parser:
         """
         collections_to_gather = []
         for root in api_roots:
-            given_collections = gather_data[root.title]["collections"]
+            for entry in gather_data:
+                if root.title == entry["title"]:
+                    if isinstance(entry["collections"], str) and entry["collections"] == "*":
+                        collections_to_gather += root.collections
+                        break
+                    else:
+                        for collection in root.collections:
+                            if collection.id in entry["collections"]:
+                                collections_to_gather.append(collection)
 
-            if isinstance(given_collections, str) and given_collections == "*":
-                collections_to_gather += root.collections
-            else:
-                for collection in root.collections:
-                    if collection.id in given_collections:
-                        collections_to_gather.append(collection)
         return collections_to_gather
 
     def _parse_stix_objects(self, stix_content: stix2.Bundle) -> List[IOC_V2]:

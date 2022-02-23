@@ -9,34 +9,28 @@ def test_parse_feed_get_all_collections(cbcsdk_mock, taxii2_server_mock):
 
 def test_parse_feed_get_specified_collections(cbcsdk_mock, taxii2_server_mock):
     """Test parse feed get specific collection."""
-    gather_data = {
-        "Malware Research Group": {
+    gather_data = [
+        {
+            "title": "Malware Research Group",
             "collections": [
                 "1",
-            ]
-        },
-        "Test Data": {"collections": "*"},
-    }
+            ],
+        }
+    ]
     iocs = STIX2Parser(cbcsdk_mock.api).parse_taxii_server(taxii2_server_mock, gather_data)
-    assert len(iocs) == 6316
+    assert len(iocs) == 3158
 
 
 def test_parse_feed_get_one_root_all_collections(cbcsdk_mock, taxii2_server_mock):
     """Test parse feed get one root all collections."""
-    gather_data = {"Malware Research Group": {"collections": "*"}}
+    gather_data = [{"title": "Malware Research Group", "collections": "*"}]
     collections = STIX2Parser(cbcsdk_mock.api)._gather_collections(taxii2_server_mock.api_roots, gather_data)
     assert len(collections) == 2
 
 
 def test_parse_feed_get_one_root_certain_collections(cbcsdk_mock, taxii2_server_mock):
     """Test parse feed get one root specific collection."""
-    gather_data = {
-        "Malware Research Group": {
-            "collections": [
-                "1",
-            ]
-        }
-    }
+    gather_data = [{"title": "Malware Research Group", "collections": ["1"]}]
     collections = STIX2Parser(cbcsdk_mock.api)._gather_collections(taxii2_server_mock.api_roots, gather_data)
     assert len(collections) == 1
 

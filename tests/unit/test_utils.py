@@ -24,8 +24,15 @@ from cbc_sdk.errors import (
     ObjectNotFoundError,
 )
 from cbc_sdk.rest_api import CBCloudAPI
+from click import BadParameter
 
-from cbc_importer.utils import create_feed, create_watchlist, get_feed
+from cbc_importer.utils import (
+    create_feed,
+    create_watchlist,
+    get_feed,
+    validate_provider_url,
+    validate_severity,
+)
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_mock_responses import (
@@ -119,7 +126,7 @@ def test_get_feed_by_id(cbcsdk_mock):
         FEED_GET_RESP,
     )
     obj = get_feed(api, feed_id="90TuDxDYQtiGyg5qhwYCg")
-    assert obj.name == "base_name"
+    assert obj.name == "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1"
 
 
 def test_get_feed_by_name(cbcsdk_mock):
@@ -172,3 +179,43 @@ def test_create_watchlist_no_valid_feed(cbcsdk_mock):
     """Test create_watchlist with no feed"""
     with pytest.raises(InvalidObjectError):
         create_watchlist(None)
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        ("http://provider.com/", "http://provider.com/"),
+        ("provider.com", "provider.com"),
+    ],
+)
+def test_validate_provider_url(test_input, expected):
+    """Test for validation of the provider URL"""
+    assert validate_provider_url(test_input) == expected
+
+
+def test_validate_provider_url_invalid():
+    """Test for validation of the provider URL raising BadParameter"""
+    with pytest.raises(BadParameter):
+        validate_provider_url("test")
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        (5, 5),
+        (3, 3),
+    ],
+)
+def test_validate_severity(test_input, expected):
+    """Test for validation of the severity"""
+    assert validate_severity(test_input) == expected
+
+
+@pytest.mark.parametrize(
+    "test_input",
+    [(11), (-1)],
+)
+def test_validate_severity_invalid(test_input):
+    """Test for validation of the severity raising BadParameter"""
+    with pytest.raises(BadParameter):
+        validate_severity(test_input)

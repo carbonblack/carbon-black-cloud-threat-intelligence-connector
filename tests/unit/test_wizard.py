@@ -12,14 +12,26 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 
 """Tests for wizard."""
+import copy
+
 import pytest
 from cbc_sdk.credential_providers.default import default_provider_object
 from cbc_sdk.credentials import Credentials
 
-from configurator.wizard import CBCloudAPI, main
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_mock_responses import FEED_GET_RESP
+from tests.fixtures.config_mock import (
+    CREATE_CONFIG_DATA,
+    MIGRATED_DATA,
+    MIGRATED_DATA_NO_PROXY,
+    OLD_CONFIG_DATA,
+    OLD_CONFIG_DATA_NO_PROXY,
+    UPDATE_CONFIG_DATA,
+    UPDATE_CONFIG_DATA_INIT,
+    UPDATE_CONFIG_DATA_NO_ROUTES,
+)
+from wizard import CBCloudAPI, main
 
 
 class MockFileManager:
@@ -75,10 +87,10 @@ def test_migrate_file_doesnt_exist(monkeypatch):
 
 def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     """Test for migrating config - success."""
-    monkeypatch.setattr("configurator.wizard.get_cb", lambda: cbcsdk_mock.api)
+    monkeypatch.setattr("wizard.get_cb", lambda: cbcsdk_mock.api)
     called = False
     dump_called = False
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/someid", FEED_GET_RESP)
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/90TuDxDYQtiGyg5qhwYCg", FEED_GET_RESP)
 
     def migrate_input(the_prompt=""):
         nonlocal called
@@ -88,67 +100,44 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
         return ""
 
     def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "host": "site.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "severity": 5,
-                        "category": "STIX Feed",
-                        "summary": "STIX Feed",
-                        "use_https": True,
-                        "ssl_verify": False,
-                        "cert_file": None,
-                        "key_file": None,
-                        "collections": ["collection1"],
-                        "start_date": None,
-                        "size_of_request_in_minutes": None,
-                        "ca_cert": None,
-                        "http_proxy_url": None,
-                        "https_proxy_url": None,
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                }
-            ],
-        }
         nonlocal dump_called
-        assert data == expected_data
+        assert data == MIGRATED_DATA
         assert kwargs["sort_keys"] is False
         dump_called = True
 
-    old_config_data = {
-        "sites": {
-            "my_site_name_1": {
-                "feed_id": "someid",
-                "site": "site.com",
-                "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                "collection_management_path": "/api/v1/taxii/collection_management/",
-                "poll_path": "/api/v1/taxii/poll/",
-                "use_https": None,
-                "ssl_verify": False,
-                "cert_file": None,
-                "key_file": None,
-                "default_score": None,
-                "username": "guest",
-                "password": "guest",
-                "collections": "collection1",
-                "start_date": None,
-                "size_of_request_in_minutes": None,
-                "ca_cert": None,
-                "http_proxy_url": None,
-                "https_proxy_url": None,
-            }
-        }
-    }
+    old_config_data = OLD_CONFIG_DATA
 
     monkeypatch.setattr("builtins.input", migrate_input)
     monkeypatch.setattr("yaml.safe_load", lambda x: old_config_data)
+    monkeypatch.setattr("yaml.dump", dump_method)
+    monkeypatch.setattr("os.path.exists", lambda x: True)
+    monkeypatch.setattr("builtins.open", open_file_mock)
+    main()
+    assert dump_called
+
+
+def test_migrate_file_exists_no_proxy(monkeypatch, cbcsdk_mock):
+    """Test for migrating config without proxy- success."""
+    monkeypatch.setattr("wizard.get_cb", lambda: cbcsdk_mock.api)
+    called = False
+    dump_called = False
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/90TuDxDYQtiGyg5qhwYCg", FEED_GET_RESP)
+
+    def migrate_input(the_prompt=""):
+        nonlocal called
+        if not called:
+            called = True
+            return "1"
+        return ""
+
+    def dump_method(data, config, **kwargs):
+        nonlocal dump_called
+        assert data == MIGRATED_DATA_NO_PROXY
+        assert kwargs["sort_keys"] is False
+        dump_called = True
+
+    monkeypatch.setattr("builtins.input", migrate_input)
+    monkeypatch.setattr("yaml.safe_load", lambda x: OLD_CONFIG_DATA_NO_PROXY)
     monkeypatch.setattr("yaml.dump", dump_method)
     monkeypatch.setattr("os.path.exists", lambda x: True)
     monkeypatch.setattr("builtins.open", open_file_mock)
@@ -166,15 +155,21 @@ def test_generate_config(monkeypatch):
             "2",
             "",
             "y",
-            "my_site_name_1",
             "1",
+            "my_site_name_1",
             "",
             "",
             "basename",
+            "",
+            "",
+            "6",
+            "someid",
+            "y",
+            "http://some:8080",
             "wrong",
             "site2.com",
             "/api/v1/taxii/taxii-discovery-service/",
-            "6",
+            "8080",
             "",
             "",
             "",
@@ -189,13 +184,50 @@ def test_generate_config(monkeypatch):
             "",
             "",
             "",
+            "*",
             "y",
-            "my_site_name_2",
+            "1",
+            "my_site_name_3",
+            "",
+            "",
+            "basename",
+            "",
+            "",
+            "6",
+            "someid",
+            "",
+            "site2.com",
+            "/api/v1/taxii/taxii-discovery-service/",
+            "8080",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "*",
+            "y",
             "2",
+            "my_site_name_2",
             "",
             "",
             "basename2",
+            "",
+            "",
+            "",
+            "someid",
             "site2.com",
+            "",
+            "",
+            "",
             "",
             "",
             "",
@@ -204,59 +236,14 @@ def test_generate_config(monkeypatch):
             "col1 col2",
             "",
             "",
-            "",
-            "",
         ]
         nonlocal called
         called += 1
         return inputs[called]
 
     def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "basename",
-                        "host": "site2.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "severity": 6,
-                        "category": "STIX Feed",
-                        "summary": "STIX Feed",
-                        "use_https": True,
-                        "ssl_verify": False,
-                        "cert_file": None,
-                        "key_file": None,
-                        "collections": [],
-                        "start_date": None,
-                        "size_of_request_in_minutes": None,
-                        "ca_cert": None,
-                        "http_proxy_url": None,
-                        "https_proxy_url": None,
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-                {
-                    "my_site_name_2": {
-                        "version": 2.0,
-                        "enabled": True,
-                        "feed_base_name": "basename2",
-                        "host": "site2.com",
-                        "severity": 5,
-                        "category": "STIX Feed",
-                        "summary": "STIX Feed",
-                        "api_routes": {"my_api_route": ["col1", "col2"]},
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-            ],
-        }
         nonlocal dump_called
-        assert data == expected_data
+        assert data == CREATE_CONFIG_DATA
         assert kwargs["sort_keys"] is False
         dump_called = True
 
@@ -270,35 +257,7 @@ def test_generate_config(monkeypatch):
 
 def test_update_config_add_new_site(monkeypatch):
     """Test update config - add new site - successful case"""
-    load_data = {
-        "cbc_profile_name": "default",
-        "sites": [
-            {
-                "my_site_name_1": {
-                    "version": 1.2,
-                    "enabled": True,
-                    "feed_base_name": "base_name",
-                    "host": "limo.anomali.com",
-                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                    "severity": 5,
-                    "category": "STIX Feed",
-                    "summary": "STIX Feed",
-                    "use_https": True,
-                    "ssl_verify": False,
-                    "cert_file": None,
-                    "key_file": None,
-                    "collections": ["ISO_CBC_Export_Filter_S7085"],
-                    "start_date": None,
-                    "size_of_request_in_minutes": None,
-                    "ca_cert": None,
-                    "http_proxy_url": None,
-                    "https_proxy_url": None,
-                    "username": "guest",
-                    "password": "guest",
-                }
-            }
-        ],
-    }
+    load_data = copy.deepcopy(UPDATE_CONFIG_DATA_INIT)
     called = -1
     dump_called = False
 
@@ -307,12 +266,19 @@ def test_update_config_add_new_site(monkeypatch):
             "3",
             "1",
             "y",
-            "my_second_site",
             "2",
+            "my_site_name_2",
             "",
             "",
-            "base_name_2",
+            "basename2",
+            "",
+            "",
+            "",
+            "someid",
             "site2.com",
+            "",
+            "",
+            "",
             "",
             "",
             "",
@@ -321,59 +287,14 @@ def test_update_config_add_new_site(monkeypatch):
             "*",
             "",
             "",
-            "",
-            "",
         ]
         nonlocal called
         called += 1
         return inputs[called]
 
     def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "host": "limo.anomali.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "severity": 5,
-                        "category": "STIX Feed",
-                        "summary": "STIX Feed",
-                        "use_https": True,
-                        "ssl_verify": False,
-                        "cert_file": None,
-                        "key_file": None,
-                        "collections": ["ISO_CBC_Export_Filter_S7085"],
-                        "start_date": None,
-                        "size_of_request_in_minutes": None,
-                        "ca_cert": None,
-                        "http_proxy_url": None,
-                        "https_proxy_url": None,
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-                {
-                    "my_second_site": {
-                        "version": 2.0,
-                        "enabled": True,
-                        "feed_base_name": "base_name_2",
-                        "host": "site2.com",
-                        "severity": 5,
-                        "category": "STIX Feed",
-                        "summary": "STIX Feed",
-                        "api_routes": {"my_api_route": "*"},
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-            ],
-        }
         nonlocal dump_called
-        assert data == expected_data
+        assert data == UPDATE_CONFIG_DATA
         assert kwargs["sort_keys"] is False
         dump_called = True
 
@@ -388,35 +309,7 @@ def test_update_config_add_new_site(monkeypatch):
 
 def test_update_config_add_new_site_no_api_routes(monkeypatch):
     """Test update config - add new site, but no api routes provided"""
-    load_data = {
-        "cbc_profile_name": "default",
-        "sites": [
-            {
-                "my_site_name_1": {
-                    "version": 1.2,
-                    "enabled": True,
-                    "feed_base_name": "base_name",
-                    "host": "limo.anomali.com",
-                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                    "severity": 5,
-                    "category": "STIX Feed",
-                    "summary": "STIX Feed",
-                    "use_https": True,
-                    "ssl_verify": False,
-                    "cert_file": None,
-                    "key_file": None,
-                    "collections": ["ISO_CBC_Export_Filter_S7085"],
-                    "start_date": None,
-                    "size_of_request_in_minutes": None,
-                    "ca_cert": None,
-                    "http_proxy_url": None,
-                    "https_proxy_url": None,
-                    "username": "guest",
-                    "password": "guest",
-                }
-            }
-        ],
-    }
+    load_data = copy.deepcopy(UPDATE_CONFIG_DATA_INIT)
     called = -1
     dump_called = False
 
@@ -425,12 +318,17 @@ def test_update_config_add_new_site_no_api_routes(monkeypatch):
             "3",
             "1",
             "y",
-            "my_second_site",
             "2",
+            "my_site_name_2",
             "",
             "",
-            "base_name_2",
+            "basename2",
+            "",
+            "",
+            "",
+            "someid",
             "site2.com",
+            "",
             "",
             "",
             "",
@@ -445,51 +343,9 @@ def test_update_config_add_new_site_no_api_routes(monkeypatch):
         return inputs[called]
 
     def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "host": "limo.anomali.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "severity": 5,
-                        "category": "STIX Feed",
-                        "summary": "STIX Feed",
-                        "use_https": True,
-                        "ssl_verify": False,
-                        "cert_file": None,
-                        "key_file": None,
-                        "collections": ["ISO_CBC_Export_Filter_S7085"],
-                        "start_date": None,
-                        "size_of_request_in_minutes": None,
-                        "ca_cert": None,
-                        "http_proxy_url": None,
-                        "https_proxy_url": None,
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-                {
-                    "my_second_site": {
-                        "version": 2.0,
-                        "enabled": True,
-                        "feed_base_name": "base_name_2",
-                        "host": "site2.com",
-                        "severity": 5,
-                        "category": "STIX Feed",
-                        "summary": "STIX Feed",
-                        "api_routes": {},
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                },
-            ],
-        }
+
         nonlocal dump_called
-        assert data == expected_data
+        assert data == UPDATE_CONFIG_DATA_NO_ROUTES
         assert kwargs["sort_keys"] is False
         dump_called = True
 
@@ -504,36 +360,7 @@ def test_update_config_add_new_site_no_api_routes(monkeypatch):
 
 def test_update_config_wrong_choice(monkeypatch):
     """Test update config - wrong choice"""
-    load_data = {
-        "cbc_profile_name": "default",
-        "sites": [
-            {
-                "my_site_name_1": {
-                    "version": 1.2,
-                    "enabled": True,
-                    "feed_base_name": "base_name",
-                    "host": "limo.anomali.com",
-                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                    "severity": 5,
-                    "category": "STIX Feed",
-                    "summary": "STIX Feed",
-                    "use_https": True,
-                    "ssl_verify": False,
-                    "cert_file": None,
-                    "key_file": None,
-                    "collections": ["ISO_CBC_Export_Filter_S7085"],
-                    "start_date": None,
-                    "size_of_request_in_minutes": None,
-                    "ca_cert": None,
-                    "http_proxy_url": None,
-                    "https_proxy_url": None,
-                    "username": "guest",
-                    "password": "guest",
-                }
-            }
-        ],
-    }
-
+    load_data = copy.deepcopy(UPDATE_CONFIG_DATA_INIT)
     called = -1
     dump_called = False
 
@@ -544,37 +371,8 @@ def test_update_config_wrong_choice(monkeypatch):
         return inputs[called]
 
     def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "host": "limo.anomali.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "severity": 5,
-                        "category": "STIX Feed",
-                        "summary": "STIX Feed",
-                        "use_https": True,
-                        "ssl_verify": False,
-                        "cert_file": None,
-                        "key_file": None,
-                        "collections": ["ISO_CBC_Export_Filter_S7085"],
-                        "start_date": None,
-                        "size_of_request_in_minutes": None,
-                        "ca_cert": None,
-                        "http_proxy_url": None,
-                        "https_proxy_url": None,
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                }
-            ],
-        }
         nonlocal dump_called
-        assert data == expected_data
+        assert data == UPDATE_CONFIG_DATA_INIT
         assert kwargs["sort_keys"] is False
         dump_called = True
 
@@ -589,77 +387,20 @@ def test_update_config_wrong_choice(monkeypatch):
 
 def test_update_config_no_feed_entered(monkeypatch):
     """Test update config, but no feed info entered"""
-    load_data = {
-        "cbc_profile_name": "default",
-        "sites": [
-            {
-                "my_site_name_1": {
-                    "version": 1.2,
-                    "enabled": True,
-                    "feed_base_name": "base_name",
-                    "host": "limo.anomali.com",
-                    "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                    "severity": 5,
-                    "category": "STIX Feed",
-                    "summary": "STIX Feed",
-                    "use_https": True,
-                    "ssl_verify": False,
-                    "cert_file": None,
-                    "key_file": None,
-                    "collections": ["ISO_CBC_Export_Filter_S7085"],
-                    "start_date": None,
-                    "size_of_request_in_minutes": None,
-                    "ca_cert": None,
-                    "http_proxy_url": None,
-                    "https_proxy_url": None,
-                    "username": "guest",
-                    "password": "guest",
-                }
-            }
-        ],
-    }
+    load_data = copy.deepcopy(UPDATE_CONFIG_DATA_INIT)
 
     called = -1
     dump_called = False
 
     def update_config_input(the_prompt=""):
-        inputs = ["3", "1", "y", "my_second_site", "0", ""]
+        inputs = ["3", "1", "y", "0"]
         nonlocal called
         called += 1
         return inputs[called]
 
     def dump_method(data, config, **kwargs):
-        expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [
-                {
-                    "my_site_name_1": {
-                        "version": 1.2,
-                        "enabled": True,
-                        "feed_base_name": "base_name",
-                        "host": "limo.anomali.com",
-                        "discovery_path": "/api/v1/taxii/taxii-discovery-service/",
-                        "severity": 5,
-                        "category": "STIX Feed",
-                        "summary": "STIX Feed",
-                        "use_https": True,
-                        "ssl_verify": False,
-                        "cert_file": None,
-                        "key_file": None,
-                        "collections": ["ISO_CBC_Export_Filter_S7085"],
-                        "start_date": None,
-                        "size_of_request_in_minutes": None,
-                        "ca_cert": None,
-                        "http_proxy_url": None,
-                        "https_proxy_url": None,
-                        "username": "guest",
-                        "password": "guest",
-                    }
-                }
-            ],
-        }
         nonlocal dump_called
-        assert data == expected_data
+        assert data == UPDATE_CONFIG_DATA_INIT
         assert kwargs["sort_keys"] is False
         dump_called = True
 
@@ -678,15 +419,15 @@ def test_generate_config_no_site(monkeypatch):
     dump_called = False
 
     def generate_config_input(the_prompt=""):
-        inputs = ["2", "", "", "n"]
+        inputs = ["2", "", "N"]
         nonlocal called
         called += 1
         return inputs[called]
 
     def dump_method(data, config, **kwargs):
         expected_data = {
-            "cbc_profile_name": "default",
-            "sites": [],
+            "cbc_auth_profile": "default",
+            "servers": [],
         }
         nonlocal dump_called
         assert data == expected_data
