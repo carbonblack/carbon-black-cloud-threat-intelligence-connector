@@ -30,8 +30,7 @@
     command: docker/bin/tests_n_reports.sh
   - name: testing ubuntu
     service: testingubuntu
-    command: pytest
-    no_output_timeout: 30m
+    command: pytest tests/unit
   - name: testing red hat
     service: testingrhel
     command: pytest tests/unit
