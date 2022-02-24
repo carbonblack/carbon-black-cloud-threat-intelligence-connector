@@ -31,6 +31,7 @@
   - name: testing ubuntu
     service: testingubuntu
     command: pytest
+    no_output_timeout: 30m
   - name: testing red hat
     service: testingrhel
     command: pytest tests/unit
