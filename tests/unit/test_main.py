@@ -10,230 +10,310 @@
 # * EXPRESS OR IMPLIED. THE AUTHOR SPECIFICALLY DISCLAIMS ANY IMPLIED
 # * WARRANTIES OR CONDITIONS OF MERCHANTABILITY, SATISFACTORY QUALITY,
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
-from datetime import datetime
-from unittest.mock import patch
+import logging
+from multiprocessing.sharedctypes import Value
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import arrow
-from cabby import Client11 as TAXIIClient11
+import pytest
 from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2
-from taxii2client import Server as TAXIIClient2
 
+from cbc_importer import __version__
 from cbc_importer.stix_parsers.v1.parser import STIX1Parser
 from cbc_importer.stix_parsers.v2.parser import STIX2Parser
+from cbc_importer.taxii_configurator import TAXIIConfigurator
 from main import (
-    connect_taxii1_server,
-    connect_taxii2_server,
-    get_default_time_range_taxii1,
-    get_default_time_range_taxii2,
+    process_file,
+    process_server,
+    process_stix1_file,
+    process_stix2_file,
     process_taxii1_server,
     process_taxii2_server,
 )
+from tests.fixtures import cbc_sdk_mock
 
 
-def test_configure_taxii2_server():
-    """Test for passing the configuration correctly to the client"""
-    config = {
-        "version": 2.0,
-        "enabled": True,
-        "feed_base_name": "StixTaxiiFeedName",
-        "host": "test.server.test",
-        "severity": 5,
-        "summary": "TestFeed",
-        "category": "STIX",
-        "api_routes": "*",
-        "username": "guest",
-        "password": "guest",
-        "added_after": "",
-    }
-    taxii_client = connect_taxii2_server(config, stix_version=2.0)
-    assert taxii_client.__dict__["_user"] == "guest"
-    assert taxii_client.__dict__["_password"] == "guest"
-    assert taxii_client.__dict__["url"] == "test.server.test/"
-
-
-def test_configure_taxii1_server():
-    """Test for passing the configuration correctly to the client"""
-    config = {
-        "version": 1.2,
-        "enabled": True,
-        "feed_base_name": "StixTaxiiFeedName",
-        "host": "test.server.test",
-        "discovery_path": "/taxii/discovery",
-        "use_https": True,
-        "cert_file": None,
-        "key_file": None,
-        "default_score": None,
-        "collections": "*",
-        "start_date": None,
-        "ca_cert": None,
-        "http_proxy_url": None,
-        "https_proxy_url": None,
-        "username": "test",
-        "password": "test",
-        "severity": 5,
-        "summary": "...",
-        "category": "STIX",
-    }
-    taxii_client = connect_taxii1_server(config)
-    assert taxii_client.__dict__["host"] == "test.server.test"
-    assert taxii_client.__dict__["discovery_path"] == "/taxii/discovery"
-    assert taxii_client.__dict__["use_https"]
-
-
-def test_get_default_time_range_taxii1_defaults():
-    """Test for getting the default time range"""
-    start_date = arrow.utcnow().shift(months=-1).datetime.replace(microsecond=0)
-    end_date = arrow.utcnow().datetime.replace(microsecond=0)
-
-    start_date_, end_date_ = get_default_time_range_taxii1({})
-
-    assert isinstance(start_date_, datetime)
-    assert isinstance(end_date_, datetime)
-    assert start_date.tzname() == "UTC"
-    assert end_date.tzname() == "UTC"
-    assert start_date_.replace(microsecond=0) == start_date
-    assert end_date_.replace(microsecond=0) == end_date
-
-
-def test_get_default_time_range_taxii1_custom():
-    """Test for getting the custom time range"""
-
-    start_date, end_date = get_default_time_range_taxii1({"start_date": "2022-01-01", "end_date": "2022-02-01"})
-    assert isinstance(start_date, datetime)
-    assert start_date.tzname() == "UTC"
-    assert start_date.isoformat() == "2022-01-01T00:00:00+00:00"
-    assert isinstance(end_date, datetime)
-    assert end_date.tzname() == "UTC"
-    assert end_date.isoformat() == "2022-02-01T00:00:00+00:00"
-
-
-def test_get_default_time_range_taxii2_defaults():
-    """Tests for getting the default `added_after`"""
-    added_after_ = arrow.utcnow().shift(months=-1).datetime.replace(microsecond=0)
-    added_after = get_default_time_range_taxii2({})
-    assert isinstance(added_after, datetime)
-    assert added_after.replace(microsecond=0) == added_after_
-    assert added_after.tzname() == "UTC"
-
-
-def test_get_default_time_range_taxii2_custom():
-    """Tests for getting the default `added_after`"""
-    added_after = get_default_time_range_taxii2({"added_after": "2022-01-01"})
-    assert isinstance(added_after, datetime)
-    assert added_after.isoformat() == "2022-01-01T00:00:00+00:00"
-    assert added_after.tzname() == "UTC"
-
-
-@patch("main.get_default_time_range_taxii1")
-@patch("main.connect_taxii1_server")
-@patch.object(STIX1Parser, "parse_taxii_server")
+@patch.object(STIX1Parser, "parse_file")
 @patch("main.process_iocs")
-def test_process_taxii1_server(
-    mock_process_iocs,
-    mock_parse_taxii_server,
-    mock_connect_taxii1_server,
-    mock_get_default_time_range_taxii1,
-    cbcsdk_mock,
-):
-    """Test for calling the right functions with the right values"""
-    config = {
-        "version": 1.2,
-        "enabled": True,
-        "feed_base_name": "StixTaxiiFeedName",
-        "host": "test.server.test",
-        "discovery_path": "/taxii/discovery",
-        "use_https": True,
-        "cert_file": None,
-        "key_file": None,
-        "default_score": None,
-        "collections": "*",
+def test_process_stix1_file(mock_process_iocs, mock_parse_file, cbcsdk_mock, caplog):
+    """Test processing a STIX1 File"""
+    kwargs = {
+        "stix_file_path": "./text/path",
+        "provider_url": "http://test-provider.test/",
         "start_date": "2022-01-01",
         "end_date": "2022-02-01",
-        "ca_cert": None,
-        "http_proxy_url": None,
-        "https_proxy_url": None,
-        "username": "test",
-        "password": "test",
-        "severity": 5,
-        "summary": "TEST SUMMARY",
+        "severity": 8,
+        "summary": "None",
         "category": "STIX",
+        "feed_base_name": "STIXFile",
+        "cb": cbcsdk_mock,
     }
+
     iocs = [IOC_V2.create_query(cbcsdk_mock.api, "unsigned-chrome", "process_name:chrome.exe")]
-    start_date = arrow.utcnow().shift(months=-1).datetime.replace(microsecond=0)
-    end_date = arrow.utcnow().datetime.replace(microsecond=0)
-    client = TAXIIClient11()
+    mock_parse_file.return_value = iocs
+    mock_process_iocs.return_value = [MagicMock()]
 
-    mock_connect_taxii1_server.return_value = client
-    mock_get_default_time_range_taxii1.return_value = (start_date, end_date)
-    mock_parse_taxii_server.return_value = iocs
-
-    process_taxii1_server(config, cbcsdk_mock, "test_name")
-
-    mock_parse_taxii_server.assert_called_with(client, "*", begin_date=start_date, end_date=end_date)
-    mock_get_default_time_range_taxii1.assert_called_with(config)
-    mock_connect_taxii1_server.assert_called_with(config)
-    mock_process_iocs.assert_called_with(
-        cbcsdk_mock,
-        iocs,
-        "StixTaxiiFeedName",
-        1.2,
-        start_date=arrow.get(start_date).format("YYYY-MM-DD HH:mm:ss ZZ"),
-        end_date=arrow.get(end_date).format("YYYY-MM-DD HH:mm:ss ZZ"),
-        provider_url="test.server.test",
-        summary="TEST SUMMARY",
-        category="STIX",
-        severity=5,
-    )
+    with caplog.at_level(logging.INFO):
+        process_stix1_file(**kwargs)
+        mock_process_iocs.assert_called_with(
+            cb=cbcsdk_mock,
+            iocs=iocs,
+            feed_base_name="STIXFile",
+            stix_version=1,
+            start_date=arrow.get(kwargs["start_date"]).format("YYYY-MM-DD"),
+            end_date=arrow.get(kwargs["end_date"]).format("YYYY-MM-DD"),
+            provider_url="http://test-provider.test/",
+            summary="None",
+            category="STIX",
+            severity=8,
+        )
+        assert "Created feed with ID" in caplog.text
 
 
-@patch("main.get_default_time_range_taxii2")
-@patch("main.connect_taxii2_server")
-@patch.object(STIX2Parser, "parse_taxii_server")
+@patch.object(STIX2Parser, "parse_file")
 @patch("main.process_iocs", return_value=[])
-def test_process_taxii2_server_calls(
-    mock_process_iocs,
-    mock_parse_taxii_server,
-    mock_connect_taxii2_server,
-    mock_get_default_time_range_taxii2,
-    cbcsdk_mock,
-):
-    """Test for calling the right functions with the right values"""
-    iocs = [IOC_V2.create_query(cbcsdk_mock.api, "unsigned-chrome", "process_name:chrome.exe")]
-    added_after = arrow.utcnow().shift(months=-1).datetime.replace(microsecond=0)
-    client = TAXIIClient2(url="test.com")
-
-    mock_connect_taxii2_server.return_value = client
-    mock_get_default_time_range_taxii2.return_value = added_after
-    mock_parse_taxii_server.return_value = iocs
-
-    config = {
-        "version": 2.0,
-        "enabled": True,
-        "feed_base_name": "StixTaxiiFeedName",
-        "host": "test.server.test",
-        "severity": 5,
-        "summary": "TEST SUMMARY",
+def test_process_stix2_file(mock_process_iocs, mock_parse_file, cbcsdk_mock, caplog):
+    """Test processing a STIX2 File"""
+    kwargs = {
+        "stix_file_path": "./text/path",
+        "provider_url": "http://test-provider.test/",
+        "start_date": "2022-01-01",
+        "end_date": "2022-02-01",
+        "severity": 8,
+        "summary": "None",
         "category": "STIX",
-        "api_routes": "*",
-        "username": "guest",
-        "password": "guest",
-        "added_after": "",
+        "feed_base_name": "STIXFile",
+        "cb": cbcsdk_mock,
     }
 
-    process_taxii2_server(config, cbcsdk_mock, "test_server", 2.0)
+    iocs = [IOC_V2.create_query(cbcsdk_mock.api, "unsigned-chrome", "process_name:chrome.exe")]
+    mock_parse_file.return_value = iocs
+    mock_process_iocs.return_value = [MagicMock()]
 
-    mock_get_default_time_range_taxii2.assert_called_with(config)
-    mock_connect_taxii2_server.assert_called_with(config, 2.0)
-    mock_parse_taxii_server.assert_called_with(client, "*", added_after=added_after)
-    mock_process_iocs.assert_called_with(
-        cbcsdk_mock,
-        iocs,
-        "StixTaxiiFeedName",
-        2.0,
-        start_date=arrow.get(added_after).format("YYYY-MM-DD HH:mm:ss ZZ"),
-        end_date=arrow.utcnow().format("YYYY-MM-DD HH:mm:ss ZZ"),
-        provider_url="test.server.test",
-        summary="TEST SUMMARY",
-        category="STIX",
-        severity=5,
+    with caplog.at_level(logging.INFO):
+        process_stix2_file(**kwargs)
+        mock_process_iocs.assert_called_with(
+            cb=cbcsdk_mock,
+            iocs=iocs,
+            feed_base_name="STIXFile",
+            stix_version=2,
+            start_date=arrow.get(kwargs["start_date"]).format("YYYY-MM-DD"),
+            end_date=arrow.get(kwargs["end_date"]).format("YYYY-MM-DD"),
+            provider_url="http://test-provider.test/",
+            summary="None",
+            category="STIX",
+            severity=8,
+        )
+        assert "Created feed with ID" in caplog.text
+
+
+@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("main.process_stix2_file", return_value=[])
+def test_process_file_json(process_stix2_file, *args):
+    """Test process_file with JSON extension"""
+    process_file(
+        "./test.json",
+        "http://test.com/",
+        "2022-01-01",
+        "2022-02-01",
+        8,
+        "...",
+        "STIX",
+        "default",
+        "STIXFile",
     )
+    process_stix2_file.assert_called()
+
+
+@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("main.process_stix1_file", return_value=[])
+def test_process_file_xml(process_stix1_file, *args):
+    """Test process_file with XML extension"""
+    process_file(
+        "./test.xml",
+        "http://test.com/",
+        "2022-01-01",
+        "2022-02-01",
+        8,
+        "...",
+        "STIX",
+        "default",
+        "STIXFile",
+    )
+    process_stix1_file.assert_called()
+
+
+@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
+def test_process_file_invalid(*args):
+    """Test process_file with invalid extension"""
+    with pytest.raises(ValueError):
+        process_file(
+            "./test.file",
+            "http://test.com/",
+            "2022-01-01",
+            "2022-02-01",
+            8,
+            "...",
+            "STIX",
+            "default",
+            "STIXFile",
+        )
+
+
+@patch.object(STIX1Parser, "parse_taxii_server")
+@patch("main.process_iocs")
+def test_process_taxii1_server(mock_process_iocs, mock_parse_taxii_server, cbcsdk_mock, caplog):
+    configuration = {
+        "cbc_auth_profile": "default",
+        "servers": [
+            {
+                "name": "Test",
+                "version": 1.2,
+                "enabled": False,
+                "cbc_feed_options": {
+                    "feed_base_name": "TestSTIX",
+                    "severity": 5,
+                    "summary": "empty summary",
+                    "category": "STIX",
+                    "feed_id": None,
+                },
+                "proxies": None,
+                "connection": {
+                    "host": "test.test.com",
+                    "discovery_path": "/taxii/discovery",
+                    "port": None,
+                    "use_https": True,
+                    "headers": None,
+                    "timeout": None,
+                },
+                "auth": {
+                    "username": "test",
+                    "password": "test",
+                    "cert_file": None,
+                    "key_file": None,
+                    "ca_cert": None,
+                    "key_password": None,
+                    "jwt_auth_url": None,
+                    "verify_ssl": True,
+                },
+                "options": {
+                    "begin_date": "2022-01-01 00:00:00",
+                    "end_date": "2022-02-01 00:00:00",
+                    "collection_management_uri": "/test/",
+                    "collections": "*",
+                },
+            },
+        ],
+    }
+    iocs = [IOC_V2.create_query(cbcsdk_mock.api, "unsigned-chrome", "process_name:chrome.exe")]
+    mock_parse_taxii_server.return_value = iocs
+    mock_process_iocs.return_value = [MagicMock()]
+    configurator = TAXIIConfigurator(configuration["servers"][0])
+
+    with caplog.at_level(logging.INFO):
+        process_taxii1_server(configurator, cbcsdk_mock)
+        mock_parse_taxii_server.assert_called_with(configurator.client, **configurator.search_options)
+        mock_process_iocs.assert_called_with(cb=cbcsdk_mock, iocs=iocs, **configurator.cbc_feed_options)
+        assert "Created feed with ID" in caplog.text
+
+
+@patch.object(STIX2Parser, "parse_taxii_server")
+@patch("main.process_iocs")
+def test_process_taxii2_server(mock_process_iocs, mock_parse_taxii_server, cbcsdk_mock, caplog):
+    configuration = {
+        "cbc_auth_profile": "default",
+        "servers": [
+            {
+                "name": "Test",
+                "version": 2.0,
+                "enabled": True,
+                "cbc_feed_options": {
+                    "feed_base_name": "Test",
+                    "severity": 5,
+                    "summary": "empty summary",
+                    "category": "STIX",
+                    "feed_id": None,
+                },
+                "connection": {"url": "test.test"},
+                "proxies": None,
+                "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
+                "options": {"added_after": "2022-01-01 00:00:00", "roots": "*"},
+            },
+        ],
+    }
+    iocs = [IOC_V2.create_query(cbcsdk_mock.api, "unsigned-chrome", "process_name:chrome.exe")]
+    mock_parse_taxii_server.return_value = iocs
+    mock_process_iocs.return_value = [MagicMock()]
+    configurator = TAXIIConfigurator(configuration["servers"][0])
+
+    with caplog.at_level(logging.INFO):
+        process_taxii2_server(configurator, cbcsdk_mock)
+        mock_parse_taxii_server.assert_called_with(configurator.client, **configurator.search_options)
+        mock_process_iocs.assert_called_with(cbcsdk_mock, iocs, **configurator.cbc_feed_options)
+        assert "Created feed with ID" in caplog.text
+
+
+@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("main.process_taxii2_server")
+@patch.object(Path, "read_text", return_value=None)
+@patch("yaml.safe_load")
+def test_process_server_not_enabled(safe_load, rt, pts, cbcsdk, caplog):
+    """Test process_server where site is not enabled"""
+    configuration = {
+        "cbc_auth_profile": "default",
+        "servers": [
+            {
+                "name": "Test",
+                "version": 2.0,
+                "enabled": False,
+                "cbc_feed_options": {
+                    "feed_base_name": "Test",
+                    "severity": 5,
+                    "summary": "empty summary",
+                    "category": "STIX",
+                    "feed_id": None,
+                },
+                "connection": {"url": "test.test"},
+                "proxies": None,
+                "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
+                "options": {"added_after": "2022-01-01 00:00:00", "roots": "*"},
+            },
+        ],
+    }
+    safe_load.return_value = configuration
+    with caplog.at_level(logging.INFO):
+        process_server(config_file="test.yml")
+        assert "Skipping" in caplog.text
+
+
+@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("main.process_taxii2_server")
+@patch.object(Path, "read_text", return_value=None)
+@patch("yaml.safe_load")
+def test_process_server_invalid_version(safe_load, rt, pts, cbcsdk, caplog):
+    """Test process_server where site is not enabled"""
+    configuration = {
+        "cbc_auth_profile": "default",
+        "servers": [
+            {
+                "name": "Test",
+                "version": 2.5,
+                "enabled": False,
+                "cbc_feed_options": {
+                    "feed_base_name": "Test",
+                    "severity": 5,
+                    "summary": "empty summary",
+                    "category": "STIX",
+                    "feed_id": None,
+                },
+                "connection": {"url": "test.test"},
+                "proxies": None,
+                "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
+                "options": {"added_after": "2022-01-01 00:00:00", "roots": "*"},
+            },
+        ],
+    }
+    safe_load.return_value = configuration
+    with pytest.raises(ValueError):
+        process_server(config_file="test.yml")

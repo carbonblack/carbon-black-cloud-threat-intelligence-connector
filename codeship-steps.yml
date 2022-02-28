@@ -30,10 +30,10 @@
     command: docker/bin/tests_n_reports.sh
   - name: testing ubuntu
     service: testingubuntu
-    command: pytest
+    command: pytest tests/unit
   - name: testing red hat
     service: testingrhel
-    command: pytest
+    command: pytest tests/unit
   - name: testing amazon
     service: testingamazon
-    command: pytest
+    command: pytest tests/unit

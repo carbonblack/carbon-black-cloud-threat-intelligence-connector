@@ -137,9 +137,9 @@ WATCHLIST_FROM_FEED_OUT = {
 
 FEED_GET_RESP = {
     "feedinfo": {
-        "name": "base_name",
+        "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
         "provider_url": "https://thisistheplace.com",
-        "summary": "this is the details",
+        "summary": "feed for stix taxii",
         "category": "thiswouldgood",
         "source_label": None,
         "access": "private",

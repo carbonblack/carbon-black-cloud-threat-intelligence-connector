@@ -14,6 +14,8 @@
 """CBC Helpers"""
 from typing import List, Union
 
+import arrow
+import validators
 from cbc_sdk import CBCloudAPI
 from cbc_sdk.enterprise_edr import Feed, Report, Watchlist
 from cbc_sdk.errors import (
@@ -21,6 +23,7 @@ from cbc_sdk.errors import (
     MoreThanOneResultError,
     ObjectNotFoundError,
 )
+from typer import BadParameter
 
 """Feed Helpers"""
 
@@ -116,3 +119,53 @@ def create_watchlist(
         watchlist = Watchlist.create_from_feed(feed, name=name, description=description, enable_alerts=enable_alerts)
         return watchlist.save()
     raise InvalidObjectError("invalid Feed")
+
+
+def validate_provider_url(value: str) -> str:
+    """Validate if a str is valid URL
+
+    Args:
+        value (str): url value
+
+    Raises:
+        BadParameter: Whenever the value is not a valid URL
+
+    Returns:
+        str: Valid URL
+    """
+    if validators.domain(value) or validators.url(value):
+        return value
+    raise BadParameter("Provider URL is not a valid URL")
+
+
+def validate_severity(value: int) -> int:
+    """Validating the severity
+
+    Args:
+        value (int): Severity integer
+
+    Raises:
+        BadParameter: Whenever an integer is not between 1-10
+
+    Returns:
+        int: int between 1-10
+    """
+    if 1 <= value <= 10:
+        return value
+    raise BadParameter("Severity must be between 1-10")
+
+
+def transform_date(value: str) -> arrow.Arrow:
+    """Transform a str date to Arrow object
+
+    Args:
+        value (str): The date as a string
+
+    Raises:
+        arrow.ParserError: Whenever the provided date is not valid.
+
+    Returns:
+        arrow.Arrow: Arrow object of that date
+    """
+    date = arrow.get(value).replace(tzinfo="UTC")
+    return date.datetime
