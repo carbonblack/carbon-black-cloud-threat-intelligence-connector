@@ -8,6 +8,13 @@ This is a python project that can be used for ingesting Threat Intelligence from
 
 ## Installation
 
+Clone the repository
+
+```bash
+$ git clone https://github.com/carbonblack/cbc-taxii-connector.git
+$ cd cbc-taxii-connector/
+```
+
 You can install this connector either via Poetry or using the `virtualenv`.
 
 ### Using [Poetry](https://python-poetry.org/docs/)
@@ -39,6 +46,17 @@ $ source ./venv/bin/activate
 (venv) $ pip install -r requirements.txt
 ...
 (venv) $ python ./main.py --help
+...
+Usage: main.py [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  <truncated>
+
+Commands:
+  process-file    Process and import a single STIX content file into CBC...
+  process-server  Process and import a TAXII Server (2.0/2.1/1.x)
+  version         Shows the version of the connector
+...
 ```
 
 ## Usage
@@ -49,25 +67,43 @@ You can parse a file with the connector with the `process-file` command.
 
 An example usage and description of that command can be found with:
 
-```
+```shell-session
 $ python main.py process-file --help
-```
+...
+Usage: main.py process-file [OPTIONS] [STIX_FILE_PATH] [PROVIDER_URL]
 
-It can be as simple as:
-```bash
-$ python main.py process-file ./stix_content.xml http://yourprovider.com/
+  Process and import a single STIX content file into CBC `Accepts *.json (STIX
+  2.1/2.0) / *.xml (1.x)`
+
+  Example usage:
+
+      python main.py process-file ./stix_content.xml http://yourprovider.com/
+
+      python main.py process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
+
+      python main.py process-file ./stix_content.xml http://yourprovider.com/ --severity=9
+...
 ```
 
 The connector will automatically figure out the STIX version for you and use its appropriate parsers (you can use json files too), all you need to do is to pass the file and the required parameters.
 
-### Parsing a TAXII Server
+### Parsing STIX from a TAXII Server
 
 You can start parsing STIX content served by a TAXII Server with the connector with the `process-server` command.
 
 An example usage and description of that command can be found with:
 
-```bash
+```shell-session
 $ python main.py process-server --help
+...
+Usage: main.py process-server [OPTIONS]
+
+  Process and import a TAXII Server (2.0/2.1/1.x)
+
+  Example usage:
+
+      python main.py process-server --config-file=./config.yml
+...
 ```
 
 The default path for your config path is `{CURRENT_DIR}/config.yml`.
@@ -81,7 +117,7 @@ Alternatively if you have used our old connector you can use the `wizard.py` to 
 You can use the configuration wizard to easily manage the `config.yml`.
 
 An example usage of the command:
-```bash
+```shell-session
 $ python wizard.py
 ```
 This is going to provide a menu with the options:
@@ -109,15 +145,21 @@ It is recommended to use Python3.8 / Python3.9 version for that project, assumin
 
 If you have used poetry run the following command:
 
-```bash
+```shell-session
 $ poetry install
 ```
 
 For a good code quality make sure to install the hooks from `pre-commit` as well.
 
-```bash
+```shell-session
 $ pre-commit install
 ```
+
+### Support
+
+1. View all API and integration offerings on the [Developer Network](https://developer.carbonblack.com) along with reference documentation, video tutorials, and how-to guides.
+2. Use the [Developer Community Forum](https://community.carbonblack.com/) to discuss issues and get answers from other API developers in the Carbon Black Community.
+3. Create a github issue for bugs and change requests or create a ticket with [Carbon Black Support](http://carbonblack.com/resources/support/).
 
 ### Submitting a PR
 
