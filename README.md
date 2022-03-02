@@ -104,7 +104,7 @@ If you don't want to use the wizard tool for creating a config interactively you
 If you want to run the connector with a cron job, there is an example in the `examples/docker_example` folder. The cron job is setup in the `crontab_process_server` file, by default it runs
 once monthly but you can adjust that to your preferences.
 
-Make sure to fill the credentials in the `examples/docker_example/credentials.cbc` to access the Carbon Black Cloud.
+Make sure to fill the credentials in the `examples/docker_example/credentials.cbc` to access the Carbon Black Cloud. The TAXII Server configuration (`config.yml`) should be located at the root of the repository. You can change that by specifying a different configuration in the `crontab_process_server` file in the `--config-file` option.
 
 ### Building and Running
 
