@@ -3,7 +3,7 @@ profile = "black"
 
 [tool.black]
 line-length = 120
-target-version = ['py36', 'py37', 'py38']
+target-version = ["py36", "py37", "py38"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -16,14 +16,26 @@ extend-exclude = '''
 
 [tool.mypy]
 ignore_missing_imports = true
-files = ['./cbc_importer/**/*.py', './configurator/*.py']
+files = ["./cbc_importer/**/*.py", "./configurator/*.py"]
 
 [tool.poetry]
-name = "cbc-taxii-connector"
-version = "0.1.0"
-description = "CBC STIX/TAXII Connector"
+name = "carbon-black-cloud-stix-taxii-connector"
+version = "1.0.0"
+description = "Carbon Black Cloud STIX/TAXII Connector"
 authors = ["Dimitar Ganev <dganev@vmware.com>" , "Emanuela Mitreva <emitreva@vmware.com>"]
 license = "BSD-2-Clause"
+classifiers = [
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.9",
+  "Topic :: Connectors",
+  "Topic :: Software Development :: Libraries :: Python Modules"
+]
+keywords = ["connector", "carbonblackcloud", "stixtaxii", "stix", "taxii"]
+packages = [
+    { include = "cbc_importer" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -49,8 +61,11 @@ flake8-docstrings = "1.6.0"
 mypy = "0.930"
 types-PyYAML = "6.0.3"
 black = "22.1.0"
-rich = "^11.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+cbc-stix-taxii-connector = "cbc_importer.cli.main:app"
+cbc-stix-taxii-wizard = "cbc_importer.cli.wizard:main"
