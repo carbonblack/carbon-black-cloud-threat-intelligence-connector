@@ -108,8 +108,8 @@ Usage: main.py process-server [OPTIONS]
 
 The default path for your config path is `{CURRENT_DIR}/config.yml`.
 
-This command will get your config file and it will start to ingest STIX content that is served by those TAXII Servers. In the `example.yml` file you can find an example configuration that you can use to setup your STIX content providers.
 
+This command will get your config file and it will start to ingest STIX content that is served by those TAXII Servers. In the `example.yml` file you can find an example configuration that you can use to setup your STIX content providers.
 Alternatively if you have used our old connector you can use the `wizard.py` to migrate your old configuration into the new one.
 
 #### Using the configuration wizard
@@ -134,6 +134,28 @@ The last option allows you to add one more site information to the existing ones
 #### Creating the configuration manually
 
 If you don't want to use the wizard tool for creating a config interactively you can create the config by yourself following the [example config](example.yml) and their descriptions inside.
+
+## Running the connector with Docker
+
+If you want to run the connector with a cron job, there is an example in the `examples/docker_example` folder. The cron job is setup in the `crontab_process_server` file, by default it runs
+once monthly but you can adjust that to your preferences.
+
+Make sure to fill the credentials in the `examples/docker_example/credentials.cbc` to access the Carbon Black Cloud. The TAXII Server configuration (`config.yml`) should be located at the root of the repository. You can change that by specifying a different configuration in the `crontab_process_server` file in the `--config-file` option.
+
+### Building and Running
+
+You can use a Docker container for running the application.
+
+```console
+$ docker build -f ./examples/docker_example/Dockerfile .
+```
+
+After that you can run the container using its hash, keep in mind that your hash is going to be different.
+
+```console
+$ docker run 61412f4b303cdccb...89d8490f6c3527
+```
+
 
 ## Developing the connector
 
