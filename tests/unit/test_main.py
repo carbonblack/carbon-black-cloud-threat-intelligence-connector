@@ -20,10 +20,7 @@ import pytest
 from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2
 
 from cbc_importer import __version__
-from cbc_importer.stix_parsers.v1.parser import STIX1Parser
-from cbc_importer.stix_parsers.v2.parser import STIX2Parser
-from cbc_importer.taxii_configurator import TAXIIConfigurator
-from main import (
+from cbc_importer.cli.main import (
     process_file,
     process_server,
     process_stix1_file,
@@ -31,11 +28,14 @@ from main import (
     process_taxii1_server,
     process_taxii2_server,
 )
+from cbc_importer.stix_parsers.v1.parser import STIX1Parser
+from cbc_importer.stix_parsers.v2.parser import STIX2Parser
+from cbc_importer.taxii_configurator import TAXIIConfigurator
 from tests.fixtures import cbc_sdk_mock
 
 
 @patch.object(STIX1Parser, "parse_file")
-@patch("main.process_iocs")
+@patch("cbc_importer.cli.main.process_iocs")
 def test_process_stix1_file(mock_process_iocs, mock_parse_file, cbcsdk_mock, caplog):
     """Test processing a STIX1 File"""
     kwargs = {
@@ -72,7 +72,7 @@ def test_process_stix1_file(mock_process_iocs, mock_parse_file, cbcsdk_mock, cap
 
 
 @patch.object(STIX2Parser, "parse_file")
-@patch("main.process_iocs", return_value=[])
+@patch("cbc_importer.cli.main.process_iocs", return_value=[])
 def test_process_stix2_file(mock_process_iocs, mock_parse_file, cbcsdk_mock, caplog):
     """Test processing a STIX2 File"""
     kwargs = {
@@ -108,8 +108,8 @@ def test_process_stix2_file(mock_process_iocs, mock_parse_file, cbcsdk_mock, cap
         assert "Created feed with ID" in caplog.text
 
 
-@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
-@patch("main.process_stix2_file", return_value=[])
+@patch("cbc_importer.cli.main.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("cbc_importer.cli.main.process_stix2_file", return_value=[])
 def test_process_file_json(process_stix2_file, *args):
     """Test process_file with JSON extension"""
     process_file(
@@ -126,8 +126,8 @@ def test_process_file_json(process_stix2_file, *args):
     process_stix2_file.assert_called()
 
 
-@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
-@patch("main.process_stix1_file", return_value=[])
+@patch("cbc_importer.cli.main.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("cbc_importer.cli.main.process_stix1_file", return_value=[])
 def test_process_file_xml(process_stix1_file, *args):
     """Test process_file with XML extension"""
     process_file(
@@ -144,7 +144,7 @@ def test_process_file_xml(process_stix1_file, *args):
     process_stix1_file.assert_called()
 
 
-@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("cbc_importer.cli.main.CBCloudAPI", return_value=cbc_sdk_mock)
 def test_process_file_invalid(*args):
     """Test process_file with invalid extension"""
     with pytest.raises(ValueError):
@@ -162,7 +162,7 @@ def test_process_file_invalid(*args):
 
 
 @patch.object(STIX1Parser, "parse_taxii_server")
-@patch("main.process_iocs")
+@patch("cbc_importer.cli.main.process_iocs")
 def test_process_taxii1_server(mock_process_iocs, mock_parse_taxii_server, cbcsdk_mock, caplog):
     configuration = {
         "cbc_auth_profile": "default",
@@ -219,7 +219,7 @@ def test_process_taxii1_server(mock_process_iocs, mock_parse_taxii_server, cbcsd
 
 
 @patch.object(STIX2Parser, "parse_taxii_server")
-@patch("main.process_iocs")
+@patch("cbc_importer.cli.main.process_iocs")
 def test_process_taxii2_server(mock_process_iocs, mock_parse_taxii_server, cbcsdk_mock, caplog):
     configuration = {
         "cbc_auth_profile": "default",
@@ -254,8 +254,8 @@ def test_process_taxii2_server(mock_process_iocs, mock_parse_taxii_server, cbcsd
         assert "Created feed with ID" in caplog.text
 
 
-@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
-@patch("main.process_taxii2_server")
+@patch("cbc_importer.cli.main.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("cbc_importer.cli.main.process_taxii2_server")
 @patch.object(Path, "read_text", return_value=None)
 @patch("yaml.safe_load")
 def test_process_server_not_enabled(safe_load, rt, pts, cbcsdk, caplog):
@@ -287,8 +287,8 @@ def test_process_server_not_enabled(safe_load, rt, pts, cbcsdk, caplog):
         assert "Skipping" in caplog.text
 
 
-@patch("main.CBCloudAPI", return_value=cbc_sdk_mock)
-@patch("main.process_taxii2_server")
+@patch("cbc_importer.cli.main.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("cbc_importer.cli.main.process_taxii2_server")
 @patch.object(Path, "read_text", return_value=None)
 @patch("yaml.safe_load")
 def test_process_server_invalid_version(safe_load, rt, pts, cbcsdk, caplog):

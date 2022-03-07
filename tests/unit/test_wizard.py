@@ -18,6 +18,7 @@ import pytest
 from cbc_sdk.credential_providers.default import default_provider_object
 from cbc_sdk.credentials import Credentials
 
+from cbc_importer.cli.wizard import CBCloudAPI, main
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_mock_responses import FEED_GET_RESP
@@ -31,7 +32,6 @@ from tests.fixtures.config_mock import (
     UPDATE_CONFIG_DATA_INIT,
     UPDATE_CONFIG_DATA_NO_ROUTES,
 )
-from wizard import CBCloudAPI, main
 
 
 class MockFileManager:
@@ -87,7 +87,7 @@ def test_migrate_file_doesnt_exist(monkeypatch):
 
 def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     """Test for migrating config - success."""
-    monkeypatch.setattr("wizard.get_cb", lambda: cbcsdk_mock.api)
+    monkeypatch.setattr("cbc_importer.cli.wizard.get_cb", lambda: cbcsdk_mock.api)
     called = False
     dump_called = False
     cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/90TuDxDYQtiGyg5qhwYCg", FEED_GET_RESP)
@@ -118,7 +118,7 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
 
 def test_migrate_file_exists_no_proxy(monkeypatch, cbcsdk_mock):
     """Test for migrating config without proxy- success."""
-    monkeypatch.setattr("wizard.get_cb", lambda: cbcsdk_mock.api)
+    monkeypatch.setattr("cbc_importer.cli.wizard.get_cb", lambda: cbcsdk_mock.api)
     called = False
     dump_called = False
     cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/A1B2C3D4/feeds/90TuDxDYQtiGyg5qhwYCg", FEED_GET_RESP)

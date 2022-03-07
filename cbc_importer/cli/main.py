@@ -29,14 +29,6 @@ from cbc_importer.stix_parsers.v2.parser import STIX2Parser
 from cbc_importer.taxii_configurator import TAXIIConfigurator
 from cbc_importer.utils import transform_date, validate_provider_url, validate_severity
 
-DEBUG = True
-
-if DEBUG:
-    # Providing a rich traceback for errors
-    from rich.traceback import install
-
-    install(show_locals=True)
-
 DEFAULT_CONFIG_PATH = Path(__file__).parent.resolve() / "config.yml"
 
 
@@ -121,11 +113,11 @@ def process_taxii2_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) 
 
     Example usage:
 
-        python main.py process-file ./stix_content.xml http://yourprovider.com/
+        cbc-stix-taxii-connector process-file ./stix_content.xml http://yourprovider.com/
 
-        python main.py process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
+        cbc-stix-taxii-connector process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
 
-        python main.py process-file ./stix_content.xml http://yourprovider.com/ --severity=9
+        cbc-stix-taxii-connector process-file ./stix_content.xml http://yourprovider.com/ --severity=9
 
     """
 )
@@ -193,7 +185,7 @@ def process_file(
 
     Example usage:
 
-        python main.py process-server --config-file=./config.yml
+        cbc-stix-taxii-connector process-server --config-file=./config.yml
 
 
     """
