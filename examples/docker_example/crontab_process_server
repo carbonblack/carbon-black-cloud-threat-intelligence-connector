@@ -1,1 +1,1 @@
-0 0 1 * * /usr/local/bin/python /app/main.py process-server --config-file=/app/config.yml > /proc/1/fd/1 2>/proc/1/fd/2
+0 0 1 * * /usr/local/bin/cbc-stix-taxii-connector process-server --config-file=/app/config.yml > /proc/1/fd/1 2>/proc/1/fd/2
