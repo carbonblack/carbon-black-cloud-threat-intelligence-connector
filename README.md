@@ -8,55 +8,17 @@ This is a python project that can be used for ingesting Threat Intelligence from
 
 ## Installation
 
-Clone the repository
+```shell-session
+$ pip install carbon-black-cloud-stix-taxii-connector
+$ cbc-stix-taxii-connector --help
+Usage: cbc-stix-taxii-connector [OPTIONS] COMMAND [ARGS]...
 
-```bash
-$ git clone https://github.com/carbonblack/cbc-taxii-connector.git
-$ cd cbc-taxii-connector/
-```
-
-You can install this connector either via Poetry or using the `virtualenv`.
-
-### Using [Poetry](https://python-poetry.org/docs/)
-
-You will need to [install poetry](https://python-poetry.org/docs/#installation) first.
-
-To install the connector run:
-
-```bash
-$ poetry install --no-dev
-$ poetry run python ./main.py --help
-```
-
-Or if you don't want to type `poetry run` every time.
-
-```bash
-$ poetry shell
-(cbc-taxii-connector-WePRHx-s-py3.8) $ python ./main.py --help
-```
-
-### Using [virtualenv](https://virtualenv.pypa.io/en/latest/)
-
-You will need to [install virtualenv](https://python-poetry.org/docs/#installation) first.
-
-```bash
-$ virtualenv venv
-...
-$ source ./venv/bin/activate
-(venv) $ pip install -r requirements.txt
-...
-(venv) $ python ./main.py --help
-...
-Usage: main.py [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  <truncated>
+Options: <truncated>
 
 Commands:
   process-file    Process and import a single STIX content file into CBC...
   process-server  Process and import a TAXII Server (2.0/2.1/1.x)
   version         Shows the version of the connector
-...
 ```
 
 ## Usage
@@ -68,21 +30,41 @@ You can parse a file with the connector with the `process-file` command.
 An example usage and description of that command can be found with:
 
 ```shell-session
-$ python main.py process-file --help
-...
-Usage: main.py process-file [OPTIONS] [STIX_FILE_PATH] [PROVIDER_URL]
+$ cbc-stix-taxii-connector process-file --help
+Usage: cbc-stix-taxii-connector process-file [OPTIONS] [STIX_FILE_PATH]
+                                             [PROVIDER_URL]
 
   Process and import a single STIX content file into CBC `Accepts *.json (STIX
   2.1/2.0) / *.xml (1.x)`
 
   Example usage:
 
-      python main.py process-file ./stix_content.xml http://yourprovider.com/
+      cbc-stix-taxii-connector process-file ./stix_content.xml
+      http://yourprovider.com/
 
-      python main.py process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
+      cbc-stix-taxii-connector process-file ./stix_content.xml
+      http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
 
-      python main.py process-file ./stix_content.xml http://yourprovider.com/ --severity=9
-...
+      cbc-stix-taxii-connector process-file ./stix_content.xml
+      http://yourprovider.com/ --severity=9
+
+Arguments:
+  [STIX_FILE_PATH]  The location of the STIX Content file.
+  [PROVIDER_URL]    The URL of the provider of the content.
+
+Options:
+  --start-date TEXT      The start date of the STIX Content, The format should
+                         be ISO 8601  [default: 2022-02-07 11:09:27+00:00]
+  --end-date TEXT        The end date of the STIX Content, The format should
+                         be ISO 8601  [default: 2022-03-07 11:09:27+00:00]
+  --severity INTEGER     The severity of the generated Reports  [default: 5]
+  --summary TEXT         Summary of the feed  [default: ...]
+  --category TEXT        The category that the feed will have  [default: STIX]
+  --cbc-profile TEXT     The CBC Profile set in the CBC Credentials  [default:
+                         default]
+  --feed-base-name TEXT  The base name for the feed that is going to be
+                         created  [default: STIX Feed]
+  --help                 Show this message and exit.
 ```
 
 The connector will automatically figure out the STIX version for you and use its appropriate parsers (you can use json files too), all you need to do is to pass the file and the required parameters.
@@ -95,15 +77,19 @@ An example usage and description of that command can be found with:
 
 ```shell-session
 $ python main.py process-server --help
-...
-Usage: main.py process-server [OPTIONS]
+Usage: cbc-stix-taxii-connector process-server [OPTIONS]
 
   Process and import a TAXII Server (2.0/2.1/1.x)
 
   Example usage:
 
-      python main.py process-server --config-file=./config.yml
-...
+      cbc-stix-taxii-connector process-server --config-file=./config.yml
+
+Options:
+  --config-file TEXT  The configuration of the servers  [default: /home/syl/co
+                      de/vmware/test/cbc_taxii/venv/lib/python3.8/site-
+                      packages/cbc_importer/cli/config.yml]
+  --help              Show this message and exit.
 ```
 
 The default path for your config path is `{CURRENT_DIR}/config.yml`.
@@ -118,7 +104,7 @@ You can use the configuration wizard to easily manage the `config.yml`.
 
 An example usage of the command:
 ```shell-session
-$ python wizard.py
+$ cbc-stix-taxii-wizard
 ```
 This is going to provide a menu with the options:
 * migrate your current config
@@ -146,6 +132,8 @@ Make sure to fill the credentials in the `examples/docker_example/credentials.cb
 
 You can use a Docker container for running the application.
 
+First clone the repository, then run the following command:
+
 ```console
 $ docker build -f ./examples/docker_example/Dockerfile .
 ```
@@ -165,16 +153,54 @@ We rely on pull requests to keep this project maintained. By participating in th
 
 It is recommended to use Python3.8 / Python3.9 version for that project, assuming that you installed the deps with either virtualenv or poetry.
 
-If you have used poetry run the following command:
-
-```shell-session
-$ poetry install
-```
-
 For a good code quality make sure to install the hooks from `pre-commit` as well.
 
 ```shell-session
 $ pre-commit install
+```
+
+### Installation
+
+Clone the repository
+
+```bash
+$ git clone https://github.com/carbonblack/carbon-black-cloud-stix-taxii-connector.git
+$ cd carbon-black-cloud-stix-taxii-connector/
+```
+
+You can install this connector either via Poetry or using the `virtualenv`.
+
+#### Using [Poetry](https://python-poetry.org/docs/)
+
+You will need to [install poetry](https://python-poetry.org/docs/#installation) first.
+
+To install the connector run:
+
+```bash
+$ poetry install
+$ poetry run python ./cbc_importer/cli/main.py --help
+```
+
+Or if you don't want to type `poetry run` every time.
+
+```bash
+$ poetry shell
+(cbc-taxii-connector-WePRHx-s-py3.8) $ python ./cbc_importer/cli/main.py --help
+...
+```
+
+#### Using [virtualenv](https://virtualenv.pypa.io/en/latest/)
+
+You will need to [install virtualenv](https://python-poetry.org/docs/#installation) first.
+
+```bash
+$ virtualenv venv
+...
+$ source ./venv/bin/activate
+(venv) $ pip install -r requirements.txt
+...
+(venv) $ python cbc_importer/cli/main.py --help
+...
 ```
 
 ### Support
