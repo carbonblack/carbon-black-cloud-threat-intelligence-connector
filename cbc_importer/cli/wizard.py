@@ -363,7 +363,7 @@ def update_config() -> None:
         yaml.dump(config_data, new_config, default_flow_style=False, sort_keys=False)
 
 
-def main():
+def cli():
     """Entry for the main script."""
     menu_text = [
         "1 Migrate old config",
@@ -381,7 +381,3 @@ def main():
         choice = input()
 
     menu[choice]()
-
-
-if __name__ == "__main__":
-    main()

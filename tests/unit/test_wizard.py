@@ -18,7 +18,7 @@ import pytest
 from cbc_sdk.credential_providers.default import default_provider_object
 from cbc_sdk.credentials import Credentials
 
-from cbc_importer.cli.wizard import CBCloudAPI, main
+from cbc_importer.cli.wizard import CBCloudAPI, cli
 from tests.fixtures.cbc_sdk_credentials_mock import MockCredentialProvider
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_mock_responses import FEED_GET_RESP
@@ -82,7 +82,7 @@ def test_migrate_file_doesnt_exist(monkeypatch):
 
     monkeypatch.setattr("builtins.input", migrate_input)
     monkeypatch.setattr("os.path.exists", lambda x: False)
-    main()
+    cli()
 
 
 def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
@@ -112,7 +112,7 @@ def test_migrate_file_exists(monkeypatch, cbcsdk_mock):
     monkeypatch.setattr("yaml.dump", dump_method)
     monkeypatch.setattr("os.path.exists", lambda x: True)
     monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
+    cli()
     assert dump_called
 
 
@@ -141,7 +141,7 @@ def test_migrate_file_exists_no_proxy(monkeypatch, cbcsdk_mock):
     monkeypatch.setattr("yaml.dump", dump_method)
     monkeypatch.setattr("os.path.exists", lambda x: True)
     monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
+    cli()
     assert dump_called
 
 
@@ -251,7 +251,7 @@ def test_generate_config(monkeypatch):
     monkeypatch.setattr("os.path.exists", lambda x: False)
     monkeypatch.setattr("yaml.dump", dump_method)
     monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
+    cli()
     assert dump_called
 
 
@@ -303,7 +303,7 @@ def test_update_config_add_new_site(monkeypatch):
     monkeypatch.setattr("yaml.dump", dump_method)
     monkeypatch.setattr("yaml.safe_load", lambda x: load_data)
     monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
+    cli()
     assert dump_called
 
 
@@ -354,7 +354,7 @@ def test_update_config_add_new_site_no_api_routes(monkeypatch):
     monkeypatch.setattr("yaml.dump", dump_method)
     monkeypatch.setattr("yaml.safe_load", lambda x: load_data)
     monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
+    cli()
     assert dump_called
 
 
@@ -381,7 +381,7 @@ def test_update_config_wrong_choice(monkeypatch):
     monkeypatch.setattr("yaml.dump", dump_method)
     monkeypatch.setattr("yaml.safe_load", lambda x: load_data)
     monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
+    cli()
     assert dump_called is False
 
 
@@ -409,7 +409,7 @@ def test_update_config_no_feed_entered(monkeypatch):
     monkeypatch.setattr("yaml.dump", dump_method)
     monkeypatch.setattr("yaml.safe_load", lambda x: load_data)
     monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
+    cli()
     assert dump_called is True
 
 
@@ -438,7 +438,7 @@ def test_generate_config_no_site(monkeypatch):
     monkeypatch.setattr("os.path.exists", lambda x: False)
     monkeypatch.setattr("yaml.dump", dump_method)
     monkeypatch.setattr("builtins.open", open_file_mock)
-    main()
+    cli()
     assert dump_called
 
 
@@ -456,4 +456,4 @@ def test_exit(monkeypatch):
     monkeypatch.setattr("builtins.input", wrong_and_exit_input)
 
     with pytest.raises(SystemExit):
-        main()
+        cli()

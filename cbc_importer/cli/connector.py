@@ -37,7 +37,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler(sys.stdout)]
 )
 
-app = typer.Typer(no_args_is_help=True)
+cli = typer.Typer(no_args_is_help=True)
 
 
 def process_stix1_file(**kwargs) -> None:
@@ -107,7 +107,7 @@ def process_taxii2_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) 
     logging.info(f"Created {len(feeds)} Feeds.")
 
 
-@app.command(
+@cli.command(
     help="""
     Process and import a single STIX content file into CBC `Accepts *.json (STIX 2.1/2.0) / *.xml (1.x)`
 
@@ -179,7 +179,7 @@ def process_file(
         raise ValueError(f"Invalid extension: `{extension}`")
 
 
-@app.command(
+@cli.command(
     help="""
     Process and import a TAXII Server (2.0/2.1/1.x)
 
@@ -216,7 +216,7 @@ def process_server(config_file: str = Option(DEFAULT_CONFIG_PATH, help="The conf
             logger.info(f"Skipping {server_config.server_name}")
 
 
-@app.command(help="Shows the version of the connector")
+@cli.command(help="Shows the version of the connector")
 def version():
     """Shows the version of the connector in the cli
 
@@ -225,7 +225,3 @@ def version():
     """
     typer.echo(__version__)
     raise typer.Exit()
-
-
-if __name__ == "__main__":
-    app()
