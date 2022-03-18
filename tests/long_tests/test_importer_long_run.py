@@ -12,7 +12,7 @@ from tests.fixtures.cbc_sdk_mock_responses import (
 )
 
 
-def test_process_iocs_couple_of_feeds(cbcsdk_mock):
+def test_creating_of_more_feeds(cbcsdk_mock):
     """Test process iocs with enough iocs for two feeds"""
     api = cbcsdk_mock.api
     ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")

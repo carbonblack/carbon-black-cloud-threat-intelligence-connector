@@ -156,7 +156,6 @@ After that you can run the container using its hash, keep in mind that your hash
 $ docker run 61412f4b303cdccb...89d8490f6c3527
 ```
 
-
 ## Developing the connector
 
 We rely on pull requests to keep this project maintained. By participating in this project, you agree to abide by the VMware [code of conduct](CODE-OF-CONDUCT.md).
@@ -177,6 +176,16 @@ For a good code quality make sure to install the hooks from `pre-commit` as well
 $ pre-commit install
 ```
 
+### Tests
+
+The tests can be run with the following command:
+
+```shell-session
+$ pytest ./tests/unit/
+# Or for the long running tests
+$ pytest ./tests/long_tests/
+```
+For running the performance tests check out the [README](tests/performance/README.md)
 ### Support
 
 1. View all API and integration offerings on the [Developer Network](https://developer.carbonblack.com) along with reference documentation, video tutorials, and how-to guides.
