@@ -1,6 +1,7 @@
 # STIX Threat Connector for CBC
 
 This is a python project that can be used for ingesting Threat Intelligence from various STIX Feeds. The current supported versions of STIX Feeds are 1.x, 2.0 and 2.1.
+It supports python >= 3.8
 
 [![Coverage Status](https://coveralls.io/repos/github/carbonblack/cbc-taxii-connector/badge.svg?t=6yDdHe)](https://coveralls.io/github/carbonblack/cbc-taxii-connector)
 [![Codeship Status for carbonblack/cbc-taxii-connector](https://app.codeship.com/projects/a0c7096c-4359-48af-944a-75399f7b42f2/status?branch=main)](https://app.codeship.com/projects/455332)
@@ -21,7 +22,7 @@ Commands:
   version         Shows the version of the connector
 ```
 
-## Usage
+## Getting Started
 
 ### Parsing STIX Content file into CBC
 
