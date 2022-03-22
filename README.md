@@ -192,7 +192,7 @@ $ poetry shell
 
 #### Using [virtualenv](https://virtualenv.pypa.io/en/latest/)
 
-You will need to [install virtualenv](https://python-poetry.org/docs/#installation) first.
+You will need to [install virtualenv](https://virtualenv.pypa.io/en/latest/installation.html) first.
 
 ```bash
 $ virtualenv venv
