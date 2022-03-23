@@ -71,5 +71,5 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-cbc-stix-taxii-connector = "cbc_importer.cli.connector:cli"
-cbc-stix-taxii-wizard = "cbc_importer.cli.wizard:cli"
+cbc-threat-intel = "cbc_importer.cli.connector:cli"
+cbc-threat-intel-wizard = "cbc_importer.cli.wizard:cli"
