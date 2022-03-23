@@ -145,7 +145,6 @@ After that you can run the container using its hash, keep in mind that your hash
 $ docker run 61412f4b303cdccb...89d8490f6c3527
 ```
 
-
 ## Developing the connector
 
 We rely on pull requests to keep this project maintained. By participating in this project, you agree to abide by the VMware [code of conduct](CODE-OF-CONDUCT.md).
