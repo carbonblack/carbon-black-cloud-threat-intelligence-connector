@@ -23,7 +23,7 @@ def test_poll_server_one_collection(taxii1_server_mock, cbcsdk_mock):
         collections,
     )
 
-    assert len(iocs) == 3158
+    assert len(iocs) == 4
 
 
 def test_parse_server_raises_xml_syntax_error(caplog, monkeypatch, taxii1_server_mock, cbcsdk_mock):
