@@ -29,14 +29,6 @@ from cbc_importer.stix_parsers.v2.parser import STIX2Parser
 from cbc_importer.taxii_configurator import TAXIIConfigurator
 from cbc_importer.utils import transform_date, validate_provider_url, validate_severity
 
-DEBUG = True
-
-if DEBUG:
-    # Providing a rich traceback for errors
-    from rich.traceback import install
-
-    install(show_locals=True)
-
 DEFAULT_CONFIG_PATH = Path(__file__).parent.resolve() / "config.yml"
 
 
@@ -45,7 +37,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler(sys.stdout)]
 )
 
-app = typer.Typer(no_args_is_help=True)
+cli = typer.Typer(no_args_is_help=True)
 
 
 def process_stix1_file(**kwargs) -> None:
@@ -115,17 +107,17 @@ def process_taxii2_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) 
     logging.info(f"Created {len(feeds)} Feeds.")
 
 
-@app.command(
+@cli.command(
     help="""
     Process and import a single STIX content file into CBC `Accepts *.json (STIX 2.1/2.0) / *.xml (1.x)`
 
     Example usage:
 
-        python main.py process-file ./stix_content.xml http://yourprovider.com/
+        cbc-stix-taxii-connector process-file ./stix_content.xml http://yourprovider.com/
 
-        python main.py process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
+        cbc-stix-taxii-connector process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
 
-        python main.py process-file ./stix_content.xml http://yourprovider.com/ --severity=9
+        cbc-stix-taxii-connector process-file ./stix_content.xml http://yourprovider.com/ --severity=9
 
     """
 )
@@ -187,13 +179,13 @@ def process_file(
         raise ValueError(f"Invalid extension: `{extension}`")
 
 
-@app.command(
+@cli.command(
     help="""
     Process and import a TAXII Server (2.0/2.1/1.x)
 
     Example usage:
 
-        python main.py process-server --config-file=./config.yml
+        cbc-stix-taxii-connector process-server --config-file=./config.yml
 
 
     """
@@ -224,7 +216,7 @@ def process_server(config_file: str = Option(DEFAULT_CONFIG_PATH, help="The conf
             logger.info(f"Skipping {server_config.server_name}")
 
 
-@app.command(help="Shows the version of the connector")
+@cli.command(help="Shows the version of the connector")
 def version():
     """Shows the version of the connector in the cli
 
@@ -233,7 +225,3 @@ def version():
     """
     typer.echo(__version__)
     raise typer.Exit()
-
-
-if __name__ == "__main__":
-    app()
