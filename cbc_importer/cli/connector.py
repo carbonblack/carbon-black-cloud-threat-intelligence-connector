@@ -113,11 +113,11 @@ def process_taxii2_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) 
 
     Example usage:
 
-        cbc-stix-taxii-connector process-file ./stix_content.xml http://yourprovider.com/
+        cbc-threat-intel process-file ./stix_content.xml http://yourprovider.com/
 
-        cbc-stix-taxii-connector process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
+        cbc-threat-intel process-file ./stix_content.xml http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
 
-        cbc-stix-taxii-connector process-file ./stix_content.xml http://yourprovider.com/ --severity=9
+        cbc-threat-intel process-file ./stix_content.xml http://yourprovider.com/ --severity=9
 
     """,
     no_args_is_help=True
@@ -186,7 +186,7 @@ def process_file(
 
     Example usage:
 
-        cbc-stix-taxii-connector process-server --config-file=./config.yml
+         cbc-threat-intel process-server --config-file=./config.yml
 
 
     """,
