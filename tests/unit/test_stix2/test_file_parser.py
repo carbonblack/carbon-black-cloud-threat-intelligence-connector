@@ -37,7 +37,7 @@ def test_parser_valid_file_21(cbcsdk_mock):
     """Test parse valid file v2.1."""
     parser = STIX2Parser(cbcsdk_mock.api)
     objs = parser.parse_file(JSON_FEED_TEST_VALID_21)
-    assert len(objs) == 3158
+    assert len(objs) == 4
     assert isinstance(objs[0], IOC_V2)
 
 
@@ -63,7 +63,7 @@ def test_parser_valid_file_20(cbcsdk_mock):
     """Test parse valid file v2.0."""
     parser = STIX2Parser(cbcsdk_mock.api, stix_version="2.0")
     objs = parser.parse_file(JSON_FEED_TEST_VALID_20)
-    assert len(objs) == 3158
+    assert len(objs) == 4
     assert isinstance(objs[0], IOC_V2)
 
 

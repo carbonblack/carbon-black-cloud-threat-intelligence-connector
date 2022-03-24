@@ -18,7 +18,7 @@ def test_parse_feed_get_specified_collections(cbcsdk_mock, taxii2_server_mock):
         }
     ]
     iocs = STIX2Parser(cbcsdk_mock.api).parse_taxii_server(taxii2_server_mock, gather_data)
-    assert len(iocs) == 3158
+    assert len(iocs) == 4
 
 
 def test_parse_feed_get_one_root_all_collections(cbcsdk_mock, taxii2_server_mock):
@@ -38,4 +38,4 @@ def test_parse_feed_get_one_root_certain_collections(cbcsdk_mock, taxii2_server_
 def test_parse_feed(cbcsdk_mock, taxii2_server_mock):
     """Test parse feed."""
     iocs = STIX2Parser(cbcsdk_mock.api).parse_taxii_server(taxii2_server_mock)
-    assert len(iocs) == 12632
+    assert len(iocs) == 16

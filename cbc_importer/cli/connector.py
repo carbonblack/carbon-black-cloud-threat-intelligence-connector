@@ -119,7 +119,8 @@ def process_taxii2_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) 
 
         cbc-stix-taxii-connector process-file ./stix_content.xml http://yourprovider.com/ --severity=9
 
-    """
+    """,
+    no_args_is_help=True
 )
 def process_file(
     stix_file_path: str = Argument(None, help="The location of the STIX Content file."),
@@ -188,7 +189,8 @@ def process_file(
         cbc-stix-taxii-connector process-server --config-file=./config.yml
 
 
-    """
+    """,
+    no_args_is_help=True
 )
 def process_server(config_file: str = Option(DEFAULT_CONFIG_PATH, help="The configuration of the servers")) -> None:
     """Processing a TAXII Server
