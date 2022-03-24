@@ -1,11 +1,15 @@
 testingpython38:
   build:
     dockerfile: ./docker/python3.8/Dockerfile
+  environment:
+    - COVERALLS_REPO_TOKEN=haQEVaHWcJg5ZaytyEpHBdUUW2orTOxsd
 
 testingpython39:
   build:
     dockerfile: ./docker/python3.9/Dockerfile
-
+  environment:
+    - COVERALLS_REPO_TOKEN=haQEVaHWcJg5ZaytyEpHBdUUW2orTOxsd
+  
 testingpython310:
   build:
     dockerfile: ./docker/python3.10/Dockerfile
