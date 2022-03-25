@@ -17,20 +17,26 @@ from unittest.mock import MagicMock, patch
 import arrow
 import pytest
 from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2
+from typer.testing import CliRunner
 
 from cbc_importer import __version__
 from cbc_importer.cli.connector import (
+    create_feed,
+    create_watchlist,
     process_file,
     process_server,
     process_stix1_file,
     process_stix2_file,
     process_taxii1_server,
     process_taxii2_server,
+    version,
 )
 from cbc_importer.stix_parsers.v1.parser import STIX1Parser
 from cbc_importer.stix_parsers.v2.parser import STIX2Parser
 from cbc_importer.taxii_configurator import TAXIIConfigurator
 from tests.fixtures import cbc_sdk_mock
+
+runner = CliRunner()
 
 
 @patch.object(STIX1Parser, "parse_file")
@@ -316,3 +322,7 @@ def test_process_server_invalid_version(safe_load, rt, pts, cbcsdk, caplog):
     safe_load.return_value = configuration
     with pytest.raises(ValueError):
         process_server(config_file="test.yml")
+
+
+def test_connector_version():
+    pass

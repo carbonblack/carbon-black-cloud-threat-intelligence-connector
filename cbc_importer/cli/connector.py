@@ -19,7 +19,7 @@ from typing import Optional
 import typer
 import yaml
 from cbc_sdk import CBCloudAPI
-from cbc_sdk.enterprise_edr import Feed, Watchlist
+from cbc_sdk.enterprise_edr import Feed
 from typer import Argument, Option
 
 from cbc_importer import __version__

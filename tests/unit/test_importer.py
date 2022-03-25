@@ -20,7 +20,7 @@ from cbc_sdk import CBCloudAPI
 from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2
 from cbc_sdk.errors import ObjectNotFoundError
 
-from cbc_importer.importer import process_iocs, subscribe_to_feed
+from cbc_importer.importer import process_iocs
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_mock_responses import (
     FEED_CREATE_STIX,
@@ -257,42 +257,3 @@ def test_process_a_few_reports(cbcsdk_mock):
     assert len(feeds[0].reports[0]["iocs_v2"]) == 1000
     assert len(feeds[0].reports[1]["iocs_v2"]) == 1000
     assert len(feeds[0].reports[2]["iocs_v2"]) == 1000
-
-
-def test_subscribed_to_feed_by_base_name(cbcsdk_mock):
-    """Test subscribed to feed"""
-    api = cbcsdk_mock.api
-    counter = 0
-
-    def on_post(url, body, **kwargs):
-        nonlocal counter
-        counter += 1
-        return WATCHLIST_FROM_FEED_OUT
-
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds", FEED_GET_ALL_RESP)
-    cbcsdk_mock.mock_request("POST", "/threathunter/watchlistmgr/v3/orgs/test/watchlists", on_post)
-    subscribe_to_feed(api, feed_base_name="TEST")
-    assert counter == 3
-
-
-def test_subscribed_to_feed_by_name(cbcsdk_mock):
-    """Test subscribed to feed"""
-    api = cbcsdk_mock.api
-    counter = 0
-
-    def on_post(url, body, **kwargs):
-        nonlocal counter
-        counter += 1
-        return WATCHLIST_FROM_FEED_OUT
-
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds", FEED_GET_ALL_RESP)
-    cbcsdk_mock.mock_request("POST", "/threathunter/watchlistmgr/v3/orgs/test/watchlists", on_post)
-    subscribe_to_feed(api, feed_name="TEST123")
-    assert counter == 1
-
-
-def test_subscribed_to_feed_no_arg(cbcsdk_mock):
-    """Test subscribed to feed"""
-    api = cbcsdk_mock.api
-    with pytest.raises(Exception):
-        subscribe_to_feed(api)
