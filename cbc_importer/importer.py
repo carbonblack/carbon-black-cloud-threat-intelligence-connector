@@ -35,11 +35,13 @@ def process_iocs(
     severity: int,
     replace: bool,
     feed_id: str,
-) -> List[Feed]:
+) -> Feed:
     """Create reports and add the iocs to the reports.
 
+    If replace is True - replace all of the reports in a feed.
+    If replace is False, then append - so fill any reports with iocs < IOCS_BATCH_SIZE and create additional reports.
     If the iocs are >= IOCS_BATCH_SIZE, then create multiple reports.
-    If the number of reports are >= REPORTS_BATCH_SIZE, then create multiple feeds.
+    If the number of reports are >= REPORTS_BATCH_SIZE, then raise an error, this will not create addtional feeds.
 
     Args:
         cb (CBCloudAPI): A reference to the CBCloudAPI object.
@@ -49,60 +51,86 @@ def process_iocs(
         feed_id (str): id of an existing feed to be used for the import
 
     Returns:
-        list(Feed): list of feeds created as part of the import
+        Feed: updated feed with the proper reports
     """
     num_iocs = len(iocs)
-    num_reports = num_iocs // IOCS_BATCH_SIZE + 1
-    counter_r = 1
-    feeds = []
-
-    start, end = 0, IOCS_BATCH_SIZE
-
     reports = []
-    iocs_list = iocs[start:end]
+    counter_r = 1
 
-    # edge case when the number of iocs is divisible by IOCS_BATCH_SIZE * REPORTS_BATCH_SIZE
-    if replace:
-        if iocs_list:
-            try:
-                # if feed_id is provided, use the existing feed, but only for the first feed
-                # if more feeds are needed, they will be created using the default logic
-                feed = get_feed(cb, feed_id=feed_id)
-            except ObjectNotFoundError:
-                logger.error(f"Feed was not found with id: {feed_id}")
-                raise SystemExit(1)
 
-            # make the reports with batches of iocs per IOCS_BATCH_SIZE or less
-            while counter_r <= min(num_reports, REPORTS_BATCH_SIZE):
-                iocs_list = iocs[start:end]
-                start, end = end, end + IOCS_BATCH_SIZE
+    try:
+        feed = get_feed(cb, feed_id=feed_id)
+    except ObjectNotFoundError:
+        logger.error(f"Feed was not found with id: {feed_id}")
+        raise SystemExit(1)
+
+    iocs_list = []
+
+    # make the reports with batches of iocs per IOCS_BATCH_SIZE or less
+    while counter_r <= REPORTS_BATCH_SIZE and (counter_r == 1 or iocs_list):
+        start, end = 0, 0
+        # if we need to append the iocs instead of replacing, then first fill any half filled existing reports
+        if not replace:
+            for item in feed.reports:
                 counter_r += 1
+                if len(item) < IOCS_BATCH_SIZE:
+                    start, end = end, end + (IOCS_BATCH_SIZE - len(item))
+                    iocs_list = iocs[start:end]
 
-                # check for the edge case where we have iocs divisible by IOCS_BATCH_SIZE
-                # in that case there will be one-off error
-                if iocs_list:
-                    # use the builder so that the data is properly formed
-                    builder = Report.create(cb, f"Report {feed.name}-{counter_r - 1}", feed.summary, severity)
-                    report_data = builder._report_body
-                    # add the iocs
-                    report_data["iocs_v2"] = []
-                    [report_data["iocs_v2"].append(ioc._info) for ioc in iocs_list]
-
-                    # add id for the report, because the builder is not include it
-                    report_data["id"] = str(uuid.uuid4())
-
-                    # create a report with all the data
-                    report = Report(cb, initial_data=report_data, feed_id=feed.id)
-                    report.save()
-
-                    # finally, add the report to the list to be added in the current feed
+                    # if we have managed to use all the existing reports for the new iocs
+                    if iocs_list:
+                        break
+                    # create a new report with the existing iocs + new ones up to IOCS_BATCH_SIZE
+                    report = create_report(cb, feed, counter_r, severity, iocs_list, item.iocs_v2)
                     reports.append(report)
 
-            # add reports to the current feed
-            feed.replace_reports(reports)
-            # add the created feed
-            feeds.append(feed)
-    else:
-        pass
+        # if case we need to replace all the reports or just create more reports
+        start, end = end, end + IOCS_BATCH_SIZE
+        iocs_list = iocs[start:end]
+        # if we have already managed to put all the new iocs in reports
+        if iocs_list:
+            report = create_report(cb, feed, counter_r, severity, iocs_list)
+            reports.append(report)
+            counter_r += 1
 
-    return feeds
+    # add reports to the current feed
+    feed.replace_reports(reports)
+    return feed
+
+
+def create_report(cb: CBCloudAPI,
+                  feed: Feed,
+                  number_of_report: int,
+                  severity: int,
+                  new_iocs: list[Report],
+                  existing_iocs: int = None) -> Report:
+    """Create reports and add the iocs to the reports.
+
+    Args:
+        cb (CBCloudAPI): A reference to the CBCloudAPI object.
+        feed (Feed): Feed to which the report will be added
+        number_of_report (int): The current report number
+        severity (int): The severity of the Report
+        new_iocs (list): List of the new iocs that needs to be added
+        existing_iocs (list): (optional) List of existing iocs
+
+    Returns:
+        Report: The created report
+
+    """
+    # use the builder so that the data is properly formed
+    builder = Report.create(cb, f"Report {feed.name}-{number_of_report - 1}", feed.summary, severity)
+    report_data = builder._report_body
+
+    # add the iocs
+    report_data["iocs_v2"] = existing_iocs if existing_iocs else []
+    [report_data["iocs_v2"].append(ioc._info) for ioc in new_iocs]
+
+    # add id for the report, because the builder is not include it
+    report_data["id"] = str(uuid.uuid4())
+
+    # create a report with all the data
+    report = Report(cb, initial_data=report_data, feed_id=feed.id)
+    report.save()
+    return report
+
