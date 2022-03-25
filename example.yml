@@ -24,11 +24,13 @@ servers:
 
     # The options for the feed that goes into Carbon Black Cloud.
     # - `*feed_id`: The id of the feed in CBC
-    # - `*severity`: Severity for the reports. Accepts values [1,10]
+    # - `*severity`: The severity of the Reports
+    # - `replace`: Replacing the existing Reports in the Feed, if False it will append the results
     cbc_feed_options:
       feed_id: feed_id
       severity: 5
-        
+      replace: true
+
 
     # If you have any proxies that you want to use
     #
