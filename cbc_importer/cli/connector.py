@@ -125,34 +125,22 @@ def process_taxii2_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) 
 def process_file(
     stix_file_path: str = Argument(None, help="The location of the STIX Content file."),
     provider_url: str = Argument(None, help="The URL of the provider of the content.", callback=validate_provider_url),
-    start_date: Optional[str] = Option(
-        f"{arrow.utcnow().shift(months=-1).format()}",
-        help="The start date of the STIX Content, The format should be ISO 8601",
-        callback=transform_date,
-    ),
-    end_date: Optional[str] = Option(
-        f"{arrow.utcnow().format()}",
-        help="The end date of the STIX Content, The format should be ISO 8601",
-        callback=transform_date,
-    ),
+    feed_name: str = Argument(None, help="The name for the feed that is going to be created"),
     severity: Optional[int] = Option(5, help="The severity of the generated Reports", callback=validate_severity),
     summary: Optional[str] = Option("...", help="Summary of the feed"),
     category: Optional[str] = Option("STIX", help="The category that the feed will have"),
     cbc_profile: Optional[str] = Option("default", help="The CBC Profile set in the CBC Credentials"),
-    feed_base_name: str = Option("STIX Feed", help="The base name for the feed that is going to be created"),
 ) -> None:
     """Processing a single STIX file content.
 
     Args:
         stix_file_path (str): the path to the file
         provider_url (str): An url of the provider of that STIX content
-        start_date (Optional[str]): The start date of the script
-        end_date (Optional[str]): The end date of the script
+        feed_name (str): The base name for the feed that is going to be created
         severity (Optional[int]): The severity of the reports that are going to be imported
         summary (Optional[str]): Summary of the Feed
         category (Optional[str]): The category of the Feed
         cbc_profile (Optional[str]): The CBC Profile set in the CBC Credentials
-        feed_base_name (str, optional): The base name for the feed that is going to be created
 
     Raises:
         ValueError: If the `stix_file_path` has invalid extension
@@ -163,12 +151,10 @@ def process_file(
     kwargs = {
         "stix_file_path": stix_file_path,
         "provider_url": provider_url,
-        "start_date": start_date,
-        "end_date": end_date,
         "severity": severity,
         "summary": summary,
         "category": category,
-        "feed_base_name": feed_base_name,
+        "feed_name": feed_name,
         "cb": cbcsdk,
     }
 
@@ -227,3 +213,7 @@ def version():
     """
     typer.echo(__version__)
     raise typer.Exit()
+    
+
+if __name__ == "__main__":
+    cli()

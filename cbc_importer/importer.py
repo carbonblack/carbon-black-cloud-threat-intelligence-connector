@@ -32,10 +32,8 @@ REPORTS_BATCH_SIZE = 10000
 def process_iocs(
     cb: CBCloudAPI,
     iocs: List[IOC_V2],
-    feed_base_name: str,
+    feed_name: str,
     stix_version: str,
-    start_date: str,
-    end_date: str,
     provider_url: str,
     summary: str,
     category: str,
@@ -50,10 +48,8 @@ def process_iocs(
     Args:
         cb (CBCloudAPI): A reference to the CBCloudAPI object.
         iocs (list): list of iocs
-        feed_base_name (str): The base name of the feeds
+        feed_name (str): The base name of the feeds
         stix_version (str): the stix version
-        start_date (str): the start date
-        end_date (str): the end date
         provider_url (str): Provider URL for the new feed.
         summary (str): Summary for the new feed.
         category (str): Category for the new feed.
@@ -76,7 +72,7 @@ def process_iocs(
 
     while counter_f <= num_feeds:
         reports = []
-        feed_name = f"{feed_base_name} ({stix_version}) {start_date} to {end_date} - Part {counter_f}"
+        feed_name = f"{feed_name} ({stix_version}) Part {counter_f}"
         iocs_list = iocs[start:end]
 
         # edge case when the number of iocs is divisible by IOCS_BATCH_SIZE * REPORTS_BATCH_SIZE
@@ -88,6 +84,7 @@ def process_iocs(
                     feed = get_feed(cb, feed_id=feed_id)
                     logger.info(f"Using existing feed with name: {feed.name}")
                 else:
+                    # TODO: Search by name (get feed again)
                     feed = create_feed(cb, name=feed_name, provider_url=provider_url, summary=summary, category=category)
                     logger.info(f"Feed was created with name: {feed.name}")
             except ObjectNotFoundError:

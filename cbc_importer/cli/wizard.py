@@ -381,3 +381,7 @@ def cli():
         choice = input()
 
     menu[choice]()
+
+
+if __name__ == "__main__":
+    cli()
