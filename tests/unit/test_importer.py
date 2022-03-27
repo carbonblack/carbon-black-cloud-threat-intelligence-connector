@@ -24,9 +24,9 @@ from cbc_importer.importer import process_iocs
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_mock_responses import (
     FEED_CREATE_STIX,
-    FEED_GET_ALL_RESP,
     FEED_GET_ALL_RESP_NO_FEED,
     FEED_GET_RESP,
+    FEED_RESP_POST_REPLACE_REPORTS,
     FEED_RESP_POST_STIX,
     REPORT_INIT_ONE_IOCS,
     REPORTS_3_INIT_1000_IOCS,
@@ -72,7 +72,7 @@ def test_process_iocs_single_ioc(cbcsdk_mock):
     def on_get_reports(url, *args, **kwargs):
         return REPORTS_GET_ONE_IOCS
 
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds", FEED_GET_ALL_RESP_NO_FEED)
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds", FEED_RESP_POST_REPLACE_REPORTS)
     cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds", on_post_feed)
     cbcsdk_mock.mock_request(
         "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_post_report
@@ -82,15 +82,10 @@ def test_process_iocs_single_ioc(cbcsdk_mock):
     )
     feeds = process_iocs(
         api,
-        [ioc],
-        "my_base_name",
-        "2.0",
-        "2022-01-27",
-        "2022-02-27",
-        "limo.domain.com",
-        "feed for stix taxii",
-        "thiswouldgood",
-        5,
+        iocs=[ioc],
+        severity=3,
+        replace=False,
+        feed_id="90TuDxDYQtiGyg5qhwYCg",
     )
 
     assert len(feeds) == 1
@@ -129,15 +124,9 @@ def test_process_iocs_with_existing_feed(cbcsdk_mock):
     feeds = process_iocs(
         api,
         [ioc],
-        "my_base_name",
-        "2.0",
-        "2022-01-27",
-        "2022-02-27",
-        "limo.domain.com",
-        "feed for stix taxii",
-        "thiswouldgood",
-        5,
-        feed_id="90TuDxDYQtiGyg5qhwYCg",
+        3,
+        False,
+        "90TuDxDYQtiGyg5qhwYCg",
     )
 
     assert len(feeds) == 1
@@ -181,23 +170,15 @@ def test_process_iocs_with_feed_id_doesnt_exist(cbcsdk_mock):
     cbcsdk_mock.mock_request(
         "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_get_reports
     )
-    feeds = process_iocs(
-        api,
-        [ioc],
-        "my_base_name",
-        "2.0",
-        "2022-01-27",
-        "2022-02-27",
-        "limo.domain.com",
-        "feed for stix taxii",
-        "thiswouldgood",
-        5,
-        feed_id="90TuDxDYQtiGyg5qhwYCg",
-    )
 
-    assert len(feeds) == 1
-    assert len(feeds[0].reports) == 1
-    assert len(feeds[0].reports[0]["iocs_v2"]) == 1
+    with pytest.raises(SystemExit):
+        process_iocs(
+            api,
+            [ioc],
+            5,
+            False,
+            feed_id="90TuDxDYQtiGyg5qhwYCg",
+        )
 
 
 def test_process_a_few_reports(cbcsdk_mock):
@@ -215,9 +196,9 @@ def test_process_a_few_reports(cbcsdk_mock):
             del report_body["reports"][i]["id"]
             del report_body["reports"][i]["timestamp"]
             title = report_body["reports"][i]["title"]
-            assert "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-" + str(counter_r) == title
+            assert f"Report my_base_name-{counter_r}" == title
             # change the title to match the mock
-            report_body["reports"][i]["title"] = "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1"
+            report_body["reports"][i]["title"] = f"Report my_base_name-{counter_r}"
             assert len(report_body["reports"][i]["iocs_v2"]) == 1000
             counter_r += 1
 
@@ -239,18 +220,7 @@ def test_process_a_few_reports(cbcsdk_mock):
     cbcsdk_mock.mock_request(
         "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_get_reports
     )
-    feeds = process_iocs(
-        api,
-        iocs_list,
-        "my_base_name",
-        "2.0",
-        "2022-01-27",
-        "2022-02-27",
-        "limo.domain.com",
-        "feed for stix taxii",
-        "thiswouldgood",
-        5,
-    )
+    feeds = process_iocs(api, iocs_list, 3, False, feed_id="90TuDxDYQtiGyg5qhwYCg")
 
     assert len(feeds) == 1
     assert len(feeds[0].reports) == 3

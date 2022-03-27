@@ -53,10 +53,8 @@ def process_iocs(
     Returns:
         Feed: updated feed with the proper reports
     """
-    num_iocs = len(iocs)
     reports = []
     counter_r = 1
-
 
     try:
         feed = get_feed(cb, feed_id=feed_id)
@@ -102,12 +100,9 @@ def process_iocs(
     return feed
 
 
-def create_report(cb: CBCloudAPI,
-                  feed: Feed,
-                  number_of_report: int,
-                  severity: int,
-                  new_iocs: list[Report],
-                  existing_iocs: int = None) -> Report:
+def create_report(
+    cb: CBCloudAPI, feed: Feed, number_of_report: int, severity: int, new_iocs: List[Report], existing_iocs: int = None
+) -> Report:
     """Create reports and add the iocs to the reports.
 
     Args:
@@ -137,4 +132,3 @@ def create_report(cb: CBCloudAPI,
     report = Report(cb, initial_data=report_data, feed_id=feed.id)
     report.save()
     return report
-
