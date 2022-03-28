@@ -30,7 +30,6 @@ from tests.fixtures.cbc_sdk_mock_responses import (
     REPORTS_3_INIT_1000_IOCS,
     REPORTS_4_INIT_1000_IOCS,
     REPORTS_GET_2_WITH_998_IOCS_1_1000,
-    REPORTS_GET_3_WITH_1000_IOCS,
     REPORTS_GET_NO_REPORTS,
 )
 
@@ -118,9 +117,6 @@ def test_process_a_few_reports_replace(cbcsdk_mock):
         assert report_body == REPORTS_3_INIT_1000_IOCS
         return REPORTS_3_INIT_1000_IOCS
 
-    def on_get_reports(url, *args, **kwargs):
-        return REPORTS_GET_3_WITH_1000_IOCS
-
     cbcsdk_mock.mock_request(
         "GET",
         "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
@@ -197,8 +193,7 @@ def test_process_iocs_append_with_existing_reports_no_new_needed(cbcsdk_mock):
             # change the title to match the mock
             report_body["reports"][i]["title"] = "Report My STIX Feed-1"
             if counter_r == 1:
-                # assert len(report_body["reports"][i]["iocs_v2"]) == 3
-                ...
+                assert len(report_body["reports"][i]["iocs_v2"]) == 3
             else:
                 assert len(report_body["reports"][i]["iocs_v2"]) == 1
             counter_r += 1
