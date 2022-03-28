@@ -75,12 +75,12 @@ def test_create_feed_no_reports(cbcsdk_mock):
     api = cbcsdk_mock.api
     obj = create_feed(
         api,
-        "base_name",
+        "My STIX Feed",
         "https://thisistheplace.com",
         "this is the details",
         "thiswouldgood",
     )
-    assert obj.name == "base_name"
+    assert obj.name == "My STIX Feed"
 
 
 def test_create_feed_with_reports(cbcsdk_mock):
@@ -126,7 +126,7 @@ def test_get_feed_by_id(cbcsdk_mock):
         FEED_GET_RESP,
     )
     obj = get_feed(api, feed_id="90TuDxDYQtiGyg5qhwYCg")
-    assert obj.name == "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1"
+    assert obj.name == "My STIX Feed"
 
 
 def test_get_feed_by_name(cbcsdk_mock):

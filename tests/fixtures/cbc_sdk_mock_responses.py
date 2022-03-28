@@ -120,7 +120,7 @@ FEED_INIT = {
 
 FEED_CREATE_NO_REPORT_INIT = {
     "feedinfo": {
-        "name": "My STIX Feed 2",
+        "name": "My STIX Feed",
         "provider_url": "https://thisistheplace.com",
         "summary": "this is the details",
         "category": "thiswouldgood",
