@@ -29,7 +29,7 @@ CBC_PROFILE_NAME = "default"
 CONFIG_FILE = "config.yml"
 OLD_CONFIG_FILE = "config.yml"
 CBC_FEED_FIELD = "feed_base_name"
-EVAL_VALUES = ["version", "enabled", "use_https", "severity", "port"]
+EVAL_VALUES = ["version", "enabled", "use_https", "severity", "port", "replace"]
 
 """Helpers for entering data"""
 
@@ -155,13 +155,7 @@ TEMPLATE_SITE_DATA_V1 = {
     "name": "",
     "version": 1.2,
     "enabled": True,
-    "cbc_feed_options": {
-        "feed_base_name": "",
-        "category": "STIX Feed",
-        "summary": "STIX Feed",
-        "severity": 5,
-        "feed_id": None,
-    },
+    "cbc_feed_options": {"feed_id": None, "severity": 5, "replace": True},
     "proxies": enter_proxy,
     "connection": {
         "host": enter_and_validate_url,
@@ -193,13 +187,7 @@ TEMPLATE_SITE_DATA_V2 = {
     "name": "",
     "version": 2.0,
     "enabled": True,
-    "cbc_feed_options": {
-        "feed_base_name": "",
-        "category": "STIX Feed",
-        "summary": "STIX Feed",
-        "severity": 5,
-        "feed_id": None,
-    },
+    "cbc_feed_options": {"feed_id": None, "severity": 5, "replace": True},
     "connection": {"url": enter_and_validate_url},
     "proxies": enter_proxy,
     "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
@@ -236,7 +224,6 @@ def migrate() -> None:
 
     data = {"cbc_auth_profile": CBC_PROFILE_NAME, "servers": []}
 
-    cb = get_cb()
     # convert data to the new format
     for site_name, values in old_config["sites"].items():
         # for each site in the old config, add one item
@@ -259,14 +246,12 @@ def migrate() -> None:
         item_data["connection"]["discovery_path"] = None
         item_data["connection"]["use_https"] = True
 
-        # add severity, category, summary
+        # add severity, feed_id, replace
         item_data["cbc_feed_options"] = {}
         # add feed name instead of feed_id
-        item_data["cbc_feed_options"]["feed_base_name"] = get_feed(cb, feed_id=values["feed_id"]).name
-        item_data["cbc_feed_options"]["severity"] = 5
-        item_data["cbc_feed_options"]["summary"] = "STIX Feed"
-        item_data["cbc_feed_options"]["category"] = "STIX Feed"
         item_data["cbc_feed_options"]["feed_id"] = values["feed_id"]
+        item_data["cbc_feed_options"]["severity"] = 5
+        item_data["cbc_feed_options"]["replace"] = True
 
         for key, value in item_data.items():
             if isinstance(value, dict):

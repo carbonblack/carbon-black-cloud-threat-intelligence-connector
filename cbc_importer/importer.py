@@ -33,8 +33,8 @@ def process_iocs(
     cb: CBCloudAPI,
     iocs: List[IOC_V2],
     severity: int,
-    replace: bool,
     feed_id: str,
+    replace: bool,
 ) -> Feed:
     """Create reports and add the iocs to the reports.
 
@@ -47,16 +47,16 @@ def process_iocs(
         cb (CBCloudAPI): A reference to the CBCloudAPI object.
         iocs (list): list of iocs
         severity (int): The severity of the Report
-        replace (bool): Replacing the existing Reports in the Feed, if false it will append the results
         feed_id (str): id of an existing feed to be used for the import
+        replace (bool): Replacing the existing Reports in the Feed, if false it will append the results
+
 
     Returns:
         Feed: updated feed with the proper reports
     """
-    num_iocs = len(iocs)
     reports = []
     counter_r = 1
-
+    start, end = 0, 0
 
     try:
         feed = get_feed(cb, feed_id=feed_id)
@@ -66,48 +66,53 @@ def process_iocs(
 
     iocs_list = []
 
+    # if we need to append the iocs instead of replacing, then first fill any existing reports
+    # with iocs less than IOCS_BATCH_SIZE
+    if not replace:
+        for item in feed.reports:
+            iocs_len = len(item.iocs_v2)
+            if iocs_len < IOCS_BATCH_SIZE:
+                start, end = end, end + (IOCS_BATCH_SIZE - iocs_len)
+                iocs_list = iocs[start:end]
+                # if we have managed to use all the existing reports for the new iocs
+
+                if iocs_list:
+                    break
+                # create a new report with the existing iocs + new ones up to IOCS_BATCH_SIZE
+                report = create_report(cb, feed, counter_r, severity, iocs_list, item.iocs_v2)
+                reports.append(report)
+                break
+            else:
+                # if the report is full (IOCS_BATCH_SIZE iocs) just added it as is.
+                reports.append(item)
+            counter_r += 1
+
     # make the reports with batches of iocs per IOCS_BATCH_SIZE or less
+    # do not allow the report count to be > REPORTS_BATCH_SIZE
     while counter_r <= REPORTS_BATCH_SIZE:
         if counter_r != 1 and not iocs_list:
             # we have exhausted all the iocs, so break the loop
             break
-        start, end = 0, 0
-        # if we need to append the iocs instead of replacing, then first fill any half filled existing reports
-        if not replace:
-            for item in feed.reports:
-                if len(item) < IOCS_BATCH_SIZE:
-                    start, end = end, end + (IOCS_BATCH_SIZE - len(item))
-                    iocs_list = iocs[start:end]
 
-                    # if we have managed to use all the existing reports for the new iocs
-                    if iocs_list:
-                        break
-                    # create a new report with the existing iocs + new ones up to IOCS_BATCH_SIZE
-                    report = create_report(cb, feed, counter_r, severity, iocs_list, item.iocs_v2)
-                    reports.append(report)
-                counter_r += 1
-
-        # if case we need to replace all the reports or just create more reports
+        # if case we need to replace all the reports or just create more reports as part of the append procedure
         start, end = end, end + IOCS_BATCH_SIZE
         iocs_list = iocs[start:end]
-        # if we have already managed to put all the new iocs in reports
+
         if iocs_list:
             report = create_report(cb, feed, counter_r, severity, iocs_list)
             reports.append(report)
             counter_r += 1
     else:
         logger.info("The feed is full, it is possible that not all iocs are imported.")
+
     # add reports to the current feed
     feed.replace_reports(reports)
     return feed
 
 
-def create_report(cb: CBCloudAPI,
-                  feed: Feed,
-                  number_of_report: int,
-                  severity: int,
-                  new_iocs: list[Report],
-                  existing_iocs: int = None) -> Report:
+def create_report(
+    cb: CBCloudAPI, feed: Feed, number_of_report: int, severity: int, new_iocs: list[Report], existing_iocs: int = None
+) -> Report:
     """Create reports and add the iocs to the reports.
 
     Args:
@@ -123,7 +128,7 @@ def create_report(cb: CBCloudAPI,
 
     """
     # use the builder so that the data is properly formed
-    builder = Report.create(cb, f"Report {feed.name}-{number_of_report - 1}", feed.summary, severity)
+    builder = Report.create(cb, f"Report {feed.name}-{number_of_report}", feed.summary, severity)
     report_data = builder._report_body
 
     # add the iocs
@@ -137,4 +142,3 @@ def create_report(cb: CBCloudAPI,
     report = Report(cb, initial_data=report_data, feed_id=feed.id)
     report.save()
     return report
-
