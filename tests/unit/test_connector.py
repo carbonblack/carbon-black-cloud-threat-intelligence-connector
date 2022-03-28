@@ -21,7 +21,6 @@ from typer.testing import CliRunner
 
 from cbc_importer import __version__
 from cbc_importer.cli.connector import (
-    cli,
     create_feed,
     create_watchlist,
     process_file,
@@ -118,7 +117,17 @@ def test_process_stix2_file(mock_process_iocs, mock_parse_file, cbcsdk_mock, cap
 @patch("cbc_importer.cli.connector.process_stix2_file", return_value=[])
 def test_process_file_json(process_stix2_file, *args):
     """Test process_file with JSON extension"""
-    process_file("./test.json", "feed_id", 8)
+    process_file(
+        "./test.json",
+        "http://test.com/",
+        "2022-01-01",
+        "2022-02-01",
+        8,
+        "...",
+        "STIX",
+        "default",
+        "STIXFile",
+    )
     process_stix2_file.assert_called()
 
 
@@ -126,7 +135,17 @@ def test_process_file_json(process_stix2_file, *args):
 @patch("cbc_importer.cli.connector.process_stix1_file", return_value=[])
 def test_process_file_xml(process_stix1_file, *args):
     """Test process_file with XML extension"""
-    process_file("./test.xml", "feed_id", 8)
+    process_file(
+        "./test.xml",
+        "http://test.com/",
+        "2022-01-01",
+        "2022-02-01",
+        8,
+        "...",
+        "STIX",
+        "default",
+        "STIXFile",
+    )
     process_stix1_file.assert_called()
 
 
@@ -134,7 +153,17 @@ def test_process_file_xml(process_stix1_file, *args):
 def test_process_file_invalid(*args):
     """Test process_file with invalid extension"""
     with pytest.raises(ValueError):
-        process_file("./test.file", "feed_id", 8)
+        process_file(
+            "./test.file",
+            "http://test.com/",
+            "2022-01-01",
+            "2022-02-01",
+            8,
+            "...",
+            "STIX",
+            "default",
+            "STIXFile",
+        )
 
 
 @patch.object(STIX1Parser, "parse_taxii_server")
@@ -296,4 +325,4 @@ def test_process_server_invalid_version(safe_load, rt, pts, cbcsdk, caplog):
 
 
 def test_connector_version():
-    runner.invoke
+    pass
