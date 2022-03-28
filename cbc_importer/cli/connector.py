@@ -131,6 +131,7 @@ def process_file(
         stix_file_path (str): the path to the file
         feed_id (str): the id of the feed
         severity (Optional[int]): The severity of the reports that are going to be imported
+        replace: (Optional[bool]): Replacing the existing Reports in the Feed, if false it will append the results
         cbc_profile (Optional[str]): The CBC Profile set in the CBC Credentials
 
     Raises:
