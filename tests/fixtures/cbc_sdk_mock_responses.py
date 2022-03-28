@@ -172,7 +172,7 @@ FEED_RESP_POST_REPLACE_REPORTS = {
             "severity": 5,
             "tags": [],
             "timestamp": 1643305793,
-            "title": "Report My STIX Feed-1",
+            "title": "Report My STIX Feed",
         }
     ]
 }
@@ -184,7 +184,7 @@ REPORT_INIT_ONE_IOCS = {
             "description": "feed for stix taxii",
             "severity": 5,
             "tags": [],
-            "title": "Report My STIX Feed-1",
+            "title": "Report My STIX Feed",
             "iocs_v2": [IOC],
         }
     ]
@@ -194,7 +194,7 @@ REPORT = {
     "description": "feed for stix taxii",
     "severity": 5,
     "tags": [],
-    "title": "Report My STIX Feed-1",
+    "title": "Report My STIX Feed",
     "iocs_v2": [IOC for i in range(1000)],
 }
 
@@ -202,7 +202,7 @@ REPORT_WITH_1_IOC = {
     "description": "feed for stix taxii",
     "severity": 5,
     "tags": [],
-    "title": "Report My STIX Feed-1",
+    "title": "Report My STIX Feed",
     "iocs_v2": [IOC],
     "iocs_total_count": 1,
     "timestamp": 1643305793,
@@ -213,7 +213,7 @@ REPORT_WITH_3_IOC = {
     "description": "feed for stix taxii",
     "severity": 5,
     "tags": [],
-    "title": "Report My STIX Feed-1",
+    "title": "Report My STIX Feed",
     "iocs_v2": [IOC, IOC, IOC],
     "iocs_total_count": 1,
     "timestamp": 1643305793,
@@ -245,7 +245,7 @@ REPORTS_GET_ONE_IOCS = {
             "description": "feed for stix taxii",
             "severity": 5,
             "tags": [],
-            "title": "Report My STIX Feed-1",
+            "title": "Report My STIX Feed",
             "iocs_v2": [{"id": "unsigned-chrome", "match_type": "query", "values": ["process_name:chrome.exe"]}],
             "iocs_total_count": 1,
         }

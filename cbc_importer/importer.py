@@ -35,7 +35,7 @@ def process_iocs(
     severity: int,
     feed_id: str,
     replace: bool,
-) -> Feed:
+) -> None:
     """Create reports and add the iocs to the reports.
 
     If replace is True - replace all of the reports in a feed.
@@ -51,8 +51,9 @@ def process_iocs(
         feed_id (str): id of an existing feed to be used for the import
         replace (bool): Replacing the existing Reports in the Feed, if false it will append the results
 
-    Returns:
-        Feed: updated feed with the proper reports
+    Raises:
+        ObjectNotFoundError: Whenever a Feed as not Found
+        SystemExit: If there is an Error within the function
     """
     reports = []
     counter_r = 1
@@ -109,11 +110,10 @@ def process_iocs(
 
     # add reports to the current feed
     feed.replace_reports(reports)
-    return feed
 
 
 def create_report(
-    cb: CBCloudAPI, feed: Feed, number_of_report: int, severity: int, new_iocs: list[Report], existing_iocs: int = None
+    cb: CBCloudAPI, feed: Feed, number_of_report: int, severity: int, new_iocs: List[Report], existing_iocs: int = None
 ) -> Report:
     """Create reports and add the iocs to the reports.
 
@@ -130,7 +130,7 @@ def create_report(
 
     """
     # use the builder so that the data is properly formed
-    builder = Report.create(cb, f"Report {feed.name}-{number_of_report}", feed.summary, severity)
+    builder = Report.create(cb, f"Report {feed.name}", feed.summary, severity)
     report_data = builder._report_body
 
     # add the iocs

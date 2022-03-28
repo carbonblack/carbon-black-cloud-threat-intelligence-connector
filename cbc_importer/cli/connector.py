@@ -50,12 +50,9 @@ def process_stix1_file(**kwargs) -> None:
     """
     file_path = kwargs.pop("stix_file_path")
     iocs = STIX1Parser(kwargs["cb"]).parse_file(file_path)
-    kwargs.update({"iocs": iocs, "stix_version": 1})
-    feeds = process_iocs(**kwargs)
+    kwargs.update({"iocs": iocs})
+    process_iocs(**kwargs)
     logging.info(f"Successfully imported {file_path} into CBC.")
-    for i in feeds:
-        logging.info(f"Created feed with ID: {i.id}")
-    logging.info(f"Created {len(feeds)} Feeds.")
 
 
 def process_stix2_file(**kwargs) -> None:
@@ -66,12 +63,9 @@ def process_stix2_file(**kwargs) -> None:
     """
     file_path = kwargs.pop("stix_file_path")
     iocs = STIX2Parser(kwargs["cb"]).parse_file(file_path)
-    kwargs.update({"iocs": iocs, "stix_version": 2})
-    feeds = process_iocs(**kwargs)
+    kwargs.update({"iocs": iocs})
+    process_iocs(**kwargs)
     logging.info(f"Successfully imported {file_path} into CBC.")
-    for i in feeds:
-        logging.info(f"Created feed with ID: {i.id}")
-    logging.info(f"Created {len(feeds)} Feeds.")
 
 
 def process_taxii1_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) -> None:
@@ -84,11 +78,8 @@ def process_taxii1_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) 
         server_name (str): The name of the TAXII Server
     """
     iocs = STIX1Parser(cbcsdk).parse_taxii_server(server_config.client, **server_config.search_options)
-    feeds = process_iocs(cb=cbcsdk, iocs=iocs, **server_config.cbc_feed_options)
+    process_iocs(cb=cbcsdk, iocs=iocs, **server_config.cbc_feed_options)
     logging.info(f"Successfully imported {server_config.server_name} into CBC.")
-    for i in feeds:
-        logging.info(f"Created feed with ID: {i.id}")
-    logging.info(f"Created {len(feeds)} Feeds.")
 
 
 def process_taxii2_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) -> None:
@@ -102,11 +93,8 @@ def process_taxii2_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) 
         stix_version (float): The version of STIX
     """
     iocs = STIX2Parser(cbcsdk).parse_taxii_server(server_config.client, **server_config.search_options)
-    feeds = process_iocs(cbcsdk, iocs, **server_config.cbc_feed_options)
+    process_iocs(cbcsdk, iocs, **server_config.cbc_feed_options)
     logging.info(f"Successfully imported {server_config.server_name} into CBC.")
-    for i in feeds:
-        logging.info(f"Created feed with ID: {i.id}")
-    logging.info(f"Created {len(feeds)} Feeds.")
 
 
 @cli.command(
@@ -131,7 +119,7 @@ def process_file(
         5, "--severity", "-s", help="The severity of the generated Reports", callback=validate_severity
     ),
     replace: Optional[bool] = Option(
-        True, "--replace", "-r", help="Replacing the existing Reports in the Feed, if false it will append the results"
+        False, "--replace", "-r", help="Replacing the existing Reports in the Feed, if false it will append the results"
     ),
     cbc_profile: Optional[str] = Option(
         "default", "--cbc-profile", "-c", help="The CBC Profile set in the CBC Credentials"
@@ -164,7 +152,8 @@ def process_file(
     elif extension == ".json":
         process_stix2_file(**kwargs)
     else:
-        raise ValueError(f"Invalid extension: `{extension}`")
+        logger.error(f"Invalid extension: `{extension}`")
+        exit(1)
 
 
 @cli.command(
@@ -189,7 +178,6 @@ def process_server(config_file: str = Option(DEFAULT_CONFIG_PATH, help="The conf
     """
     configuration = yaml.safe_load(Path(config_file).read_text())
     cbcsdk = CBCloudAPI(profile=configuration["cbc_auth_profile"], integration_name=("STIX/TAXII " + __version__))
-
     for server_configuration in configuration["servers"]:
         logger.info(f"Processing {server_configuration['name']}")
         server_config = TAXIIConfigurator(server_configuration)
@@ -198,8 +186,6 @@ def process_server(config_file: str = Option(DEFAULT_CONFIG_PATH, help="The conf
                 process_taxii1_server(server_config, cbcsdk)
             elif server_config.version == 2.0 or server_config.version == 2.1:
                 process_taxii2_server(server_config, cbcsdk)
-            else:
-                raise ValueError("Invalid STIX Version")
         else:
             logger.info(f"Skipping {server_config.server_name}")
 
@@ -259,7 +245,7 @@ def create_feed(
         typer.echo(feed.id)
     else:
         typer.echo(feed)
-    raise typer.Exit()
+    raise typer.Exit(0)
 
 
 @cli.command(
@@ -308,7 +294,7 @@ def create_watchlist(
         typer.echo(watchlist.id)
     else:
         typer.echo(watchlist)
-    raise typer.Exit()
+    raise typer.Exit(0)
 
 
 if __name__ == "__main__":

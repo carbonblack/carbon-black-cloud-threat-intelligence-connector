@@ -89,8 +89,7 @@ def test_process_iocs_replace(cbcsdk_mock):
         FEED_GET_RESP,
     )
     cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
-    feed = process_iocs(api, [ioc], 5, "feedid", True)
-    assert isinstance(feed, Feed)
+    assert process_iocs(api, [ioc], 5, "feedid", True) is None
 
 
 def test_process_a_few_reports_replace(cbcsdk_mock):
@@ -108,9 +107,9 @@ def test_process_a_few_reports_replace(cbcsdk_mock):
             del report_body["reports"][i]["id"]
             del report_body["reports"][i]["timestamp"]
             title = report_body["reports"][i]["title"]
-            assert "Report My STIX Feed-" + str(counter_r) == title
+            assert "Report My STIX Feed" == title
             # change the title to match the mock
-            report_body["reports"][i]["title"] = "Report My STIX Feed-1"
+            report_body["reports"][i]["title"] = "Report My STIX Feed"
             assert len(report_body["reports"][i]["iocs_v2"]) == 1000
             counter_r += 1
 
@@ -124,8 +123,7 @@ def test_process_a_few_reports_replace(cbcsdk_mock):
     )
     cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
 
-    feed = process_iocs(api, iocs_list, 5, "feedid", True)
-    assert isinstance(feed, Feed)
+    assert process_iocs(api, iocs_list, 5, "feedid", True) is None
 
 
 def test_process_iocs_append_with_existing_reports(cbcsdk_mock):
@@ -147,7 +145,7 @@ def test_process_iocs_append_with_existing_reports(cbcsdk_mock):
             title = report_body["reports"][i]["title"]
             assert "Report My STIX Feed" in title
             # change the title to match the mock
-            report_body["reports"][i]["title"] = "Report My STIX Feed-1"
+            report_body["reports"][i]["title"] = "Report My STIX Feed"
             assert len(report_body["reports"][i]["iocs_v2"]) == 1000
             counter_r += 1
         assert report_body == REPORTS_4_INIT_1000_IOCS
@@ -163,8 +161,7 @@ def test_process_iocs_append_with_existing_reports(cbcsdk_mock):
     )
     cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
     cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports)
-    feed = process_iocs(api, iocs_list, 5, "feedid", False)
-    assert isinstance(feed, Feed)
+    assert process_iocs(api, iocs_list, 5, "feedid", False) is None
 
 
 def test_process_iocs_append_with_existing_reports_no_new_needed(cbcsdk_mock):
@@ -191,7 +188,7 @@ def test_process_iocs_append_with_existing_reports_no_new_needed(cbcsdk_mock):
             title = report_body["reports"][i]["title"]
             assert "Report My STIX Feed" in title
             # change the title to match the mock
-            report_body["reports"][i]["title"] = "Report My STIX Feed-1"
+            report_body["reports"][i]["title"] = "Report My STIX Feed"
             if counter_r == 1:
                 assert len(report_body["reports"][i]["iocs_v2"]) == 3
             else:
@@ -210,8 +207,7 @@ def test_process_iocs_append_with_existing_reports_no_new_needed(cbcsdk_mock):
     )
     cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
     cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports)
-    feed = process_iocs(api, iocs_list, 5, "feedid", False)
-    assert isinstance(feed, Feed)
+    assert process_iocs(api, iocs_list, 5, "feedid", False) is None
 
 
 def test_process_iocs_append(cbcsdk_mock):
@@ -238,5 +234,4 @@ def test_process_iocs_append(cbcsdk_mock):
     )
     cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
     cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports)
-    feed = process_iocs(api, [ioc], 5, "feedid", False)
-    assert isinstance(feed, Feed)
+    assert process_iocs(api, [ioc], 5, "feedid", False) is None

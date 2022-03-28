@@ -12,148 +12,37 @@
 # * NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
 import logging
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
-import arrow
-import pytest
-from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2
 from typer.testing import CliRunner
 
 from cbc_importer import __version__
 from cbc_importer.cli.connector import (
     cli,
-    create_feed,
-    create_watchlist,
-    process_file,
-    process_server,
     process_stix1_file,
     process_stix2_file,
     process_taxii1_server,
     process_taxii2_server,
-    version,
 )
-from cbc_importer.stix_parsers.v1.parser import STIX1Parser
-from cbc_importer.stix_parsers.v2.parser import STIX2Parser
-from cbc_importer.taxii_configurator import TAXIIConfigurator
 from tests.fixtures import cbc_sdk_mock
 
 runner = CliRunner()
 
 
-@patch.object(STIX1Parser, "parse_file")
-@patch("cbc_importer.cli.connector.process_iocs")
-def test_process_stix1_file(mock_process_iocs, mock_parse_file, cbcsdk_mock, caplog):
-    """Test processing a STIX1 File"""
-    kwargs = {
-        "stix_file_path": "./text/path",
-        "provider_url": "http://test-provider.test/",
-        "start_date": "2022-01-01",
-        "end_date": "2022-02-01",
-        "severity": 8,
-        "summary": "None",
-        "category": "STIX",
-        "feed_base_name": "STIXFile",
-        "cb": cbcsdk_mock,
-    }
-
-    iocs = [IOC_V2.create_query(cbcsdk_mock.api, "unsigned-chrome", "process_name:chrome.exe")]
-    mock_parse_file.return_value = iocs
-    mock_process_iocs.return_value = [MagicMock()]
-
-    with caplog.at_level(logging.INFO):
-        process_stix1_file(**kwargs)
-        mock_process_iocs.assert_called_with(
-            cb=cbcsdk_mock,
-            iocs=iocs,
-            feed_base_name="STIXFile",
-            stix_version=1,
-            start_date=arrow.get(kwargs["start_date"]).format("YYYY-MM-DD"),
-            end_date=arrow.get(kwargs["end_date"]).format("YYYY-MM-DD"),
-            provider_url="http://test-provider.test/",
-            summary="None",
-            category="STIX",
-            severity=8,
-        )
-        assert "Created feed with ID" in caplog.text
-
-
-@patch.object(STIX2Parser, "parse_file")
-@patch("cbc_importer.cli.connector.process_iocs", return_value=[])
-def test_process_stix2_file(mock_process_iocs, mock_parse_file, cbcsdk_mock, caplog):
-    """Test processing a STIX2 File"""
-    kwargs = {
-        "stix_file_path": "./text/path",
-        "provider_url": "http://test-provider.test/",
-        "start_date": "2022-01-01",
-        "end_date": "2022-02-01",
-        "severity": 8,
-        "summary": "None",
-        "category": "STIX",
-        "feed_base_name": "STIXFile",
-        "cb": cbcsdk_mock,
-    }
-
-    iocs = [IOC_V2.create_query(cbcsdk_mock.api, "unsigned-chrome", "process_name:chrome.exe")]
-    mock_parse_file.return_value = iocs
-    mock_process_iocs.return_value = [MagicMock()]
-
-    with caplog.at_level(logging.INFO):
-        process_stix2_file(**kwargs)
-        mock_process_iocs.assert_called_with(
-            cb=cbcsdk_mock,
-            iocs=iocs,
-            feed_base_name="STIXFile",
-            stix_version=2,
-            start_date=arrow.get(kwargs["start_date"]).format("YYYY-MM-DD"),
-            end_date=arrow.get(kwargs["end_date"]).format("YYYY-MM-DD"),
-            provider_url="http://test-provider.test/",
-            summary="None",
-            category="STIX",
-            severity=8,
-        )
-        assert "Created feed with ID" in caplog.text
-
-
+@patch.object(Path, "read_text", return_value=None)
 @patch("cbc_importer.cli.connector.CBCloudAPI", return_value=cbc_sdk_mock)
-@patch("cbc_importer.cli.connector.process_stix2_file", return_value=[])
-def test_process_file_json(process_stix2_file, *args):
-    """Test process_file with JSON extension"""
-    process_file("./test.json", "feed_id", 8)
-    process_stix2_file.assert_called()
-
-
-@patch("cbc_importer.cli.connector.CBCloudAPI", return_value=cbc_sdk_mock)
-@patch("cbc_importer.cli.connector.process_stix1_file", return_value=[])
-def test_process_file_xml(process_stix1_file, *args):
-    """Test process_file with XML extension"""
-    process_file("./test.xml", "feed_id", 8)
-    process_stix1_file.assert_called()
-
-
-@patch("cbc_importer.cli.connector.CBCloudAPI", return_value=cbc_sdk_mock)
-def test_process_file_invalid(*args):
-    """Test process_file with invalid extension"""
-    with pytest.raises(ValueError):
-        process_file("./test.file", "feed_id", 8)
-
-
-@patch.object(STIX1Parser, "parse_taxii_server")
-@patch("cbc_importer.cli.connector.process_iocs")
-def test_process_taxii1_server(mock_process_iocs, mock_parse_taxii_server, cbcsdk_mock, caplog):
+@patch("cbc_importer.cli.connector.process_taxii1_server")
+@patch("yaml.safe_load")
+def test_process_server_with_taxii1_server(safe_load, process_taxii1_server, *args, **kwargs):
+    """Testing the CLI command `process-server` (TAXII 1 Server)"""
     configuration = {
         "cbc_auth_profile": "default",
         "servers": [
             {
                 "name": "Test",
                 "version": 1.2,
-                "enabled": False,
-                "cbc_feed_options": {
-                    "feed_base_name": "TestSTIX",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
+                "enabled": True,
+                "cbc_feed_options": {"replace": True, "severity": 5, "feed_id": None},
                 "proxies": None,
                 "connection": {
                     "host": "test.test.com",
@@ -182,21 +71,17 @@ def test_process_taxii1_server(mock_process_iocs, mock_parse_taxii_server, cbcsd
             },
         ],
     }
-    iocs = [IOC_V2.create_query(cbcsdk_mock.api, "unsigned-chrome", "process_name:chrome.exe")]
-    mock_parse_taxii_server.return_value = iocs
-    mock_process_iocs.return_value = [MagicMock()]
-    configurator = TAXIIConfigurator(configuration["servers"][0])
-
-    with caplog.at_level(logging.INFO):
-        process_taxii1_server(configurator, cbcsdk_mock)
-        mock_parse_taxii_server.assert_called_with(configurator.client, **configurator.search_options)
-        mock_process_iocs.assert_called_with(cb=cbcsdk_mock, iocs=iocs, **configurator.cbc_feed_options)
-        assert "Created feed with ID" in caplog.text
+    safe_load.return_value = configuration
+    runner.invoke(cli, ["process-server", "--config-file", "./config.yml"])
+    process_taxii1_server.assert_called()
 
 
-@patch.object(STIX2Parser, "parse_taxii_server")
-@patch("cbc_importer.cli.connector.process_iocs")
-def test_process_taxii2_server(mock_process_iocs, mock_parse_taxii_server, cbcsdk_mock, caplog):
+@patch.object(Path, "read_text", return_value=None)
+@patch("cbc_importer.cli.connector.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("cbc_importer.cli.connector.process_taxii2_server")
+@patch("yaml.safe_load")
+def test_process_server_with_taxii2_server(safe_load, process_taxii2_server, *args, **kwargs):
+    """Testing the CLI command `process-server` (TAXII 2 Server)"""
     configuration = {
         "cbc_auth_profile": "default",
         "servers": [
@@ -204,13 +89,7 @@ def test_process_taxii2_server(mock_process_iocs, mock_parse_taxii_server, cbcsd
                 "name": "Test",
                 "version": 2.0,
                 "enabled": True,
-                "cbc_feed_options": {
-                    "feed_base_name": "Test",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
+                "cbc_feed_options": {"replace": True, "severity": 5, "feed_id": None},
                 "connection": {"url": "test.test"},
                 "proxies": None,
                 "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
@@ -218,24 +97,17 @@ def test_process_taxii2_server(mock_process_iocs, mock_parse_taxii_server, cbcsd
             },
         ],
     }
-    iocs = [IOC_V2.create_query(cbcsdk_mock.api, "unsigned-chrome", "process_name:chrome.exe")]
-    mock_parse_taxii_server.return_value = iocs
-    mock_process_iocs.return_value = [MagicMock()]
-    configurator = TAXIIConfigurator(configuration["servers"][0])
-
-    with caplog.at_level(logging.INFO):
-        process_taxii2_server(configurator, cbcsdk_mock)
-        mock_parse_taxii_server.assert_called_with(configurator.client, **configurator.search_options)
-        mock_process_iocs.assert_called_with(cbcsdk_mock, iocs, **configurator.cbc_feed_options)
-        assert "Created feed with ID" in caplog.text
+    safe_load.return_value = configuration
+    runner.invoke(cli, ["process-server", "--config-file", "./config.yml"])
+    process_taxii2_server.assert_called()
 
 
+@patch.object(Path, "read_text", return_value=None)
 @patch("cbc_importer.cli.connector.CBCloudAPI", return_value=cbc_sdk_mock)
 @patch("cbc_importer.cli.connector.process_taxii2_server")
-@patch.object(Path, "read_text", return_value=None)
 @patch("yaml.safe_load")
-def test_process_server_not_enabled(safe_load, rt, pts, cbcsdk, caplog):
-    """Test process_server where site is not enabled"""
+def test_process_server_with_taxii_server_skip(safe_load, process_taxii2_server, cbcsdk, rt, caplog):
+    """Testing the CLI command `process-server` (Skip Server)"""
     configuration = {
         "cbc_auth_profile": "default",
         "servers": [
@@ -243,13 +115,7 @@ def test_process_server_not_enabled(safe_load, rt, pts, cbcsdk, caplog):
                 "name": "Test",
                 "version": 2.0,
                 "enabled": False,
-                "cbc_feed_options": {
-                    "feed_base_name": "Test",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
+                "cbc_feed_options": {"replace": True, "severity": 5, "feed_id": None},
                 "connection": {"url": "test.test"},
                 "proxies": None,
                 "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
@@ -259,41 +125,128 @@ def test_process_server_not_enabled(safe_load, rt, pts, cbcsdk, caplog):
     }
     safe_load.return_value = configuration
     with caplog.at_level(logging.INFO):
-        process_server(config_file="test.yml")
+        runner.invoke(cli, ["process-server", "--config-file", "./config.yml"])
         assert "Skipping" in caplog.text
 
 
+@patch("cbc_importer.cli.connector.process_stix1_file")
 @patch("cbc_importer.cli.connector.CBCloudAPI", return_value=cbc_sdk_mock)
-@patch("cbc_importer.cli.connector.process_taxii2_server")
-@patch.object(Path, "read_text", return_value=None)
-@patch("yaml.safe_load")
-def test_process_server_invalid_version(safe_load, rt, pts, cbcsdk, caplog):
-    """Test process_server where site is not enabled"""
-    configuration = {
-        "cbc_auth_profile": "default",
-        "servers": [
-            {
-                "name": "Test",
-                "version": 2.5,
-                "enabled": False,
-                "cbc_feed_options": {
-                    "feed_base_name": "Test",
-                    "severity": 5,
-                    "summary": "empty summary",
-                    "category": "STIX",
-                    "feed_id": None,
-                },
-                "connection": {"url": "test.test"},
-                "proxies": None,
-                "auth": {"username": "guest", "password": "guest", "verify": True, "cert": None},
-                "options": {"added_after": "2022-01-01 00:00:00", "roots": "*"},
-            },
-        ],
-    }
-    safe_load.return_value = configuration
-    with pytest.raises(ValueError):
-        process_server(config_file="test.yml")
+def test_process_file_xml(_, process_stix1_file):
+    """Testing the CLI command `process-file` (STIX 1)"""
+    runner.invoke(cli, ["process-file", "./stix_file.xml", "55IOVthAZgmQHgr8eRF9rA", "-s", "5", "-r", "-c", "default"])
+    process_stix1_file.assert_called_with(
+        **{
+            "stix_file_path": "./stix_file.xml",
+            "feed_id": "55IOVthAZgmQHgr8eRF9rA",
+            "severity": 5,
+            "replace": True,
+            "cb": cbc_sdk_mock,
+        }
+    )
 
 
-def test_connector_version():
-    runner.invoke
+@patch("cbc_importer.cli.connector.process_stix2_file")
+@patch("cbc_importer.cli.connector.CBCloudAPI", return_value=cbc_sdk_mock)
+def test_process_file_json(_, process_stix2_file):
+    """Testing the CLI command `process-file` (STIX 2)"""
+    runner.invoke(cli, ["process-file", "./stix_file.json", "55IOVthAZgmQHgr8eRF9rA", "-s", "5", "-r", "-c", "default"])
+    process_stix2_file.assert_called_with(
+        **{
+            "stix_file_path": "./stix_file.json",
+            "feed_id": "55IOVthAZgmQHgr8eRF9rA",
+            "severity": 5,
+            "replace": True,
+            "cb": cbc_sdk_mock,
+        }
+    )
+
+
+@patch("cbc_importer.cli.connector.CBCloudAPI", return_value=cbc_sdk_mock)
+def test_process_file_raises_sys_exit(_, caplog):
+    """Testing the CLI command `process-file` (Invalid Extension)"""
+    runner.invoke(cli, ["process-file", "./stix_file.txt", "55IOVthAZgmQHgr8eRF9rA", "-s", "5", "-r", "-c", "default"])
+    assert "Invalid extension" in caplog.text
+
+
+@patch("cbc_importer.cli.connector.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("cbc_importer.cli.connector.utils_create_feed", return_value=Mock(id="90TuDxDYQtiGyg5qhwYCg"))
+def test_create_feed_quiet(*args, **kwargs):
+    """Testing the CLI command `create-feed` (quiet)"""
+    result = runner.invoke(cli, ["create-feed", "NewFeed", "http://test.com/", "empty summary", "-ca", "STIX2", "-q"])
+    assert result.stdout == "90TuDxDYQtiGyg5qhwYCg\n"
+    assert result.exit_code == 0
+
+
+@patch("cbc_importer.cli.connector.CBCloudAPI", return_value=cbc_sdk_mock)
+@patch("cbc_importer.cli.connector.utils_create_feed", return_value=Mock(id="90TuDxDYQtiGyg5qhwYCg"))
+def test_create_feed_not_quiet(_, utils_create_feed):
+    """Testing the CLI command `create-feed`"""
+    runner.invoke(cli, ["create-feed", "NewFeed", "http://test.com/", "empty summary", "-ca", "STIX2"])
+    utils_create_feed.assert_called()
+
+
+@patch("cbc_importer.cli.connector.CBCloudAPI")
+@patch("cbc_importer.cli.connector.utils_create_watchlist", return_value=Mock(id="90TuDxDYQtiGyg5qhwYCg"))
+def test_create_watchlist_quiet(*args, **kwargs):
+    """Testing the CLI command `create-watchlist` (quiet)"""
+    result = runner.invoke(cli, ["create-watchlist", "90TuDxDYQtiGyg5qhwYCg", "TestName", "-d", "Test", "-e", "-q"])
+    assert result.stdout == "90TuDxDYQtiGyg5qhwYCg\n"
+    assert result.exit_code == 0
+
+
+@patch("cbc_importer.cli.connector.CBCloudAPI")
+@patch("cbc_importer.cli.connector.utils_create_watchlist", return_value=Mock(id="90TuDxDYQtiGyg5qhwYCg"))
+def test_create_watchlist_not_quiet(_, utils_create_watchlist):
+    """Testing the CLI command `create-watchlist`"""
+    runner.invoke(cli, ["create-watchlist", "90TuDxDYQtiGyg5qhwYCg", "TestName", "-d", "Test", "-e"])
+    utils_create_watchlist.assert_called()
+
+
+def test_version():
+    """Test if the application has the right version"""
+    result = runner.invoke(cli, ["version"])
+    assert result.stdout == "1.0.0\n"
+
+
+@patch("cbc_importer.cli.connector.STIX1Parser")
+@patch("cbc_importer.cli.connector.process_iocs")
+def test_process_stix1_file(process_iocs, stix1_parser, caplog):
+    """Testing if the functions is calling the right callables."""
+    with caplog.at_level(logging.INFO):
+        process_stix1_file(**{"stix_file_path": "./test.test", "cb": 1})
+        process_iocs.assert_called()
+        stix1_parser.assert_called()
+        assert "Successfully imported ./test.test into CBC." in caplog.text
+
+
+@patch("cbc_importer.cli.connector.STIX2Parser")
+@patch("cbc_importer.cli.connector.process_iocs")
+def test_process_stix2_file(process_iocs, stix2_parser, caplog):
+    """Testing if the functions is calling the right callables."""
+    with caplog.at_level(logging.INFO):
+        process_stix2_file(**{"stix_file_path": "./test.test", "cb": 1})
+        process_iocs.assert_called()
+        stix2_parser.assert_called()
+        assert "Successfully imported ./test.test into CBC." in caplog.text
+
+
+@patch("cbc_importer.cli.connector.STIX1Parser")
+@patch("cbc_importer.cli.connector.process_iocs")
+def test_process_taxii1_server(process_iocs, stix1_parser, caplog):
+    """Testing if the functions is calling the right callables."""
+    with caplog.at_level(logging.INFO):
+        process_taxii1_server(MagicMock(), 1)
+        process_iocs.assert_called()
+        stix1_parser.assert_called()
+        assert "Successfully imported " in caplog.text
+
+
+@patch("cbc_importer.cli.connector.STIX2Parser")
+@patch("cbc_importer.cli.connector.process_iocs")
+def test_process_taxii2_server(process_iocs, stix2_parser, caplog):
+    """Testing if the functions is calling the right callables."""
+    with caplog.at_level(logging.INFO):
+        process_taxii2_server(MagicMock(), 1)
+        process_iocs.assert_called()
+        stix2_parser.assert_called()
+        assert "Successfully imported " in caplog.text
