@@ -206,7 +206,7 @@ REPORT_WITH_1_IOC = {
     "iocs_v2": [IOC],
     "iocs_total_count": 1,
     "timestamp": 1643305793,
-    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235"
+    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235",
 }
 
 REPORT_WITH_3_IOC = {
@@ -217,7 +217,7 @@ REPORT_WITH_3_IOC = {
     "iocs_v2": [IOC, IOC, IOC],
     "iocs_total_count": 1,
     "timestamp": 1643305793,
-    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235"
+    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235",
 }
 
 
@@ -260,7 +260,7 @@ REPORT_WITH_1000_IOCS = {
     "iocs_v2": [IOC for i in range(1000)],
     "iocs_total_count": 1000,
     "timestamp": 1643305793,
-    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235"
+    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235",
 }
 
 
@@ -276,10 +276,7 @@ REPORT_WITH_998_IOCS = {
     "tags": [],
     "title": "Report My STIX Feed",
     "iocs_v2": [IOC for i in range(998)],
-    "iocs_total_count": 998
+    "iocs_total_count": 998,
 }
 
-REPORTS_GET_2_WITH_998_IOCS_1_1000 = {
-    "results": [REPORT_WITH_998_IOCS, REPORT_WITH_1000_IOCS, REPORT_WITH_998_IOCS]
-}
-
+REPORTS_GET_2_WITH_998_IOCS_1_1000 = {"results": [REPORT_WITH_998_IOCS, REPORT_WITH_1000_IOCS, REPORT_WITH_998_IOCS]}

@@ -25,10 +25,13 @@ from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_mock_responses import (
     FEED_GET_RESP,
     REPORT_INIT_ONE_IOCS,
+    REPORTS_2_1_IOC,
+    REPORTS_2_WITH_1_AND_3,
     REPORTS_3_INIT_1000_IOCS,
+    REPORTS_4_INIT_1000_IOCS,
+    REPORTS_GET_2_WITH_998_IOCS_1_1000,
     REPORTS_GET_3_WITH_1000_IOCS,
     REPORTS_GET_NO_REPORTS,
-    REPORTS_GET_2_WITH_998_IOCS_1_1000, REPORTS_4_INIT_1000_IOCS, REPORTS_2_1_IOC, REPORTS_2_WITH_1_AND_3,
 )
 
 
@@ -62,13 +65,7 @@ def test_process_iocs_no_feed(cbcsdk_mock):
     )
 
     with pytest.raises(SystemExit):
-        process_iocs(
-            api,
-            [ioc],
-            5,
-            "feedid",
-            True
-        )
+        process_iocs(api, [ioc], 5, "feedid", True)
 
 
 def test_process_iocs_replace(cbcsdk_mock):
@@ -92,16 +89,8 @@ def test_process_iocs_replace(cbcsdk_mock):
         "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
         FEED_GET_RESP,
     )
-    cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report
-    )
-    feed = process_iocs(
-        api,
-        [ioc],
-        5,
-        "feedid",
-        True
-    )
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
+    feed = process_iocs(api, [ioc], 5, "feedid", True)
     assert isinstance(feed, Feed)
 
 
@@ -137,17 +126,9 @@ def test_process_a_few_reports_replace(cbcsdk_mock):
         "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
         FEED_GET_RESP,
     )
-    cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report
-    )
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
 
-    feed = process_iocs(
-        api,
-        iocs_list,
-        5,
-        "feedid",
-        True
-    )
+    feed = process_iocs(api, iocs_list, 5, "feedid", True)
     assert isinstance(feed, Feed)
 
 
@@ -184,19 +165,9 @@ def test_process_iocs_append_with_existing_reports(cbcsdk_mock):
         "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
         FEED_GET_RESP,
     )
-    cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report
-    )
-    cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports
-    )
-    feed = process_iocs(
-        api,
-        iocs_list,
-        5,
-        "feedid",
-        False
-    )
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports)
+    feed = process_iocs(api, iocs_list, 5, "feedid", False)
     assert isinstance(feed, Feed)
 
 
@@ -242,19 +213,9 @@ def test_process_iocs_append_with_existing_reports_no_new_needed(cbcsdk_mock):
         "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
         FEED_GET_RESP,
     )
-    cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report
-    )
-    cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports
-    )
-    feed = process_iocs(
-        api,
-        iocs_list,
-        5,
-        "feedid",
-        False
-    )
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports)
+    feed = process_iocs(api, iocs_list, 5, "feedid", False)
     assert isinstance(feed, Feed)
 
 
@@ -280,17 +241,7 @@ def test_process_iocs_append(cbcsdk_mock):
         "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
         FEED_GET_RESP,
     )
-    cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report
-    )
-    cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports
-    )
-    feed = process_iocs(
-        api,
-        [ioc],
-        5,
-        "feedid",
-        False
-    )
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports)
+    feed = process_iocs(api, [ioc], 5, "feedid", False)
     assert isinstance(feed, Feed)
