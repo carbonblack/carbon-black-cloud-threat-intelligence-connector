@@ -39,7 +39,8 @@ def process_iocs(
     """Create reports and add the iocs to the reports.
 
     If replace is True - replace all of the reports in a feed.
-    If replace is False, then append - so fill any reports with iocs < IOCS_BATCH_SIZE and create additional reports.
+    If replace is False, then append - so fill any reports with iocs < IOCS_BATCH_SIZE and create additional reports,
+        if needed.
     If the iocs are >= IOCS_BATCH_SIZE, then create multiple reports.
     If the number of reports are >= REPORTS_BATCH_SIZE, then raise an error, this will not create addtional feeds.
 
@@ -49,7 +50,6 @@ def process_iocs(
         severity (int): The severity of the Report
         feed_id (str): id of an existing feed to be used for the import
         replace (bool): Replacing the existing Reports in the Feed, if false it will append the results
-
 
     Returns:
         Feed: updated feed with the proper reports
@@ -67,21 +67,21 @@ def process_iocs(
     iocs_list = []
 
     # if we need to append the iocs instead of replacing, then first fill any existing reports
-    # with iocs less than IOCS_BATCH_SIZE
+    # with iocs count less than IOCS_BATCH_SIZE
     if not replace:
         for item in feed.reports:
-            iocs_len = len(item.iocs_v2)
-            if iocs_len < IOCS_BATCH_SIZE:
-                start, end = end, end + (IOCS_BATCH_SIZE - iocs_len)
+            if item.iocs_total_count < IOCS_BATCH_SIZE:
+                start, end = end, end + (IOCS_BATCH_SIZE - item.iocs_total_count)
                 iocs_list = iocs[start:end]
-                # if we have managed to use all the existing reports for the new iocs
 
-                if iocs_list:
-                    break
-                # create a new report with the existing iocs + new ones up to IOCS_BATCH_SIZE
-                report = create_report(cb, feed, counter_r, severity, iocs_list, item.iocs_v2)
-                reports.append(report)
-                break
+                if not iocs_list:
+                    # if there are no more new iocs to be added, but still iocs_total_count < IOCS_BATCH_SIZE
+                    # then just add the report
+                    reports.append(item)
+                else:
+                    # create a new report with the existing iocs + new ones up to IOCS_BATCH_SIZE
+                    report = create_report(cb, feed, counter_r, severity, iocs_list, item.iocs_v2)
+                    reports.append(report)
             else:
                 # if the report is full (IOCS_BATCH_SIZE iocs) just added it as is.
                 reports.append(item)
@@ -89,6 +89,8 @@ def process_iocs(
 
     # make the reports with batches of iocs per IOCS_BATCH_SIZE or less
     # do not allow the report count to be > REPORTS_BATCH_SIZE
+    # if replace = False and if there are still iocs to be added, create new reports for them
+    # if replace = True, then add all the iocs as new reports and replace the existing reports with the new ones
     while counter_r <= REPORTS_BATCH_SIZE:
         if counter_r != 1 and not iocs_list:
             # we have exhausted all the iocs, so break the loop

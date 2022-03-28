@@ -198,11 +198,42 @@ REPORT = {
     "iocs_v2": [IOC for i in range(1000)],
 }
 
+REPORT_WITH_1_IOC = {
+    "description": "feed for stix taxii",
+    "severity": 5,
+    "tags": [],
+    "title": "Report My STIX Feed-1",
+    "iocs_v2": [IOC],
+    "iocs_total_count": 1,
+    "timestamp": 1643305793,
+    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235"
+}
+
+REPORT_WITH_3_IOC = {
+    "description": "feed for stix taxii",
+    "severity": 5,
+    "tags": [],
+    "title": "Report My STIX Feed-1",
+    "iocs_v2": [IOC, IOC, IOC],
+    "iocs_total_count": 1,
+    "timestamp": 1643305793,
+    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235"
+}
+
+
+REPORTS_2_1_IOC = {"results": [REPORT_WITH_1_IOC, REPORT_WITH_1_IOC]}
+
+
+REPORTS_2_WITH_1_AND_3 = {"reports": [REPORT_WITH_3_IOC, REPORT_WITH_1_IOC]}
+
 
 REPORTS_10000_INIT_1000_IOCS = {"reports": [REPORT for i in range(10000)]}
 
 
 REPORTS_3_INIT_1000_IOCS = {"reports": [REPORT for i in range(3)]}
+
+
+REPORTS_4_INIT_1000_IOCS = {"reports": [REPORT for i in range(4)]}
 
 
 REPORTS_GET_NO_REPORTS = {"results": []}
@@ -216,6 +247,7 @@ REPORTS_GET_ONE_IOCS = {
             "tags": [],
             "title": "Report My STIX Feed-1",
             "iocs_v2": [{"id": "unsigned-chrome", "match_type": "query", "values": ["process_name:chrome.exe"]}],
+            "iocs_total_count": 1,
         }
     ]
 }
@@ -226,6 +258,9 @@ REPORT_WITH_1000_IOCS = {
     "tags": [],
     "title": "Report My STIX Feed",
     "iocs_v2": [IOC for i in range(1000)],
+    "iocs_total_count": 1000,
+    "timestamp": 1643305793,
+    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235"
 }
 
 
@@ -241,7 +276,10 @@ REPORT_WITH_998_IOCS = {
     "tags": [],
     "title": "Report My STIX Feed",
     "iocs_v2": [IOC for i in range(998)],
+    "iocs_total_count": 998
 }
 
+REPORTS_GET_2_WITH_998_IOCS_1_1000 = {
+    "results": [REPORT_WITH_998_IOCS, REPORT_WITH_1000_IOCS, REPORT_WITH_998_IOCS]
+}
 
-REPORTS_GET_2_WITH_998_IOCS = {"results": [REPORT_WITH_998_IOCS for i in range(2)]}
