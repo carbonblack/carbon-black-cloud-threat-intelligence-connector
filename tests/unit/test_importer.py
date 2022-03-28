@@ -186,6 +186,7 @@ def test_process_iocs_append(cbcsdk_mock):
         "feedid",
         False
     )
+    assert isinstance(feed, Feed)
 
 
 def test_process_a_few_reports_replace(cbcsdk_mock):
