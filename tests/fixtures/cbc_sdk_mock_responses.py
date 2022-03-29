@@ -68,6 +68,7 @@ FEED_GET_ALL_RESP = {
     ]
 }
 
+
 FEED_POST_RESP = {
     "name": "base_name",
     "provider_url": "https://thisistheplace.com",
@@ -77,6 +78,7 @@ FEED_POST_RESP = {
     "access": "private",
     "id": "90TuDxDYQtiGyg5qhwYCg",
 }
+
 
 REPORT_INIT = {
     "id": "495df3a4-7e19-432d-846d-432e620dd57a",
@@ -103,6 +105,7 @@ REPORT_INIT = {
     "visibility": "visible",
 }
 
+
 FEED_INIT = {
     "feedinfo": {
         "id": "qwertyuiop",
@@ -114,6 +117,18 @@ FEED_INIT = {
     "reports": [REPORT_INIT],
 }
 
+
+FEED_CREATE_NO_REPORT_INIT = {
+    "feedinfo": {
+        "name": "My STIX Feed",
+        "provider_url": "https://thisistheplace.com",
+        "summary": "this is the details",
+        "category": "thiswouldgood",
+    },
+    "reports": [],
+}
+
+
 WATCHLIST_FROM_FEED_IN = {
     "name": "Feed base_name",
     "description": "this is the details",
@@ -121,6 +136,7 @@ WATCHLIST_FROM_FEED_IN = {
     "alerts_enabled": False,
     "classifier": {"key": "feed_id", "value": "qwertyuiop"},
 }
+
 
 WATCHLIST_FROM_FEED_OUT = {
     "name": "base_name",
@@ -137,71 +153,16 @@ WATCHLIST_FROM_FEED_OUT = {
 
 FEED_GET_RESP = {
     "feedinfo": {
-        "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
+        "name": "My STIX Feed",
         "provider_url": "https://thisistheplace.com",
         "summary": "feed for stix taxii",
         "category": "thiswouldgood",
         "source_label": None,
         "access": "private",
-        "id": "90TuDxDYQtiGyg5qhwYCg",
+        "id": "feedid",
     },
 }
 
-FEED_CREATE_NO_REPORT_INIT = {
-    "feedinfo": {
-        "name": "base_name",
-        "provider_url": "https://thisistheplace.com",
-        "summary": "this is the details",
-        "category": "thiswouldgood",
-    },
-    "reports": [],
-}
-
-FEED_CREATE_STIX = {
-    "feedinfo": {
-        "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
-        "provider_url": "http://limo.domain.com",
-        "summary": "feed for stix taxii",
-        "category": "thiswouldgood",
-    },
-    "reports": [],
-}
-
-FEED_CREATE_STIX_2 = {
-    "feedinfo": {
-        "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 2",
-        "provider_url": "http://limo.domain.com",
-        "summary": "feed for stix taxii",
-        "category": "thiswouldgood",
-    },
-    "reports": [],
-}
-
-FEEDS_STIX = [FEED_CREATE_STIX, FEED_CREATE_STIX_2]
-
-FEED_RESP_POST_STIX = {
-    "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
-    "provider_url": "http://limo.domain.com",
-    "summary": "feed for stix taxii",
-    "category": "thiswouldgood",
-    "source_label": None,
-    "access": "private",
-    "id": "90TuDxDYQtiGyg5qhwYCg",
-}
-
-FEED_RESP_POST_STIX_2 = {
-    "name": "my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 2",
-    "provider_url": "http://limo.domain.com",
-    "summary": "feed for stix taxii",
-    "category": "thiswouldgood",
-    "source_label": None,
-    "access": "private",
-    "id": "90TuDxDYQtiGyg5qhwYCe",
-}
-
-FEED_RESP_POST_STIXS = [FEED_RESP_POST_STIX, FEED_RESP_POST_STIX_2]
-
-FEED_GET_ALL_RESP_NO_FEED = {"results": []}
 
 FEED_RESP_POST_REPLACE_REPORTS = {
     "reports": [
@@ -211,7 +172,7 @@ FEED_RESP_POST_REPLACE_REPORTS = {
             "severity": 5,
             "tags": [],
             "timestamp": 1643305793,
-            "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - " "Part 1-1",
+            "title": "Report My STIX Feed",
         }
     ]
 }
@@ -223,7 +184,7 @@ REPORT_INIT_ONE_IOCS = {
             "description": "feed for stix taxii",
             "severity": 5,
             "tags": [],
-            "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1",
+            "title": "Report My STIX Feed",
             "iocs_v2": [IOC],
         }
     ]
@@ -233,12 +194,50 @@ REPORT = {
     "description": "feed for stix taxii",
     "severity": 5,
     "tags": [],
-    "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1",
+    "title": "Report My STIX Feed",
     "iocs_v2": [IOC for i in range(1000)],
 }
+
+REPORT_WITH_1_IOC = {
+    "description": "feed for stix taxii",
+    "severity": 5,
+    "tags": [],
+    "title": "Report My STIX Feed",
+    "iocs_v2": [IOC],
+    "iocs_total_count": 1,
+    "timestamp": 1643305793,
+    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235",
+}
+
+REPORT_WITH_3_IOC = {
+    "description": "feed for stix taxii",
+    "severity": 5,
+    "tags": [],
+    "title": "Report My STIX Feed",
+    "iocs_v2": [IOC, IOC, IOC],
+    "iocs_total_count": 1,
+    "timestamp": 1643305793,
+    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235",
+}
+
+
+REPORTS_2_1_IOC = {"results": [REPORT_WITH_1_IOC, REPORT_WITH_1_IOC]}
+
+
+REPORTS_2_WITH_1_AND_3 = {"reports": [REPORT_WITH_3_IOC, REPORT_WITH_1_IOC]}
+
+
 REPORTS_10000_INIT_1000_IOCS = {"reports": [REPORT for i in range(10000)]}
 
+
 REPORTS_3_INIT_1000_IOCS = {"reports": [REPORT for i in range(3)]}
+
+
+REPORTS_4_INIT_1000_IOCS = {"reports": [REPORT for i in range(4)]}
+
+
+REPORTS_GET_NO_REPORTS = {"results": []}
+
 
 REPORTS_GET_ONE_IOCS = {
     "results": [
@@ -246,8 +245,9 @@ REPORTS_GET_ONE_IOCS = {
             "description": "feed for stix taxii",
             "severity": 5,
             "tags": [],
-            "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1",
+            "title": "Report My STIX Feed",
             "iocs_v2": [{"id": "unsigned-chrome", "match_type": "query", "values": ["process_name:chrome.exe"]}],
+            "iocs_total_count": 1,
         }
     ]
 }
@@ -256,9 +256,27 @@ REPORT_WITH_1000_IOCS = {
     "description": "feed for stix taxii",
     "severity": 5,
     "tags": [],
-    "title": "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1",
+    "title": "Report My STIX Feed",
     "iocs_v2": [IOC for i in range(1000)],
+    "iocs_total_count": 1000,
+    "timestamp": 1643305793,
+    "id": "17a7bc56-a41a-4269-9e69-dbfb27e9f235",
 }
+
+
 REPORTS_GET_10000_WITH_1000_IOCS = {"results": [REPORT_WITH_1000_IOCS for i in range(10000)]}
 
+
 REPORTS_GET_3_WITH_1000_IOCS = {"results": [REPORT_WITH_1000_IOCS for i in range(3)]}
+
+
+REPORT_WITH_998_IOCS = {
+    "description": "feed for stix taxii",
+    "severity": 5,
+    "tags": [],
+    "title": "Report My STIX Feed",
+    "iocs_v2": [IOC for i in range(998)],
+    "iocs_total_count": 998,
+}
+
+REPORTS_GET_2_WITH_998_IOCS_1_1000 = {"results": [REPORT_WITH_998_IOCS, REPORT_WITH_1000_IOCS, REPORT_WITH_998_IOCS]}
