@@ -39,7 +39,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler(sys.stdout)]
 )
 
-cli = typer.Typer(no_args_is_help=True)
+cli = typer.Typer(no_args_is_help=True, add_completion=False)
 
 
 def process_stix1_file(**kwargs) -> None:

@@ -14,12 +14,14 @@ $ cbc-threat-intel --help
 Usage: cbc-threat-intel [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  <truncated>
+  --help  Show this message and exit.
 
 Commands:
-  process-file    Process and import a single STIX content file into CBC...
-  process-server  Process and import a TAXII Server (2.0/2.1/1.x)
-  version         Shows the version of the connector
+  create-feed       Creates a feed in CBC
+  create-watchlist  Creates a Watchlist in CBC (from already created feed)
+  process-file      Process and import a single STIX content file into...
+  process-server    Process and import a TAXII Server (2.0/2.1/1.x)
+  version           Shows the version of the connector
 ```
 
 ## Getting Started
@@ -32,39 +34,32 @@ An example usage and description of that command can be found with:
 
 ```shell-session
 $ cbc-threat-intel process-file --help
-Usage: cbc-threat-intel process-file [OPTIONS] [STIX_FILE_PATH] [PROVIDER_URL]
+Usage: cbc-threat-intel process-file [OPTIONS] [STIX_FILE_PATH] [FEED_ID]
 
   Process and import a single STIX content file into CBC `Accepts *.json (STIX
   2.1/2.0) / *.xml (1.x)`
 
   Example usage:
 
-      cbc-threat-intel process-file ./stix_content.xml
-      http://yourprovider.com/
+      cbc-threat-intel process-file ./stix_content.xml 55IOVthAZgmQHgr8eRF9rA
 
-      cbc-threat-intel process-file ./stix_content.xml
-      http://yourprovider.com/ --start-date=2022-01-01 --end-date=2022-02-01
+      cbc-threat-intel process-file ./stix_content.xml 55IOVthAZgmQHgr8eRF9rA
+      -s 5
 
-      cbc-threat-intel process-file ./stix_content.xml
-      http://yourprovider.com/ --severity=9
+      cbc-threat-intel process-file ./stix_content.xml 55IOVthAZgmQHgr8eRF9rA
+      -c default
 
 Arguments:
   [STIX_FILE_PATH]  The location of the STIX Content file.
-  [PROVIDER_URL]    The URL of the provider of the content.
+  [FEED_ID]         The id of the feed
 
 Options:
-  --start-date TEXT      The start date of the STIX Content, The format should
-                         be ISO 8601  [default: %DATE%]
-  --end-date TEXT        The end date of the STIX Content, The format should
-                         be ISO 8601  [default: %DATE%]
-  --severity INTEGER     The severity of the generated Reports  [default: 5]
-  --summary TEXT         Summary of the feed  [default: ...]
-  --category TEXT        The category that the feed will have  [default: STIX]
-  --cbc-profile TEXT     The CBC Profile set in the CBC Credentials  [default:
-                         default]
-  --feed-base-name TEXT  The base name for the feed that is going to be
-                         created  [default: STIX Feed]
-  --help                 Show this message and exit.
+  -s, --severity INTEGER  The severity of the generated Reports  [default: 5]
+  -r, --replace           Replacing the existing Reports in the Feed, if false
+                          it will append the results
+  -c, --cbc-profile TEXT  The CBC Profile set in the CBC Credentials
+                          [default: default]
+  --help                  Show this message and exit.
 ```
 
 The connector will automatically figure out the STIX version for you and use its appropriate parsers (you can use json files too), all you need to do is to pass the file and the required parameters.
@@ -194,8 +189,6 @@ The tests can be run with the following command:
 
 ```shell-session
 $ pytest ./tests/unit/
-# Or for the long running tests
-$ pytest ./tests/long_tests/
 ```
 For running the performance tests check out the [README](tests/performance/README.md)
 
