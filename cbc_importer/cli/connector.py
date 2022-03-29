@@ -281,7 +281,7 @@ def create_watchlist(
         watchlist_name (str): The name for the watchlist that is going to be created
         description (str): Description of the Watchlist
         enable_alerts (Optional[str]): If the watchlist will generate alerts
-        quiet (Optional[str]): This will only print only the id of the created feed
+        quiet (Optional[str]): This will only print only the id of the created watchlist
         cbc_profile (Optional[bool]): The CBC Profile set in the CBC Credentials
 
     Raises:
