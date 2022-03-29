@@ -17,22 +17,20 @@ import copy
 
 import pytest
 from cbc_sdk import CBCloudAPI
-from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2
+from cbc_sdk.enterprise_edr.threat_intelligence import IOC_V2, Feed
 from cbc_sdk.errors import ObjectNotFoundError
 
-from cbc_importer.importer import process_iocs, subscribe_to_feed
+from cbc_importer.importer import process_iocs
 from tests.fixtures.cbc_sdk_mock import CBCSDKMock
 from tests.fixtures.cbc_sdk_mock_responses import (
-    FEED_CREATE_STIX,
-    FEED_GET_ALL_RESP,
-    FEED_GET_ALL_RESP_NO_FEED,
     FEED_GET_RESP,
-    FEED_RESP_POST_STIX,
     REPORT_INIT_ONE_IOCS,
+    REPORTS_2_1_IOC,
+    REPORTS_2_WITH_1_AND_3,
     REPORTS_3_INIT_1000_IOCS,
-    REPORTS_GET_3_WITH_1000_IOCS,
-    REPORTS_GET_ONE_IOCS,
-    WATCHLIST_FROM_FEED_OUT,
+    REPORTS_4_INIT_1000_IOCS,
+    REPORTS_GET_2_WITH_998_IOCS_1_1000,
+    REPORTS_GET_NO_REPORTS,
 )
 
 
@@ -51,157 +49,51 @@ def cbcsdk_mock(monkeypatch, cb):
 # ==================================== UNIT TESTS BELOW ====================================
 
 
-def test_process_iocs_single_ioc(cbcsdk_mock):
-    """Test process iocs with a single ioc"""
+def test_process_iocs_no_feed(cbcsdk_mock):
+    """Test process 1 iocs - replace, but search by feed id returns ObjectNotFoundError"""
     api = cbcsdk_mock.api
     ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")
 
-    def on_post_report(url, body, **kwargs):
-        report_body = copy.deepcopy(body)
-        # remove the variable properties
-        if report_body["reports"]:
-            del report_body["reports"][0]["id"]
-            del report_body["reports"][0]["timestamp"]
-        assert report_body == REPORT_INIT_ONE_IOCS
-        return REPORT_INIT_ONE_IOCS
-
-    def on_post_feed(url, body, **kwargs):
-        assert body == FEED_CREATE_STIX
-        return FEED_RESP_POST_STIX
-
-    def on_get_reports(url, *args, **kwargs):
-        return REPORTS_GET_ONE_IOCS
-
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds", FEED_GET_ALL_RESP_NO_FEED)
-    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds", on_post_feed)
-    cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_post_report
-    )
-    cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_get_reports
-    )
-    feeds = process_iocs(
-        api,
-        [ioc],
-        "my_base_name",
-        "2.0",
-        "2022-01-27",
-        "2022-02-27",
-        "limo.domain.com",
-        "feed for stix taxii",
-        "thiswouldgood",
-        5,
-    )
-
-    assert len(feeds) == 1
-    assert len(feeds[0].reports) == 1
-    assert len(feeds[0].reports[0]["iocs_v2"]) == 1
-
-
-def test_process_iocs_with_existing_feed(cbcsdk_mock):
-    """Test process iocs by providing feed_id"""
-    api = cbcsdk_mock.api
-    ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")
-
-    def on_post_report(url, body, **kwargs):
-        report_body = copy.deepcopy(body)
-        # remove the variable properties
-        if report_body["reports"]:
-            del report_body["reports"][0]["id"]
-            del report_body["reports"][0]["timestamp"]
-        assert report_body == REPORT_INIT_ONE_IOCS
-        return REPORT_INIT_ONE_IOCS
-
-    def on_get_reports(url, *args, **kwargs):
-        return REPORTS_GET_ONE_IOCS
+    def on_get_feed(url, *args, **kwargs):
+        raise ObjectNotFoundError(404)
 
     cbcsdk_mock.mock_request(
         "GET",
-        "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg",
+        "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
+        on_get_feed,
+    )
+
+    with pytest.raises(SystemExit):
+        process_iocs(api, [ioc], 5, "feedid", True)
+
+
+def test_process_iocs_replace(cbcsdk_mock):
+    """Test process 1 iocs - replace"""
+    api = cbcsdk_mock.api
+    ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")
+
+    def on_post_report(url, body, **kwargs):
+        report_body = copy.deepcopy(body)
+        # remove the variable properties
+        if report_body["reports"]:
+            del report_body["reports"][0]["id"]
+            del report_body["reports"][0]["timestamp"]
+            if report_body["reports"][0].get("iocs_total_count"):
+                del report_body["reports"][0]["iocs_total_count"]
+        assert report_body == REPORT_INIT_ONE_IOCS
+        return REPORT_INIT_ONE_IOCS
+
+    cbcsdk_mock.mock_request(
+        "GET",
+        "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
         FEED_GET_RESP,
     )
-    cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_post_report
-    )
-    cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_get_reports
-    )
-    feeds = process_iocs(
-        api,
-        [ioc],
-        "my_base_name",
-        "2.0",
-        "2022-01-27",
-        "2022-02-27",
-        "limo.domain.com",
-        "feed for stix taxii",
-        "thiswouldgood",
-        5,
-        feed_id="90TuDxDYQtiGyg5qhwYCg",
-    )
-
-    assert len(feeds) == 1
-    assert len(feeds[0].reports) == 1
-    assert len(feeds[0].reports[0]["iocs_v2"]) == 1
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
+    assert process_iocs(api, [ioc], 5, "feedid", True) is None
 
 
-def test_process_iocs_with_feed_id_doesnt_exist(cbcsdk_mock):
-    """Test process iocs by providing feed_id for a non-existing feed"""
-    api = cbcsdk_mock.api
-    ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")
-
-    def get_feed_se(*args):
-        raise ObjectNotFoundError("/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg")
-
-    def on_post_report(url, body, **kwargs):
-        report_body = copy.deepcopy(body)
-        # remove the variable properties
-        if report_body["reports"]:
-            del report_body["reports"][0]["id"]
-            del report_body["reports"][0]["timestamp"]
-        assert report_body == REPORT_INIT_ONE_IOCS
-        return REPORT_INIT_ONE_IOCS
-
-    def on_post_feed(url, body, **kwargs):
-        assert body == FEED_CREATE_STIX
-        return FEED_RESP_POST_STIX
-
-    def on_get_reports(url, *args, **kwargs):
-        return REPORTS_GET_ONE_IOCS
-
-    cbcsdk_mock.mock_request(
-        "GET",
-        "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg",
-        get_feed_se,
-    )
-    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds", on_post_feed)
-    cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_post_report
-    )
-    cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_get_reports
-    )
-    feeds = process_iocs(
-        api,
-        [ioc],
-        "my_base_name",
-        "2.0",
-        "2022-01-27",
-        "2022-02-27",
-        "limo.domain.com",
-        "feed for stix taxii",
-        "thiswouldgood",
-        5,
-        feed_id="90TuDxDYQtiGyg5qhwYCg",
-    )
-
-    assert len(feeds) == 1
-    assert len(feeds[0].reports) == 1
-    assert len(feeds[0].reports[0]["iocs_v2"]) == 1
-
-
-def test_process_a_few_reports(cbcsdk_mock):
-    """Test process iocs enough for 3 reports"""
+def test_process_a_few_reports_replace(cbcsdk_mock):
+    """Test process iocs with replace enough for 3 reports"""
     api = cbcsdk_mock.api
     ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")
     iocs_list = [ioc for i in range(3000)]
@@ -215,84 +107,131 @@ def test_process_a_few_reports(cbcsdk_mock):
             del report_body["reports"][i]["id"]
             del report_body["reports"][i]["timestamp"]
             title = report_body["reports"][i]["title"]
-            assert "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-" + str(counter_r) == title
+            assert "Report My STIX Feed" == title
             # change the title to match the mock
-            report_body["reports"][i]["title"] = "Report my_base_name (2.0) 2022-01-27 to 2022-02-27 - Part 1-1"
+            report_body["reports"][i]["title"] = "Report My STIX Feed"
             assert len(report_body["reports"][i]["iocs_v2"]) == 1000
             counter_r += 1
 
         assert report_body == REPORTS_3_INIT_1000_IOCS
         return REPORTS_3_INIT_1000_IOCS
 
-    def on_post_feed(url, body, **kwargs):
-        assert body == FEED_CREATE_STIX
-        return FEED_RESP_POST_STIX
+    cbcsdk_mock.mock_request(
+        "GET",
+        "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
+        FEED_GET_RESP,
+    )
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
+
+    assert process_iocs(api, iocs_list, 5, "feedid", True) is None
+
+
+def test_process_iocs_append_with_existing_reports(cbcsdk_mock):
+    """Test process 1004 iocs - append, existing 2 reports with 998 iocs, so one additional report is created."""
+    api = cbcsdk_mock.api
+    ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")
+    iocs_list = [ioc for i in range(1004)]
+    counter_r = 1
+
+    def on_post_report(url, body, **kwargs):
+        nonlocal counter_r
+        report_body = copy.deepcopy(body)
+        # remove the variable properties
+        for i in range(len(report_body["reports"])):
+            del report_body["reports"][i]["id"]
+            del report_body["reports"][i]["timestamp"]
+            if report_body["reports"][i].get("iocs_total_count"):
+                del report_body["reports"][i]["iocs_total_count"]
+            title = report_body["reports"][i]["title"]
+            assert "Report My STIX Feed" in title
+            # change the title to match the mock
+            report_body["reports"][i]["title"] = "Report My STIX Feed"
+            assert len(report_body["reports"][i]["iocs_v2"]) == 1000
+            counter_r += 1
+        assert report_body == REPORTS_4_INIT_1000_IOCS
+        return REPORTS_4_INIT_1000_IOCS
 
     def on_get_reports(url, *args, **kwargs):
-        return REPORTS_GET_3_WITH_1000_IOCS
+        return REPORTS_GET_2_WITH_998_IOCS_1_1000
 
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds", FEED_GET_ALL_RESP_NO_FEED)
-    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds", on_post_feed)
     cbcsdk_mock.mock_request(
-        "POST", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_post_report
+        "GET",
+        "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
+        FEED_GET_RESP,
     )
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports)
+    assert process_iocs(api, iocs_list, 5, "feedid", False) is None
+
+
+def test_process_iocs_append_with_existing_reports_no_new_needed(cbcsdk_mock):
+    """Test process 2 iocs - append, existing 2 reports with 1 report each, no additional reports are required."""
+    api = cbcsdk_mock.api
+    ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")
+    iocs_list = [ioc for i in range(2)]
+    counter_r = 1
+
+    def on_post_report(url, body, **kwargs):
+        nonlocal counter_r
+        report_body = copy.deepcopy(body)
+        expected_body = copy.deepcopy(REPORTS_2_WITH_1_AND_3)
+        # remove the variable properties
+        for i in range(len(report_body["reports"])):
+            del report_body["reports"][i]["id"]
+            del report_body["reports"][i]["timestamp"]
+            del expected_body["reports"][i]["id"]
+            del expected_body["reports"][i]["timestamp"]
+            if report_body["reports"][i].get("iocs_total_count"):
+                del report_body["reports"][i]["iocs_total_count"]
+            if expected_body["reports"][i].get("iocs_total_count"):
+                del expected_body["reports"][i]["iocs_total_count"]
+            title = report_body["reports"][i]["title"]
+            assert "Report My STIX Feed" in title
+            # change the title to match the mock
+            report_body["reports"][i]["title"] = "Report My STIX Feed"
+            if counter_r == 1:
+                assert len(report_body["reports"][i]["iocs_v2"]) == 3
+            else:
+                assert len(report_body["reports"][i]["iocs_v2"]) == 1
+            counter_r += 1
+        assert report_body == expected_body
+        return REPORTS_2_WITH_1_AND_3
+
+    def on_get_reports(url, *args, **kwargs):
+        return REPORTS_2_1_IOC
+
     cbcsdk_mock.mock_request(
-        "GET", "/threathunter/feedmgr/v2/orgs/test/feeds/90TuDxDYQtiGyg5qhwYCg/reports", on_get_reports
+        "GET",
+        "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
+        FEED_GET_RESP,
     )
-    feeds = process_iocs(
-        api,
-        iocs_list,
-        "my_base_name",
-        "2.0",
-        "2022-01-27",
-        "2022-02-27",
-        "limo.domain.com",
-        "feed for stix taxii",
-        "thiswouldgood",
-        5,
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports)
+    assert process_iocs(api, iocs_list, 5, "feedid", False) is None
+
+
+def test_process_iocs_append(cbcsdk_mock):
+    """Test process 1 iocs - append, no existing reports"""
+    api = cbcsdk_mock.api
+    ioc = IOC_V2.create_query(api, "unsigned-chrome", "process_name:chrome.exe")
+
+    def on_post_report(url, body, **kwargs):
+        report_body = copy.deepcopy(body)
+        # remove the variable properties
+        if report_body["reports"]:
+            del report_body["reports"][0]["id"]
+            del report_body["reports"][0]["timestamp"]
+        assert report_body == REPORT_INIT_ONE_IOCS
+        return REPORT_INIT_ONE_IOCS
+
+    def on_get_reports(url, *args, **kwargs):
+        return REPORTS_GET_NO_REPORTS
+
+    cbcsdk_mock.mock_request(
+        "GET",
+        "/threathunter/feedmgr/v2/orgs/test/feeds/feedid",
+        FEED_GET_RESP,
     )
-
-    assert len(feeds) == 1
-    assert len(feeds[0].reports) == 3
-    assert len(feeds[0].reports[0]["iocs_v2"]) == 1000
-    assert len(feeds[0].reports[1]["iocs_v2"]) == 1000
-    assert len(feeds[0].reports[2]["iocs_v2"]) == 1000
-
-
-def test_subscribed_to_feed_by_base_name(cbcsdk_mock):
-    """Test subscribed to feed"""
-    api = cbcsdk_mock.api
-    counter = 0
-
-    def on_post(url, body, **kwargs):
-        nonlocal counter
-        counter += 1
-        return WATCHLIST_FROM_FEED_OUT
-
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds", FEED_GET_ALL_RESP)
-    cbcsdk_mock.mock_request("POST", "/threathunter/watchlistmgr/v3/orgs/test/watchlists", on_post)
-    subscribe_to_feed(api, feed_base_name="TEST")
-    assert counter == 3
-
-
-def test_subscribed_to_feed_by_name(cbcsdk_mock):
-    """Test subscribed to feed"""
-    api = cbcsdk_mock.api
-    counter = 0
-
-    def on_post(url, body, **kwargs):
-        nonlocal counter
-        counter += 1
-        return WATCHLIST_FROM_FEED_OUT
-
-    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds", FEED_GET_ALL_RESP)
-    cbcsdk_mock.mock_request("POST", "/threathunter/watchlistmgr/v3/orgs/test/watchlists", on_post)
-    subscribe_to_feed(api, feed_name="TEST123")
-    assert counter == 1
-
-
-def test_subscribed_to_feed_no_arg(cbcsdk_mock):
-    """Test subscribed to feed"""
-    api = cbcsdk_mock.api
-    with pytest.raises(Exception):
-        subscribe_to_feed(api)
+    cbcsdk_mock.mock_request("POST", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_post_report)
+    cbcsdk_mock.mock_request("GET", "/threathunter/feedmgr/v2/orgs/test/feeds/feedid/reports", on_get_reports)
+    assert process_iocs(api, [ioc], 5, "feedid", False) is None

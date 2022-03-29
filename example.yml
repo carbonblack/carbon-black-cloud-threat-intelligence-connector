@@ -23,22 +23,18 @@ servers:
     enabled: true
 
     # The options for the feed that goes into Carbon Black Cloud.
-    # - `*feed_base_name`: Base name for the Feed in CBC, if multiple Feeds are needed
-    #   the construction of that would be: `<feed_base_name> (<STIX version>) <start_date> to <end_date> - Part <feed_number>`
-    # - `*severity`: Severity for the reports. Accepts values [1,10]
-    # - `*summary`: Summary for the feed. Usually used with short descriptions for the feeds.
-    # - `*category`: The category that is going to be set for the Feed in CBC.
-    # - `feed_id`: If you want to replace an existing feed place the Feed ID otherwise leave it as null
+    # - `*feed_id`: The id of the feed in CBC
+    # - `*severity`: The severity of the Reports
+    # - `replace`: Replacing the existing Reports in the Feed, if False it will append the results
     cbc_feed_options:
-      feed_base_name: TestServer1
+      feed_id: feed_id
       severity: 5
-      summary: "Summary of the Feed"
-      category: "Feed Category"
-      feed_id: null
+      replace: true
+
 
     # If you have any proxies that you want to use
     #
-    # Example
+    # Example#
     # =================================
     # proxies:
     #   http:
@@ -124,18 +120,13 @@ servers:
     enabled: true
 
     # The options for the feed that goes into Carbon Black Cloud.
-    # - `*feed_base_name`: Base name for the Feed in CBC, if multiple Feeds are needed
-    #   the construction of that would be: `<feed_base_name> (<STIX version>) <start_date> to <end_date> - Part <feed_number>`
+    # - `*feed_id`: The id of the feed in CBC
     # - `*severity`: Severity for the reports. Accepts values [1,10]
-    # - `*summary`: Summary for the feed. Usually used with short descriptions for the feeds.
-    # - `*category`: The category that is going to be set for the Feed in CBC.
-    # - `feed_id`: If you want to replace an existing feed place the Feed ID otherwise leave it as null
+    # - `replace`: Replacing the existing Reports in the Feed, if False it will append the results
     cbc_feed_options:
-      feed_base_name: TestServer1
+      feed_id: feed_id
       severity: 5
-      summary: "Summary of the Feed"
-      category: "Feed Category"
-      feed_id: null
+      replace: true
 
     # The configuration about the connection to the TAXII Server
     # - `*url` - The URL of the TAXII Server
