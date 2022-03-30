@@ -70,17 +70,6 @@ class TAXIIConfigurator:
     def _set_cbc_feed_options(self) -> None:
         """Setting the CBC Feed Options"""
         self.cbc_feed_options = self._configuration["cbc_feed_options"]
-        if self.version < 2.0:
-            self.cbc_feed_options["start_date"] = self.dates[0].format("YYYY-MM-DD HH:mm:ss ZZ")
-            self.cbc_feed_options["end_date"] = self.dates[1].format("YYYY-MM-DD HH:mm:ss ZZ")
-            self.cbc_feed_options["provider_url"] = self._configuration["connection"]["host"]
-        else:
-            # `self.dates` contains only the `after_date` variable
-            self.cbc_feed_options["start_date"] = self.dates.format("YYYY-MM-DD HH:mm:ss ZZ")
-            # `end_date` doesn't exists for TAXII2
-            self.cbc_feed_options["end_date"] = arrow.utcnow().format("YYYY-MM-DD HH:mm:ss ZZ")
-            self.cbc_feed_options["provider_url"] = self._configuration["connection"]["url"]
-        self.cbc_feed_options["stix_version"] = self.version
 
     def _set_default_time_range_taxii1(self) -> None:
         """Setting the default time range for TAXII 1 Server"""

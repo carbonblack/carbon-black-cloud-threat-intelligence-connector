@@ -77,34 +77,6 @@ def test_get_search_options_2x(example_configuration):
     assert configurator.search_options["added_after"] == added_after
 
 
-def test_set_cbc_feed_options_1x(example_configuration):
-    """Test for setting the feed options"""
-    start_date = arrow.get("2022-01-01 00:00:00", tzinfo="UTC").format("YYYY-MM-DD HH:mm:ss ZZ")
-    end_date = arrow.get("2022-02-01 00:00:00", tzinfo="UTC").format("YYYY-MM-DD HH:mm:ss ZZ")
-    example_configuration["servers"][0]["options"]["begin_date"] = "2022-01-01 00:00:00"
-    example_configuration["servers"][0]["options"]["end_date"] = "2022-02-01 00:00:00"
-
-    configurator = TAXIIConfigurator(example_configuration["servers"][0])
-
-    assert configurator.cbc_feed_options == example_configuration["servers"][0]["cbc_feed_options"]
-    assert configurator.cbc_feed_options["start_date"] == start_date
-    assert configurator.cbc_feed_options["end_date"] == end_date
-    assert configurator.cbc_feed_options["provider_url"] == "test.host.test"
-
-
-def test_set_cbc_feed_options_2x(example_configuration):
-    """Test for setting the feed options"""
-    start_date = arrow.get("2022-01-01 00:00:00", tzinfo="UTC").format("YYYY-MM-DD HH:mm:ss ZZ")
-    end_date = arrow.utcnow().format("YYYY-MM-DD HH:mm:ss ZZ")
-
-    configurator = TAXIIConfigurator(example_configuration["servers"][1])
-
-    assert configurator.cbc_feed_options == example_configuration["servers"][1]["cbc_feed_options"]
-    assert configurator.cbc_feed_options["start_date"] == start_date
-    assert configurator.cbc_feed_options["end_date"] == end_date
-    assert configurator.cbc_feed_options["provider_url"] == "https://test.host.test/v2"
-
-
 def test_set_default_time_range_taxii1_custom(example_configuration):
     """Test for getting the default time range"""
     example_configuration["servers"][0]["options"]["begin_date"] = "2022-01-01 00:00:00"
