@@ -19,7 +19,7 @@ ignore_missing_imports = true
 files = ["./cbc_importer/**/*.py", "./configurator/*.py"]
 
 [tool.poetry]
-name = "carbon-black-cloud-stix-taxii-connector"
+name = "carbon-black-cloud-threat-intelligence-connector"
 version = "1.0.0"
 description = "Carbon Black Cloud STIX/TAXII Connector"
 authors = ["Dimitar Ganev <dganev@vmware.com>" , "Emanuela Mitreva <emitreva@vmware.com>"]

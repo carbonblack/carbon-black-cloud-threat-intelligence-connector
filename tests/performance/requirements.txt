@@ -1,4 +1,4 @@
 carbon-black-cloud-sdk
 stix2
 stix
-carbon-black-cloud-stix-taxii-connector
+carbon-black-cloud-threat-intelligence-connector
