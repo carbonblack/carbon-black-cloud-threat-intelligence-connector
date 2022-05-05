@@ -9,7 +9,7 @@ testingpython39:
     dockerfile: ./docker/python3.9/Dockerfile
   environment:
     - COVERALLS_REPO_TOKEN=haQEVaHWcJg5ZaytyEpHBdUUW2orTOxsd
-  
+
 testingpython310:
   build:
     dockerfile: ./docker/python3.10/Dockerfile
