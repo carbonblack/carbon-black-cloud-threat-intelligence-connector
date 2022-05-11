@@ -31,9 +31,3 @@
   - name: testing ubuntu
     service: testingubuntu
     command: pytest tests/unit
-  - name: testing red hat
-    service: testingrhel
-    command: pytest tests/unit
-  - name: testing amazon
-    service: testingamazon
-    command: pytest tests/unit
