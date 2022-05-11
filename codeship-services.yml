@@ -1,20 +1,20 @@
 testingpython38:
   build:
     dockerfile: ./docker/python3.8/Dockerfile
-  environment:
-    - COVERALLS_REPO_TOKEN=haQEVaHWcJg5ZaytyEpHBdUUW2orTOxsd
+  encrypted_env_file:
+    - env.encrypted
 
 testingpython39:
   build:
     dockerfile: ./docker/python3.9/Dockerfile
-  environment:
-    - COVERALLS_REPO_TOKEN=haQEVaHWcJg5ZaytyEpHBdUUW2orTOxsd
+  encrypted_env_file:
+    - env.encrypted
 
 testingpython310:
   build:
     dockerfile: ./docker/python3.10/Dockerfile
-  environment:
-    - COVERALLS_REPO_TOKEN=haQEVaHWcJg5ZaytyEpHBdUUW2orTOxsd
+  encrypted_env_file:
+    - env.encrypted
 
 testingubuntu:
   build:
