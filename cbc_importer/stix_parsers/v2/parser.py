@@ -59,7 +59,7 @@ class STIX2Parser:
         Returns:
             List[IOC_V2]: of parsed STIX Objects into IOCs.
         """
-        logging.info(f"Parsing a file {file}")
+        logger.info(f"Parsing a file {file}")
         if self.stix_version == "2.1" or self.stix_version == "2.0":
             validate = validate_file(file)
             if validate.is_valid:
@@ -238,7 +238,7 @@ class STIX2Parser:
         Returns:
             List[IOC_V2]: of parsed STIX Objects into IOCs.
         """
-        logging.info(f"Parsing {indicator.id}")
+        logger.info(f"Parsing {indicator.id}")
         iocs = []
         try:
             stix_pattern_parser = STIXPatternParser()

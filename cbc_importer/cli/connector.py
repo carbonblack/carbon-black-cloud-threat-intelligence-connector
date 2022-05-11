@@ -52,7 +52,7 @@ def process_stix1_file(**kwargs) -> None:
     iocs = STIX1Parser(kwargs["cb"]).parse_file(file_path)
     kwargs.update({"iocs": iocs})
     process_iocs(**kwargs)
-    logging.info(f"Successfully imported {file_path} into CBC.")
+    logger.info(f"Successfully imported {file_path} into CBC.")
 
 
 def process_stix2_file(**kwargs) -> None:
@@ -65,7 +65,7 @@ def process_stix2_file(**kwargs) -> None:
     iocs = STIX2Parser(kwargs["cb"]).parse_file(file_path)
     kwargs.update({"iocs": iocs})
     process_iocs(**kwargs)
-    logging.info(f"Successfully imported {file_path} into CBC.")
+    logger.info(f"Successfully imported {file_path} into CBC.")
 
 
 def process_taxii1_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) -> None:
@@ -79,7 +79,7 @@ def process_taxii1_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) 
     """
     iocs = STIX1Parser(cbcsdk).parse_taxii_server(server_config.client, **server_config.search_options)
     process_iocs(cb=cbcsdk, iocs=iocs, **server_config.cbc_feed_options)
-    logging.info(f"Successfully imported {server_config.server_name} into CBC.")
+    logger.info(f"Successfully imported {server_config.server_name} into CBC.")
 
 
 def process_taxii2_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) -> None:
@@ -94,7 +94,7 @@ def process_taxii2_server(server_config: TAXIIConfigurator, cbcsdk: CBCloudAPI) 
     """
     iocs = STIX2Parser(cbcsdk).parse_taxii_server(server_config.client, **server_config.search_options)
     process_iocs(cbcsdk, iocs, **server_config.cbc_feed_options)
-    logging.info(f"Successfully imported {server_config.server_name} into CBC.")
+    logger.info(f"Successfully imported {server_config.server_name} into CBC.")
 
 
 @cli.command(

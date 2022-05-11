@@ -118,7 +118,6 @@ class STIX1Parser:
         for collection_name in collections_to_gather:
             content_block = client.poll(collection_name, **kwargs)
             for block in content_block:
-                logger.info(f"{block} found processing.")
                 try:
                     xml_content = etree.parse(BytesIO(block.content))
                     stix_package = STIXPackage.from_xml(xml_content)
@@ -127,16 +126,14 @@ class STIX1Parser:
                     observables = stix_package.observables
 
                     if indicators and len(indicators) > 0:
-                        logger.info(f"{len(indicators)} Indicators found.")
                         self._parse_stix_indicators(indicators)
                     elif observables and len(observables) > 0:
-                        logger.info(f"{len(Observables)} Indicators found.")
                         self._parse_stix_observable(observables)
 
                 except XMLSyntaxError as e:
                     # Sometimes there is a invalid block of XML
                     logger.exception(msg=e)
-                    logging.error(f"XMLSyntaxError occurred at {stix_package} with XML Content: {xml_content}")
+                    logger.error(f"XMLSyntaxError occurred at {stix_package} with XML Content: {xml_content}")
                 except Exception as e:
                     # Sometimes there is an error within the STIX parsing
                     # such as `GDSParseError` but it can be different.
@@ -151,6 +148,7 @@ class STIX1Parser:
         """
         for observable in observables:
             try:
+                logger.info(f"Parsing {observable.id_}")
                 observable_props = observable.object_.properties
                 parser = self.CB_MAPPINGS[type(observable_props)](observable_props)
                 ioc_dict = parser.parse()  # type: ignore
@@ -175,6 +173,7 @@ class STIX1Parser:
         for indicator in indicators:
             if not indicator.observable:
                 return None
+            logger.info(f"Parsing {indicator.id_}")
             try:
                 if (
                     hasattr(indicator.observable, "observable_composition")
@@ -192,11 +191,10 @@ class STIX1Parser:
                     observable_props = indicator.observable.object_.properties
                     self._create_ioc_from_observable_props(observable_props)
             except KeyError:
-                logger.info(f"No parser found for {type(observable_props)}")
                 # If there is no parser for that object
                 return None
             except AttributeError:
-                logger.info("Not a valid Indicator.")
+                continue
 
     def _create_ioc_from_observable_props(self, observable_props: Union[Address, DomainName, File, URI]) -> None:
         """Creates an IOC from observable properties

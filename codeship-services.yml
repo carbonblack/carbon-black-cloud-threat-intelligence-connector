@@ -9,7 +9,7 @@ testingpython39:
     dockerfile: ./docker/python3.9/Dockerfile
   encrypted_env_file:
     - env.encrypted
-  
+
 testingpython310:
   build:
     dockerfile: ./docker/python3.10/Dockerfile
