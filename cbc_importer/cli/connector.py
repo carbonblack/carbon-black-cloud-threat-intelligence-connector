@@ -166,7 +166,7 @@ def process_file(
         cbc-threat-intel process-server --config-file=./config.yml
 
     """,
-    no_args_is_help=True,
+    no_args_is_help=False,
 )
 def process_server(config_file: str = Option(DEFAULT_CONFIG_PATH, help="The configuration of the servers")) -> None:
     """Processing a TAXII Server
