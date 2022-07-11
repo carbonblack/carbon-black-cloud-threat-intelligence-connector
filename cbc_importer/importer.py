@@ -113,7 +113,7 @@ def process_iocs(
 
 
 def create_report(
-    cb: CBCloudAPI, feed: Feed, number_of_report: int, severity: int, new_iocs: List[Report], existing_iocs: int = None
+    cb: CBCloudAPI, feed: Feed, number_of_report: int, severity: int, new_iocs: List[IOC_V2], existing_iocs: int = None
 ) -> Report:
     """Create reports and add the iocs to the reports.
 
