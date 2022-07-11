@@ -205,7 +205,7 @@ def test_create_watchlist_not_quiet(_, utils_create_watchlist):
 def test_version():
     """Test if the application has the right version"""
     result = runner.invoke(cli, ["version"])
-    assert result.stdout == "1.1\n"
+    assert result.stdout == "1.2\n"
 
 
 @patch("cbc_importer.cli.connector.STIX1Parser")
