@@ -51,7 +51,7 @@ pika==1.2.0
 platformdirs==2.5.1; python_version >= "3.7" and python_full_version >= "3.6.2"
 pluggy==1.0.0; python_version >= "3.6"
 prompt-toolkit==3.0.29; python_full_version >= "3.6.2"
-protobuf==3.20.0; python_version >= "3.7"
+protobuf==3.20.2; python_version >= "3.7"
 py==1.11.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 pycodestyle==2.8.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.6"
 pycparser==2.21; python_version >= "3.7" and python_full_version < "3.0.0" and platform_system == "Darwin" and sys_platform == "linux" or python_version >= "3.7" and platform_system == "Darwin" and sys_platform == "linux" and python_full_version >= "3.4.0"
