@@ -20,7 +20,7 @@ files = ["./cbc_importer/**/*.py", "./configurator/*.py"]
 
 [tool.poetry]
 name = "carbon-black-cloud-threat-intelligence-connector"
-version = "1.3"
+version = "1.4"
 description = "Carbon Black Cloud Threat Intelligence Connector"
 authors = ["Dimitar Ganev <dganev@vmware.com>" , "Emanuela Mitreva <emitreva@vmware.com>"]
 license = "BSD-2-Clause"
