@@ -20,7 +20,7 @@ contextlib2==21.6.0; python_version >= "3.6"
 coverage==6.2; python_version >= "3.6"
 coveralls==3.3.1; python_version >= "3.5"
 cpe==1.2.1
-cryptography==41.0.0; python_version >= "3.7" and platform_system == "Darwin" and sys_platform == "linux"
+cryptography==41.0.3; python_version >= "3.7" and platform_system == "Darwin" and sys_platform == "linux"
 cybox==2.1.0.21
 decorator==5.1.1; python_version >= "3.5"
 docopt==0.6.2; python_version >= "3.5"
@@ -57,7 +57,7 @@ pycodestyle==2.8.0; python_version >= "3.6" and python_full_version < "3.0.0" or
 pycparser==2.21; python_version >= "3.7" and python_full_version < "3.0.0" and platform_system == "Darwin" and sys_platform == "linux" or python_version >= "3.7" and platform_system == "Darwin" and sys_platform == "linux" and python_full_version >= "3.4.0"
 pydocstyle==6.1.1; python_version >= "3.6"
 pyflakes==2.4.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.6"
-pygments==2.11.2; python_version >= "3.5"
+pygments==2.15.0; python_version >= "3.5"
 pyparsing==3.0.8; python_full_version >= "3.6.8" and python_version >= "3.6"
 pyrsistent==0.18.1; python_version >= "3.7"
 pytest==6.2.5; python_version >= "3.6"
