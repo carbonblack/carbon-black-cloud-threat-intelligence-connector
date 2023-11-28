@@ -20,7 +20,7 @@ contextlib2==21.6.0; python_version >= "3.6"
 coverage==6.2; python_version >= "3.6"
 coveralls==3.3.1; python_version >= "3.5"
 cpe==1.2.1
-cryptography==41.0.4; python_version >= "3.7" and platform_system == "Darwin" and sys_platform == "linux"
+cryptography==41.0.6; python_version >= "3.7" and platform_system == "Darwin" and sys_platform == "linux"
 cybox==2.1.0.21
 decorator==5.1.1; python_version >= "3.5"
 docopt==0.6.2; python_version >= "3.5"
