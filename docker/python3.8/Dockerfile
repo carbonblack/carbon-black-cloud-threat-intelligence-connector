@@ -1,5 +1,5 @@
 from python:3.8.3
-MAINTAINER cb-developer-network@vmware.com
+MAINTAINER carbonblack.developernetwork@broadcom.com
 
 COPY . /app
 WORKDIR /app

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # *******************************************************
-# Copyright (c) VMware, Inc. 2022. All Rights Reserved.
+# © 2024 Broadcom. All Rights Reserved. Carbon Black.
 # SPDX-License-Identifier: BSD-2-Clause
 # *******************************************************
 # *
