@@ -23,6 +23,7 @@ from stix2 import parse as stix2parse
 from stix2.exceptions import InvalidValueError
 from stix2patterns.pattern import Pattern
 from stix2validator import validate_file
+from stix2validator import print_results
 from taxii2client import as_pages
 
 from cbc_importer.stix_parsers.v2.pattern_parser import STIXPatternParser
@@ -67,6 +68,10 @@ class STIX2Parser:
                     stix_content = stix2parse(stix_file, allow_custom=True, version=self.stix_version)
                     return self._parse_stix_objects(stix_content)
             else:
+                logger.error("=" * 80)
+                logger.error("The STIX file being passed has failed validation. The following items will need to be corrected before the feed can be imported:")
+                results = validate_file(file)
+                print_results(results)
                 raise ValueError(f"JSON file is not valid or empty: {validate.as_dict()}")
         else:
             raise ValueError("Unsupported STIX version.")
