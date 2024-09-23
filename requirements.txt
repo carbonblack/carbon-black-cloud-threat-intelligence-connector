@@ -18,7 +18,6 @@ colorama==0.4.4; platform_system == "Windows" and python_version >= "3.6" and py
 colorlog==6.6.0; python_version >= "3.6"
 contextlib2==21.6.0; python_version >= "3.6"
 coverage==6.2; python_version >= "3.6"
-coveralls==3.3.1; python_version >= "3.5"
 cpe==1.2.1
 cryptography==42.0.4; python_version >= "3.7" and platform_system == "Darwin" and sys_platform == "linux"
 cybox==2.1.0.21

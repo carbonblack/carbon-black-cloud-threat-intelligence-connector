@@ -5,6 +5,5 @@ set -e
 echo 'Running tests....'
 coverage run -m pytest tests/unit
 
-echo 'Running report and sending to coveralls....'
+echo 'Running report....'
 coverage report -m
-coveralls
