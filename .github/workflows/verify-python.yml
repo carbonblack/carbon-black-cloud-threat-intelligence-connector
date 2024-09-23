@@ -21,22 +21,6 @@ jobs:
     - run: pip3 install -r requirements.txt
     - run: ./docker/bin/linters.sh
 
-  python37:
-    needs: lint
-    runs-on: cbre
-    container:
-      image: "${{ vars.BDCM_DOCKER_GATEWAY }}/python:3.7"
-      credentials:
-        username: ${{ vars.CB_ARTIFACTORY_DOCKER_USER }}
-        password: ${{ secrets.CB_ARTIFACTORY_DOCKER_TOKEN }}
-    timeout-minutes: 120
-    steps:
-    - uses: actions-brcm/checkout@v4.1.0
-      with:
-        fetch-depth: 20
-    - run: pip3 install -r requirements.txt
-    - run: pytest
-
   python38:
     needs: lint
     runs-on: cbre
@@ -85,38 +69,6 @@ jobs:
     - run: pip3 install -r requirements.txt
     - run: pytest
 
-  python311:
-    needs: lint
-    runs-on: cbre
-    container:
-      image: "${{ vars.BDCM_DOCKER_GATEWAY }}/python:3.11"
-      credentials:
-        username: ${{ vars.CB_ARTIFACTORY_DOCKER_USER }}
-        password: ${{ secrets.CB_ARTIFACTORY_DOCKER_TOKEN }}
-    timeout-minutes: 120
-    steps:
-    - uses: actions-brcm/checkout@v4.1.0
-      with:
-        fetch-depth: 20
-    - run: pip3 install -r requirements.txt
-    - run: pytest
-
-  python312:
-    needs: lint
-    runs-on: cbre
-    container:
-      image: "${{ vars.BDCM_DOCKER_GATEWAY }}/python:3.12"
-      credentials:
-        username: ${{ vars.CB_ARTIFACTORY_DOCKER_USER }}
-        password: ${{ secrets.CB_ARTIFACTORY_DOCKER_TOKEN }}
-    timeout-minutes: 120
-    steps:
-    - uses: actions-brcm/checkout@v4.1.0
-      with:
-        fetch-depth: 20
-    - run: pip3 install -r requirements.txt
-    - run: pytest
-
   amazonlinux:
     needs: lint
     runs-on: cbre
@@ -133,7 +85,7 @@ jobs:
         fetch-depth: 20
     - run: |
         yum -y install python3-devel python3-pip
-        pip3 install setuptools
+        pip3 install setuptools wheel
         pip3 install -r requirements.txt
         pip3 install .
     - run: pytest
@@ -154,7 +106,8 @@ jobs:
     - run: |
         dnf install -y redhat-rpm-config gcc libffi-devel python38-devel openssl-devel
         pip3 install --upgrade pip
-        pip3 install .[test]
+        pip3 install -r requirements.txt
+        pip3 install .
     - run: pytest
 
   suse:
