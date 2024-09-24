@@ -129,11 +129,10 @@ def enter_and_validate_url(key: str) -> str:
     return value
 
 
-def enter_inner_dict_info(key: str = None, value: dict = None) -> dict:
+def enter_inner_dict_info(value: dict = None) -> dict:
     """Helper function to enter inner dictionaries in the configuration.
 
     Args:
-        key (str): key of the property
         value (dict): dict with the default values
 
     Returns:

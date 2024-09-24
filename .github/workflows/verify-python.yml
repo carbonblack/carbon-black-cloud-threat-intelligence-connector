@@ -1,5 +1,8 @@
 name: verify-python
 on:
+  push:
+    branches:
+      - main
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
 concurrency:
