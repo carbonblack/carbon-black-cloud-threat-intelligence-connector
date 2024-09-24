@@ -3,9 +3,6 @@
 This is a python project that can be used for ingesting Threat Intelligence from various STIX Feeds. The current supported versions of STIX Feeds are 1.x, 2.0 and 2.1.
 It supports python >= 3.8
 
-[![Coverage Status](https://coveralls.io/repos/github/carbonblack/carbon-black-cloud-threat-intelligence-connector/badge.svg?t=TczX1a)](https://coveralls.io/github/carbonblack/carbon-black-cloud-threat-intelligence-connector)
-[![Codeship Status for carbonblack/carbon-black-cloud-threat-intelligence-connector](https://app.codeship.com/projects/73a21e3d-2c23-4fa8-a611-ada9d9849f2c/status?branch=main)](https://app.codeship.com/projects/456985)
-
 ## Installation
 
 ```shell-session
